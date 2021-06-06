@@ -1,0 +1,70 @@
+/*
+ * This file is part of Bisq.
+ *
+ * Bisq is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * Bisq is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package network.misq.presentation.offer;
+
+import lombok.extern.slf4j.Slf4j;
+import network.misq.account.TransferType;
+import network.misq.finance.ProtocolType;
+import network.misq.finance.contract.AssetTransfer;
+import network.misq.finance.offer.ReputationOptions;
+import network.misq.finance.offer.TransferOptions;
+import network.misq.presentation.formatters.AmountFormatter;
+import network.misq.presentation.formatters.DateFormatter;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+@Slf4j
+class OfferFormatter {
+    static String formatAmountWithMinAmount(long amount, Optional<Double> minAmountAsPercentage, String currencyCode) {
+        String minAmountString = minAmountAsPercentage
+                .map(e -> Math.round(amount * e))
+                .map(e -> AmountFormatter.formatAmount(e, currencyCode) + " - ")
+                .orElse("");
+        return minAmountString + formatAmount(amount, currencyCode);
+    }
+
+    static String formatAmount(long amount, String currencyCode) {
+        return AmountFormatter.formatAmount(amount, currencyCode);
+    }
+
+    static String formatDate(long date) {
+        return DateFormatter.formatDateTime(new Date(date));
+    }
+
+    static String formatProtocolTypes(List<? extends ProtocolType> protocolTypes) {
+        return protocolTypes.toString();
+    }
+
+    static String formatReputationOptions(Optional<ReputationOptions> reputationOptions) {
+        return reputationOptions.toString();
+    }
+
+    static String formatTransferOptions(Optional<TransferOptions> transferOptions) {
+        return transferOptions.map(e -> e.getBankName() + " / " + e.getCountyCodeOfBank()).orElse("-");
+    }
+
+    static String formatTransferTypes(List<TransferType> transferTypes) {
+        return transferTypes.toString();
+    }
+
+    static String formatAssetTransferType(AssetTransfer.Type assetTransferType) {
+        return assetTransferType.toString();
+    }
+}
