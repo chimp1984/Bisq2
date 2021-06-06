@@ -28,13 +28,13 @@ public class TooltipUtil {
         for (Object node : skinBase.getChildren()) {
             if (node instanceof Text) {
                 String displayedText = ((Text) node).getText();
-                String untruncatedText = labeled.getText();
-                if (displayedText.equals(untruncatedText)) {
+                String unTruncatedText = labeled.getText();
+                if (displayedText.equals(unTruncatedText)) {
                     if (labeled.getTooltip() != null) {
                         labeled.setTooltip(null);
                     }
-                } else if (untruncatedText != null && !untruncatedText.trim().isEmpty()) {
-                    final Tooltip tooltip = new Tooltip(untruncatedText);
+                } else if (unTruncatedText != null && !unTruncatedText.trim().isEmpty()) {
+                    final Tooltip tooltip = new Tooltip(unTruncatedText);
 
                     // Force tooltip to use color, as it takes in some cases the color of the parent label
                     // and can't be overridden by class or id

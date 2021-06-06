@@ -29,7 +29,7 @@ import network.misq.desktop.components.overlay.PopOverWrapper;
 public class AutoTooltipTableColumn<S, T> extends TableColumn<S, T> {
 
     private Label helpIcon;
-    private PopOverWrapper popoverWrapper = new PopOverWrapper();
+    private final PopOverWrapper popoverWrapper = new PopOverWrapper();
 
     public AutoTooltipTableColumn(String text) {
         super();

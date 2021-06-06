@@ -159,9 +159,10 @@ public class I2PDemoRunner {
                      Scanner scanner = new Scanner(inputStream)) {
                     while (scanner.hasNextLine()) {
                         String msg = scanner.nextLine();
-                        log.info("Inbound message\n" +
-                                        "Peer: {}\n" +
-                                        "Message: {}",
+                        log.info("""
+                                        Inbound message
+                                        Peer: {}
+                                        Message: {}""",
                                 clientSocket.getRemoteSocketAddress(),
                                 msg);
                         if (msg.equals("stop")) {
@@ -170,9 +171,7 @@ public class I2PDemoRunner {
                     }
                 } catch (IOException e) {
                     if (!(e instanceof SocketException)) {
-                        if (!(e instanceof SocketException)) {
-                            e.printStackTrace();
-                        }
+                        e.printStackTrace();
                     }
                 }
             }

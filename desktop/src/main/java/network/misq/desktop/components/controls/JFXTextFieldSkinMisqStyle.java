@@ -20,17 +20,17 @@ import java.lang.reflect.Field;
 
 public class JFXTextFieldSkinMisqStyle<T extends TextField & IFXLabelFloatControl> extends TextFieldSkin {
 
-    private double inputLineExtension;
+    private final double inputLineExtension;
     private boolean invalid = true;
 
     private Text promptText;
-    private Pane textPane;
-    private Node textNode;
-    private ObservableDoubleValue textRight;
-    private DoubleProperty textTranslateX;
+    private final Pane textPane;
+    private final Node textNode;
+    private final ObservableDoubleValue textRight;
+    private final DoubleProperty textTranslateX;
 
-    private ValidationPane<T> errorContainer;
-    private PromptLinesWrapper<T> linesWrapper;
+    private final ValidationPane<T> errorContainer;
+    private final PromptLinesWrapper<T> linesWrapper;
 
     public JFXTextFieldSkinMisqStyle(T textField, double inputLineExtension) {
         super(textField);
@@ -49,7 +49,7 @@ public class JFXTextFieldSkinMisqStyle<T extends TextField & IFXLabelFloatContro
                 textField.promptTextProperty(),
                 () -> promptText);
 
-        linesWrapper.init(() -> createPromptNode(), textPane);
+        linesWrapper.init(this::createPromptNode, textPane);
 
         ReflectionHelper.setFieldContent(TextFieldSkin.class, this, "usePromptText", linesWrapper.usePromptText);
 

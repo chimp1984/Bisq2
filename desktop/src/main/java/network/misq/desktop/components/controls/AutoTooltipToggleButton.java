@@ -42,7 +42,7 @@ public class AutoTooltipToggleButton extends ToggleButton {
         return new AutoTooltipToggleButtonSkin(this);
     }
 
-    private class AutoTooltipToggleButtonSkin extends ToggleButtonSkin {
+    private static class AutoTooltipToggleButtonSkin extends ToggleButtonSkin {
         public AutoTooltipToggleButtonSkin(ToggleButton toggleButton) {
             super(toggleButton);
         }

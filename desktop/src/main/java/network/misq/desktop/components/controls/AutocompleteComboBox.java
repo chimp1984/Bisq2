@@ -131,7 +131,7 @@ public class AutocompleteComboBox<T> extends JFXComboBox<T> {
     private void filterBy(String query) {
         ArrayList<T> newMatchingList = new ArrayList<>();
         for (T item : completeList)
-            if (asString(item).toLowerCase().equals(query.toLowerCase()))
+            if (asString(item).equalsIgnoreCase(query))
                 newMatchingList.add(item);
         matchingList = newMatchingList;
         setValue(null);

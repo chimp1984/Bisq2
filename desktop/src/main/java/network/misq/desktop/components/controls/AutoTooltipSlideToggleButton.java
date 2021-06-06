@@ -21,7 +21,7 @@ public class AutoTooltipSlideToggleButton extends JFXToggleButton {
         return new AutoTooltipSlideToggleButtonSkin(this);
     }
 
-    private class AutoTooltipSlideToggleButtonSkin extends JFXToggleButtonSkin {
+    private static class AutoTooltipSlideToggleButtonSkin extends JFXToggleButtonSkin {
         public AutoTooltipSlideToggleButtonSkin(JFXToggleButton toggleButton) {
             super(toggleButton);
         }

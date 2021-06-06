@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013 - 2015, ControlsFX
  * All rights reserved.
  * <p>
@@ -64,17 +64,17 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private boolean tornOff;
 
-    private Label title;
-    private Label closeIcon;
+    private final Label title;
+    private final Label closeIcon;
 
-    private Path path;
-    private BorderPane content;
-    private StackPane titlePane;
-    private StackPane stackPane;
+    private final Path path;
+    private final BorderPane content;
+    private final StackPane titlePane;
+    private final StackPane stackPane;
 
     private Point2D dragStartLocation;
 
-    private PopOver popOver;
+    private final PopOver popOver;
 
     public PopOverSkin(final PopOver popOver) {
 

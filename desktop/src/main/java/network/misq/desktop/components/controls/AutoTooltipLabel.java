@@ -38,7 +38,7 @@ public class AutoTooltipLabel extends Label {
         return new AutoTooltipLabelSkin(this);
     }
 
-    private class AutoTooltipLabelSkin extends LabelSkin {
+    private static class AutoTooltipLabelSkin extends LabelSkin {
 
         public AutoTooltipLabelSkin(Label label) {
             super(label);

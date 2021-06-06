@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, ControlsFX
  * All rights reserved.
  * <p>
@@ -104,7 +104,7 @@ public class PopOver extends PopupControl {
 
         ChangeListener<Object> repositionListener = new ChangeListener<Object>() {
             @Override
-            public void changed(ObservableValue<? extends Object> value,
+            public void changed(ObservableValue<?> value,
                                 Object oldObject, Object newObject) {
                 if (isShowing() && !isDetached()) {
                     show(getOwnerNode(), targetX, targetY);
@@ -179,7 +179,7 @@ public class PopOver extends PopupControl {
         contentNodeProperty().set(content);
     }
 
-    private InvalidationListener hideListener = new InvalidationListener() {
+    private final InvalidationListener hideListener = new InvalidationListener() {
         @Override
         public void invalidated(Observable observable) {
             if (!isDetached()) {
@@ -188,10 +188,10 @@ public class PopOver extends PopupControl {
         }
     };
 
-    private WeakInvalidationListener weakHideListener = new WeakInvalidationListener(
+    private final WeakInvalidationListener weakHideListener = new WeakInvalidationListener(
             hideListener);
 
-    private ChangeListener<Number> xListener = new ChangeListener<Number>() {
+    private final ChangeListener<Number> xListener = new ChangeListener<Number>() {
         @Override
         public void changed(ObservableValue<? extends Number> value,
                             Number oldX, Number newX) {
@@ -199,10 +199,10 @@ public class PopOver extends PopupControl {
         }
     };
 
-    private WeakChangeListener<Number> weakXListener = new WeakChangeListener<>(
+    private final WeakChangeListener<Number> weakXListener = new WeakChangeListener<>(
             xListener);
 
-    private ChangeListener<Number> yListener = new ChangeListener<Number>() {
+    private final ChangeListener<Number> yListener = new ChangeListener<Number>() {
         @Override
         public void changed(ObservableValue<? extends Number> value,
                             Number oldY, Number newY) {
@@ -210,7 +210,7 @@ public class PopOver extends PopupControl {
         }
     };
 
-    private WeakChangeListener<Number> weakYListener = new WeakChangeListener<>(
+    private final WeakChangeListener<Number> weakYListener = new WeakChangeListener<>(
             yListener);
 
     private Window ownerWindow;

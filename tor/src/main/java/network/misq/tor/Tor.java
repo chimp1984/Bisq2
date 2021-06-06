@@ -102,7 +102,7 @@ public class Tor {
         torController = new TorController(bootstrap.getCookieFile());
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Thread.currentThread().setName("Torify.shutdownHook");
+            Thread.currentThread().setName("Tor.shutdownHook");
             shutdown();
         }));
     }
@@ -245,7 +245,7 @@ public class Tor {
     }
 
     private ExecutorService getStartupExecutor() {
-        startupExecutor = ThreadingUtils.getSingleThreadExecutor("Torify.startAsync");
+        startupExecutor = ThreadingUtils.getSingleThreadExecutor("Tor.startAsync");
         return startupExecutor;
     }
 }

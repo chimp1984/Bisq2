@@ -60,7 +60,7 @@ class SamConnection {
         printWriter.flush();
 
         Reply reply = new Reply(bufferedReader.readLine());
-        log.debug("<< {}", reply.toString());
+        log.debug("<< {}", reply);
 
         //todo hide priv keys from logs
        /* if (!reply.startsWith("DEST REPLY ")) {

@@ -48,7 +48,7 @@ public class AutoTooltipButton extends JFXButton {
         return new AutoTooltipButtonSkin(this);
     }
 
-    private class AutoTooltipButtonSkin extends JFXButtonSkin {
+    private static class AutoTooltipButtonSkin extends JFXButtonSkin {
         public AutoTooltipButtonSkin(JFXButton button) {
             super(button);
         }
