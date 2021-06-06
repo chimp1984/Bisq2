@@ -119,8 +119,7 @@ public final class Coin implements Monetary, Comparable<Coin>, Serializable {
         checkArgument(cents < 100);
         checkArgument(cents >= 0);
         checkArgument(coins >= 0);
-        final Coin coin = COIN.multiply(coins).add(CENT.multiply(cents));
-        return coin;
+        return COIN.multiply(coins).add(CENT.multiply(cents));
     }
 
     /**

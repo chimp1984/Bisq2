@@ -88,7 +88,7 @@ public final class BtcFixedFormat extends BtcFormat {
         super((DecimalFormat) NumberFormat.getInstance(locale), minDecimals, groups);
         checkArgument(
                 scale <= SMALLEST_UNIT_EXPONENT,
-                "decimal cannot be shifted " + String.valueOf(scale) + " places"
+                "decimal cannot be shifted " + scale + " places"
         );
         this.scale = scale;
     }
@@ -199,7 +199,7 @@ public final class BtcFixedFormat extends BtcFormat {
             case -6:
                 return "Megacoin-";
             default:
-                return "Fixed (" + String.valueOf(scale) + ") ";
+                return "Fixed (" + scale + ") ";
         }
     }
 

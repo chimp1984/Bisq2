@@ -729,7 +729,7 @@ public abstract class BtcFormat extends Format {
          * {@link BtcAutoFormat} instances.
          */
         public Builder pattern(String val) {
-            if (localizedPattern != "")
+            if (!localizedPattern.equals(""))
                 throw new IllegalStateException("You cannot invoke both pattern() and localizedPattern()");
             pattern = val;
             return this;
@@ -765,7 +765,7 @@ public abstract class BtcFormat extends Format {
          * {@link BtcAutoFormat} instances.
          */
         public Builder localizedPattern(String val) {
-            if (pattern != "")
+            if (!pattern.equals(""))
                 throw new IllegalStateException("You cannot invoke both pattern() and localizedPattern().");
             localizedPattern = val;
             return this;
@@ -777,18 +777,18 @@ public abstract class BtcFormat extends Format {
          */
         public BtcFormat build() {
             BtcFormat f = variant.newInstance(this);
-            if (symbol != "" || code != "") {
+            if (!symbol.equals("") || !code.equals("")) {
                 synchronized (f.numberFormat) {
                     DecimalFormatSymbols defaultSigns = f.numberFormat.getDecimalFormatSymbols();
                     setSymbolAndCode(f.numberFormat,
-                            symbol != "" ? symbol : defaultSigns.getCurrencySymbol(),
-                            code != "" ? code : defaultSigns.getInternationalCurrencySymbol()
+                            !symbol.equals("") ? symbol : defaultSigns.getCurrencySymbol(),
+                            !code.equals("") ? code : defaultSigns.getInternationalCurrencySymbol()
                     );
                 }
             }
-            if (localizedPattern != "" || pattern != "") {
+            if (!localizedPattern.equals("") || !pattern.equals("")) {
                 int places = f.numberFormat.getMinimumFractionDigits();
-                if (localizedPattern != "") f.numberFormat.applyLocalizedPattern(negify(localizedPattern));
+                if (!localizedPattern.equals("")) f.numberFormat.applyLocalizedPattern(negify(localizedPattern));
                 else f.numberFormat.applyPattern(negify(pattern));
                 f.numberFormat.setMinimumFractionDigits(places);
                 f.numberFormat.setMaximumFractionDigits(places);
@@ -1403,9 +1403,9 @@ public abstract class BtcFormat extends Format {
         return parse(source, pos);
     }
 
-    private class ScaleMatcher {
-        public Pattern pattern;
-        public int scale;
+    private static class ScaleMatcher {
+        public final Pattern pattern;
+        public final int scale;
 
         ScaleMatcher(Pattern p, int s) {
             pattern = p;
@@ -1594,7 +1594,7 @@ public abstract class BtcFormat extends Format {
             case -6:
                 return "M" + code;
             default:
-                throw new IllegalStateException("No known prefix for scale " + String.valueOf(scale));
+                throw new IllegalStateException("No known prefix for scale " + scale);
         }
     }
 
@@ -1619,7 +1619,7 @@ public abstract class BtcFormat extends Format {
             case -6:
                 return "M" + symbol;
             default:
-                throw new IllegalStateException("No known prefix for scale " + String.valueOf(scale));
+                throw new IllegalStateException("No known prefix for scale " + scale);
         }
     }
 
