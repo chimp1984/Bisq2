@@ -19,8 +19,8 @@ package network.misq.finance.offer;
 
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.p2p.MockNetworkService;
-import network.misq.p2p.NetworkService;
+import network.misq.network.INetworkService;
+import network.misq.network.MockNetworkService;
 
 import java.io.Serializable;
 import java.util.List;
@@ -32,7 +32,7 @@ public class OfferbookRepository {
     protected final PublishSubject<Offer> offerAddedSubject;
     protected final PublishSubject<Offer> offerRemovedSubject;
 
-    public OfferbookRepository(NetworkService networkService) {
+    public OfferbookRepository(INetworkService networkService) {
         offerAddedSubject = PublishSubject.create();
         offerRemovedSubject = PublishSubject.create();
 

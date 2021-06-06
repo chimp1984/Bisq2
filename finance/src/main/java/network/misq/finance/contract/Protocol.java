@@ -18,8 +18,8 @@
 package network.misq.finance.contract;
 
 import lombok.Getter;
-import network.misq.p2p.P2pService;
-import network.misq.p2p.node.MessageListener;
+import network.misq.network.NetworkService;
+import network.misq.network.node.MessageListener;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -38,10 +38,10 @@ public abstract class Protocol implements MessageListener {
 
     @Getter
     protected final Contract contract;
-    protected final P2pService p2pService;
+    protected final NetworkService p2pService;
     protected final Set<Listener> listeners = ConcurrentHashMap.newKeySet();
 
-    public Protocol(Contract contract, P2pService p2pService) {
+    public Protocol(Contract contract, NetworkService p2pService) {
         this.contract = contract;
         this.p2pService = p2pService;
     }

@@ -18,8 +18,8 @@
 package network.misq.finance.swap.contract.multiSig;
 
 import network.misq.finance.contract.*;
-import network.misq.p2p.P2pService;
-import network.misq.p2p.node.MessageListener;
+import network.misq.network.NetworkService;
+import network.misq.network.node.MessageListener;
 
 /**
  * Mock protocol for simulating the a basic 2of2 Multisig protocol (MAD). Maker is BTC buyer, Taker is seller. There
@@ -66,7 +66,7 @@ public abstract class MultiSigProtocol extends TwoPartyProtocol implements Messa
     protected final AssetTransfer assetTransfer;
     protected final MultiSig multiSig;
 
-    public MultiSigProtocol(TwoPartyContract contract, P2pService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
+    public MultiSigProtocol(TwoPartyContract contract, NetworkService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
         super(contract, p2pService);
         this.assetTransfer = transfer;
 

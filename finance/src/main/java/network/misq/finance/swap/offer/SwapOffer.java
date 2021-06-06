@@ -21,7 +21,7 @@ import lombok.Getter;
 import network.misq.finance.Asset;
 import network.misq.finance.offer.*;
 import network.misq.finance.swap.SwapProtocolType;
-import network.misq.p2p.NetworkId;
+import network.misq.network.NetworkId;
 
 import java.util.List;
 import java.util.Optional;

@@ -25,15 +25,15 @@ import network.misq.finance.swap.contract.bsqBond.BsqBond;
 import network.misq.finance.swap.contract.bsqBond.BsqBondProtocol;
 import network.misq.finance.swap.contract.bsqBond.taker.TakerCommitmentMessage;
 import network.misq.finance.swap.contract.bsqBond.taker.TakerFundsSentMessage;
-import network.misq.p2p.P2pService;
-import network.misq.p2p.message.Message;
-import network.misq.p2p.node.Connection;
+import network.misq.network.NetworkService;
+import network.misq.network.message.Message;
+import network.misq.network.node.Connection;
 
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class MakerBsqBondProtocol extends BsqBondProtocol {
-    public MakerBsqBondProtocol(TwoPartyContract contract, P2pService p2pService) {
+    public MakerBsqBondProtocol(TwoPartyContract contract, NetworkService p2pService) {
         super(contract, p2pService, new AssetTransfer.Automatic(), new BsqBond());
     }
 

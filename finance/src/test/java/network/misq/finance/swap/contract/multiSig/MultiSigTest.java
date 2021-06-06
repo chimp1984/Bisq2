@@ -19,7 +19,7 @@ package network.misq.finance.swap.contract.multiSig;
 
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.MockP2pService;
+import network.misq.MockNetworkService;
 import network.misq.account.FiatTransferType;
 import network.misq.chain.Chain;
 import network.misq.chain.Wallet;
@@ -32,9 +32,9 @@ import network.misq.finance.swap.SwapProtocolType;
 import network.misq.finance.swap.contract.multiSig.maker.MakerMultiSigProtocol;
 import network.misq.finance.swap.contract.multiSig.taker.TakerMultiSigProtocol;
 import network.misq.finance.swap.offer.SwapOffer;
-import network.misq.p2p.Address;
-import network.misq.p2p.NetworkId;
-import network.misq.p2p.P2pService;
+import network.misq.network.Address;
+import network.misq.network.NetworkId;
+import network.misq.network.NetworkService;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
@@ -49,13 +49,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 public abstract class MultiSigTest {
-    private P2pService p2pService;
+    private NetworkService networkService;
 
     @BeforeEach
     public void setup() {
         // We share a network mock to call MessageListeners when sending a msg (e.g. alice send a msg and
         // bob receives the event)
-        p2pService = new MockP2pService();
+        networkService = new MockNetworkService();
     }
 
     protected abstract Chain getChain();
@@ -65,7 +65,7 @@ public abstract class MultiSigTest {
     protected abstract Wallet getMakerWallet();
 
     protected void run() {
-        P2pService p2pService = new MockP2pService();
+        NetworkService networkService = new MockNetworkService();
         // create offer
         NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
         Asset askAsset = new Asset("USD", 50000, List.of(FiatTransferType.ZELLE));
@@ -77,14 +77,14 @@ public abstract class MultiSigTest {
         ProtocolType selectedProtocolType = offer.getProtocolTypes().get(0);
         TwoPartyContract takerTrade = ContractMaker.createTakerTrade(offer, selectedProtocolType);
         MultiSig takerMultiSig = new MultiSig(getTakerWallet(), getChain());
-        TakerMultiSigProtocol takerMultiSigProtocol = new TakerMultiSigProtocol(takerTrade, p2pService, takerMultiSig);
+        TakerMultiSigProtocol takerMultiSigProtocol = new TakerMultiSigProtocol(takerTrade, networkService, takerMultiSig);
         ProtocolExecutor takerSwapTradeProtocolExecutor = new ProtocolExecutor(takerMultiSigProtocol);
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
         NetworkId takerNetworkId = new NetworkId(Address.localHost(2222), null, "default");
         TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerNetworkId, selectedProtocolType);
         MultiSig makerMultiSig = new MultiSig(getMakerWallet(), getChain());
-        MakerMultiSigProtocol makerMultiSigProtocol = new MakerMultiSigProtocol(makerTrade, p2pService, makerMultiSig);
+        MakerMultiSigProtocol makerMultiSigProtocol = new MakerMultiSigProtocol(makerTrade, networkService, makerMultiSig);
         ProtocolExecutor makerSwapTradeProtocolExecutor = new ProtocolExecutor(makerMultiSigProtocol);
 
         CountDownLatch completedLatch = new CountDownLatch(2);

@@ -21,8 +21,8 @@ import network.misq.finance.contract.ManyPartyContract;
 import network.misq.finance.contract.Party;
 import network.misq.finance.contract.TwoPartyContract;
 import network.misq.finance.offer.Offer;
-import network.misq.p2p.Address;
-import network.misq.p2p.NetworkId;
+import network.misq.network.Address;
+import network.misq.network.NetworkId;
 
 import java.util.Map;
 

@@ -18,8 +18,8 @@
 package network.misq.finance.swap.contract.bsqBond;
 
 import network.misq.finance.contract.*;
-import network.misq.p2p.P2pService;
-import network.misq.p2p.node.MessageListener;
+import network.misq.network.NetworkService;
+import network.misq.network.node.MessageListener;
 
 /**
  * Mock protocol for simulating a BSQ bond based protocol.
@@ -49,7 +49,7 @@ public abstract class BsqBondProtocol extends TwoPartyProtocol implements Messag
     protected final AssetTransfer transport;
     protected final BsqBond security;
 
-    public BsqBondProtocol(TwoPartyContract contract, P2pService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
+    public BsqBondProtocol(TwoPartyContract contract, NetworkService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
         super(contract, p2pService);
         this.transport = transfer;
         this.security = (BsqBond) securityProvider;

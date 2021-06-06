@@ -1,7 +1,7 @@
 package network.misq.finance.swap.contract.lightningEscrow;
 
 import network.misq.finance.contract.*;
-import network.misq.p2p.P2pService;
+import network.misq.network.NetworkService;
 
 public abstract class LightningEscrowProtocol extends ManyPartyProtocol {
     public enum State implements Protocol.State {
@@ -13,7 +13,7 @@ public abstract class LightningEscrowProtocol extends ManyPartyProtocol {
     private final AssetTransfer transport;
     private final LightningEscrow security;
 
-    public LightningEscrowProtocol(ManyPartyContract contract, P2pService p2pService, AssetTransfer assetTransfer, SecurityProvider securityProvider) {
+    public LightningEscrowProtocol(ManyPartyContract contract, NetworkService p2pService, AssetTransfer assetTransfer, SecurityProvider securityProvider) {
         super(contract, p2pService);
         transport = assetTransfer;
         security = (LightningEscrow) securityProvider;

@@ -26,16 +26,16 @@ import network.misq.finance.swap.contract.multiSig.MultiSig;
 import network.misq.finance.swap.contract.multiSig.MultiSigProtocol;
 import network.misq.finance.swap.contract.multiSig.maker.FundsSentMessage;
 import network.misq.finance.swap.contract.multiSig.maker.TxInputsMessage;
-import network.misq.p2p.P2pService;
-import network.misq.p2p.message.Message;
-import network.misq.p2p.node.Connection;
+import network.misq.network.NetworkService;
+import network.misq.network.message.Message;
+import network.misq.network.node.Connection;
 
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
 
-    public TakerMultiSigProtocol(TwoPartyContract contract, P2pService p2pService, SecurityProvider securityProvider) {
+    public TakerMultiSigProtocol(TwoPartyContract contract, NetworkService p2pService, SecurityProvider securityProvider) {
         super(contract, p2pService, new AssetTransfer.Automatic(), securityProvider);
     }
 

@@ -21,16 +21,16 @@ import network.misq.account.FiatTransferType;
 import network.misq.finance.Asset;
 import network.misq.finance.swap.SwapProtocolType;
 import network.misq.finance.swap.offer.SwapOffer;
-import network.misq.p2p.Address;
-import network.misq.p2p.NetworkId;
-import network.misq.p2p.NetworkService;
+import network.misq.network.Address;
+import network.misq.network.INetworkService;
+import network.misq.network.NetworkId;
 
 import java.util.List;
 
 public class OpenOffers {
-    private final NetworkService networkService;
+    private final INetworkService networkService;
 
-    public OpenOffers(NetworkService networkService) {
+    public OpenOffers(INetworkService networkService) {
         this.networkService = networkService;
     }
 

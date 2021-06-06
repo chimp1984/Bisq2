@@ -23,7 +23,7 @@ import lombok.Getter;
 import network.misq.finance.offer.OfferbookRepository;
 import network.misq.finance.offer.OpenOffers;
 import network.misq.marketprice.MarketPriceService;
-import network.misq.p2p.MockNetworkService;
+import network.misq.network.MockNetworkService;
 import network.misq.presentation.offer.OfferEntity;
 import network.misq.presentation.offer.OfferbookEntity;
 

@@ -17,7 +17,7 @@
 
 package network.misq.finance.swap.contract.bsqBond.messages;
 
-import network.misq.p2p.message.Message;
+import network.misq.network.message.Message;
 
 public abstract class FundsSentMessage implements Message {
 

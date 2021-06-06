@@ -19,7 +19,7 @@ package network.misq.finance.offer;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.p2p.NetworkId;
+import network.misq.network.NetworkId;
 
 import java.util.Set;
 

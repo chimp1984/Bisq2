@@ -18,7 +18,7 @@
 package network.misq.finance.swap.contract.bsqBond.messages;
 
 import lombok.Getter;
-import network.misq.p2p.message.Message;
+import network.misq.network.message.Message;
 
 public abstract class CommitmentMessage implements Message {
     @Getter

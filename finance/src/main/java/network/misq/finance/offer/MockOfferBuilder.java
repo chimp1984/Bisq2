@@ -24,8 +24,8 @@ import network.misq.finance.Asset;
 import network.misq.finance.contract.AssetTransfer;
 import network.misq.finance.swap.SwapProtocolType;
 import network.misq.finance.swap.offer.SwapOffer;
-import network.misq.p2p.Address;
-import network.misq.p2p.NetworkId;
+import network.misq.network.Address;
+import network.misq.network.NetworkId;
 
 import java.util.*;
 

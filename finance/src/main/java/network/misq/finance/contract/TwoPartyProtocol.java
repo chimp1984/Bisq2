@@ -17,13 +17,13 @@
 
 package network.misq.finance.contract;
 
-import network.misq.p2p.P2pService;
-import network.misq.p2p.node.MessageListener;
+import network.misq.network.NetworkService;
+import network.misq.network.node.MessageListener;
 
 public abstract class TwoPartyProtocol extends Protocol implements MessageListener {
     protected final Party counterParty;
 
-    public TwoPartyProtocol(TwoPartyContract contract, P2pService p2pService) {
+    public TwoPartyProtocol(TwoPartyContract contract, NetworkService p2pService) {
         super(contract, p2pService);
         counterParty = contract.getCounterParty();
     }

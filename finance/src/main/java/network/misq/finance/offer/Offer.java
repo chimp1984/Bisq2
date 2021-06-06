@@ -20,7 +20,7 @@ package network.misq.finance.offer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.finance.ProtocolType;
-import network.misq.p2p.NetworkId;
+import network.misq.network.NetworkId;
 
 import java.io.Serializable;
 import java.util.List;

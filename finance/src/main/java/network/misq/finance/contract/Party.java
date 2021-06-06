@@ -18,7 +18,7 @@
 package network.misq.finance.contract;
 
 import lombok.Getter;
-import network.misq.p2p.NetworkId;
+import network.misq.network.NetworkId;
 
 @Getter
 public class Party {
