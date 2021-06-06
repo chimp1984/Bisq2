@@ -24,7 +24,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
-import network.misq.finance.swap.offer.SwapOffer;
+import network.misq.offer.SwapOffer;
 import network.misq.presentation.offer.OfferEntity;
 
 public class OfferListItem extends OfferEntity {

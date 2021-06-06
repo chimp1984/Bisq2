@@ -22,8 +22,9 @@ dependencies {
     
     implementation project(':common')
     implementation project(':network')
-    implementation project(':finance')
+    implementation project(':contract')
     implementation project(':presentation')
+    implementation project(':offer')
 
     implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
 }

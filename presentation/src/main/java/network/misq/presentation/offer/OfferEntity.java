@@ -20,7 +20,7 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import network.misq.common.data.Couple;
-import network.misq.finance.swap.offer.SwapOffer;
+import network.misq.offer.SwapOffer;
 
 import java.text.DecimalFormat;
 import java.util.List;

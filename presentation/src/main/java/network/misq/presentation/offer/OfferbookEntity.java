@@ -20,9 +20,9 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.finance.offer.OfferbookRepository;
-import network.misq.finance.swap.offer.SwapOffer;
-import network.misq.marketprice.MarketPriceService;
+import network.misq.network.MarketPriceService;
+import network.misq.offer.OfferbookRepository;
+import network.misq.offer.SwapOffer;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

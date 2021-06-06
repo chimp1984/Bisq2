@@ -21,7 +21,7 @@ import javafx.application.Platform;
 import lombok.Getter;
 import network.misq.api.Api;
 import network.misq.desktop.common.Controller;
-import network.misq.marketprice.MarketPriceService;
+import network.misq.network.MarketPriceService;
 
 public class MarketsController implements Controller {
     private final Api api;

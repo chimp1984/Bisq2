@@ -19,10 +19,10 @@ package network.misq.presentation.offer;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.account.TransferType;
-import network.misq.finance.ProtocolType;
-import network.misq.finance.contract.AssetTransfer;
-import network.misq.finance.offer.ReputationOptions;
-import network.misq.finance.offer.TransferOptions;
+import network.misq.contract.AssetTransfer;
+import network.misq.contract.ProtocolType;
+import network.misq.offer.ReputationOptions;
+import network.misq.offer.TransferOptions;
 import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.DateFormatter;
 

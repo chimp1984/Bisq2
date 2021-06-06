@@ -20,10 +20,10 @@ package network.misq.api;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Getter;
-import network.misq.finance.offer.OfferbookRepository;
-import network.misq.finance.offer.OpenOffers;
-import network.misq.marketprice.MarketPriceService;
+import network.misq.network.MarketPriceService;
 import network.misq.network.MockNetworkService;
+import network.misq.offer.OfferbookRepository;
+import network.misq.offer.OpenOffers;
 import network.misq.presentation.offer.OfferEntity;
 import network.misq.presentation.offer.OfferbookEntity;
 

@@ -20,7 +20,7 @@ package network.misq.desktop.main.content.createoffer.assetswap.review;
 import lombok.Getter;
 import network.misq.api.Api;
 import network.misq.desktop.common.Controller;
-import network.misq.finance.offer.OpenOffers;
+import network.misq.offer.OpenOffers;
 
 public class ReviewOfferController implements Controller {
     private final OpenOffers openOffers;
