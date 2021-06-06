@@ -26,7 +26,7 @@ import java.util.ResourceBundle;
 
 @Slf4j
 abstract class Base {
-    private ResourceBundle resourceBundle;
+    private final ResourceBundle resourceBundle;
 
     protected Base(Locale locale) {
         if ("en".equalsIgnoreCase(locale.getLanguage())) {

@@ -37,7 +37,7 @@ public class PersistenceTest {
     @EqualsAndHashCode
     @Getter
     static class MockObject implements Persistable {
-        private int index;
+        private final int index;
         private final ArrayList<Integer> list = new ArrayList<>();
 
         public MockObject(int index) {

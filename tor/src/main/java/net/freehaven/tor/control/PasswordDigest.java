@@ -104,7 +104,7 @@ public class PasswordDigest {
      * Return a hexadecimal encoding of a byte array.
      */
     // XXX There must be a better way to do this in Java.
-    private static final String encodeBytes(byte[] ba) {
+    private static String encodeBytes(byte[] ba) {
         return Bytes.hex(ba);
     }
 

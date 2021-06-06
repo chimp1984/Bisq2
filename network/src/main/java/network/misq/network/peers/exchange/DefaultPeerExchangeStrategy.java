@@ -69,11 +69,10 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
                 .collect(Collectors.toList());
         Set<Peer> allConnectedPeers = peerGroup.getAllConnectedPeers();
         list.addAll(allConnectedPeers);
-        Set<Peer> collect = list.stream()
+        return list.stream()
                 .filter(peerGroup::notASeed)
                 .filter(peer -> notDirectPeer(peerAddress, peer))
                 .collect(Collectors.toSet());
-        return collect;
     }
 
     @Override
@@ -158,6 +157,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
     }
 
     private boolean notUsedYet(Address address) {
+        //todo check deactivated atm
         return true || !usedAddresses.contains(address);
     }
 

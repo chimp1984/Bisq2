@@ -17,25 +17,13 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 // Data for verifying fee payment. Open question how we deal with fees...
-@Getter
-@EqualsAndHashCode
-public class FeeOption implements OfferOption {
+public record FeeOption(FeeOption.Type type,
+                        int blockHeightAtFeePayment,
+                        String feeTxId) implements OfferOption {
     public enum Type {
         BTC,
         BSQ
     }
 
-    private final Type type;
-    private final int blockHeightAtFeePayment;
-    private final String feeTxId;
-
-    public FeeOption(Type type, int blockHeightAtFeePayment, String feeTxId) {
-        this.type = type;
-        this.blockHeightAtFeePayment = blockHeightAtFeePayment;
-        this.feeTxId = feeTxId;
-    }
 }

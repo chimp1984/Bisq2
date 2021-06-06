@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class MockAuthenticatedPayload implements AuthenticatedPayload {
     private final String text;
-    MetaData metaData;
+    final MetaData metaData;
 
     public MockAuthenticatedPayload(String text) {
         this.text = text;

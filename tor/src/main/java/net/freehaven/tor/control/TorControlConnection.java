@@ -29,8 +29,8 @@ public class TorControlConnection implements TorControlCommands {
     private volatile IOException parseThreadException;
 
     static class Waiter {
-        Lock lock = new ReentrantLock();
-        Condition dataReady = lock.newCondition();
+        final Lock lock = new ReentrantLock();
+        final Condition dataReady = lock.newCondition();
 
         List<ReplyLine> response; // Locking: this
 
@@ -117,8 +117,8 @@ public class TorControlConnection implements TorControlCommands {
             debugOutput.print(">> .\n");
     }
 
-    protected static final String quote(String s) {
-        StringBuffer sb = new StringBuffer("\"");
+    protected static String quote(String s) {
+        StringBuilder sb = new StringBuilder("\"");
         for (int i = 0; i < s.length(); ++i) {
             char c = s.charAt(i);
             switch (c) {
@@ -204,7 +204,7 @@ public class TorControlConnection implements TorControlCommands {
         for (Iterator<ReplyLine> i = lst.iterator(); i.hasNext(); ) {
             ReplyLine c = i.next();
             if (!c.status.startsWith("2"))
-                throw new TorControlError(Integer.valueOf(c.status), "Error reply: " + c.msg);
+                throw new TorControlError(Integer.parseInt(c.status), "Error reply: " + c.msg);
         }
         return lst;
     }

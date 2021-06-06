@@ -24,9 +24,9 @@ import javafx.beans.property.StringProperty;
 import network.misq.desktop.common.Model;
 
 public class StageModel implements Model {
-    DoubleProperty minWidthProperty = new SimpleDoubleProperty(1000);
-    DoubleProperty minHeightProperty = new SimpleDoubleProperty(1000);
-    StringProperty titleProperty = new SimpleStringProperty("Misq");
+    final DoubleProperty minWidthProperty = new SimpleDoubleProperty(1000);
+    final DoubleProperty minHeightProperty = new SimpleDoubleProperty(1000);
+    final StringProperty titleProperty = new SimpleStringProperty("Misq");
 
     public StageModel() {
     }

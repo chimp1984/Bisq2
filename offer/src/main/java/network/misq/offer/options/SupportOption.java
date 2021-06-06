@@ -17,36 +17,19 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import network.misq.network.NetworkId;
 
 import java.util.Set;
 
 // Information about supported dispute resolution and chosen dispute agent
-@Getter
-@EqualsAndHashCode
-public class SupportOption implements OfferOption {
-    private final Set<DisputeAgent> disputeAgents;
+public record SupportOption(
+        Set<DisputeAgent> disputeAgents) implements OfferOption {
 
-    public SupportOption(Set<DisputeAgent> disputeAgents) {
-        this.disputeAgents = disputeAgents;
-    }
-
-    @Getter
-    @EqualsAndHashCode
-    public static class DisputeAgent {
+    public record DisputeAgent(SupportOption.DisputeAgent.Type type,
+                               NetworkId networkId) {
         public enum Type {
             MEDIATOR,
             ARBITRATOR
-        }
-
-        private final Type type;
-        private final NetworkId networkId;
-
-        public DisputeAgent(Type type, NetworkId networkId) {
-            this.type = type;
-            this.networkId = networkId;
         }
     }
 }

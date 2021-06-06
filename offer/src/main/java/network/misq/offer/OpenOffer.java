@@ -18,7 +18,7 @@
 package network.misq.offer;
 
 public class OpenOffer {
-    private Offer offer;
+    private final Offer offer;
 
     public OpenOffer(Offer offer) {
         this.offer = offer;

@@ -93,7 +93,7 @@ public class PeerGroup implements ConnectionListener {
 
     public boolean notMyself(Address address) {
         Optional<Address> optionalMyAddress = node.findMyAddress();
-        return !optionalMyAddress.isPresent() || !optionalMyAddress.get().equals(address);
+        return optionalMyAddress.isEmpty() || !optionalMyAddress.get().equals(address);
     }
 
     public boolean notMyself(Peer peer) {

@@ -12,7 +12,7 @@ apply from: '../buildSrc/logging-dependencies.gradle'
 apply from: '../buildSrc/test-dependencies.gradle'
 apply from: '../buildSrc/lombok-dependencies.gradle'
 
-dependencies { 
+dependencies {
     api platform(project(':platforms:common-platform'))
 
     // todo why is com.google.guava:guava not resolved via 'api platform(project(':platforms:common-platform'))' ?
@@ -20,7 +20,7 @@ dependencies {
         exclude(module: 'j2objc-annotations')
     }
     implementation project(':common')
-    
+
     implementation("org.apache.commons:commons-compress:1.6")
 
     implementation("com.github.chimp1984:jsocks:567e1cd6")

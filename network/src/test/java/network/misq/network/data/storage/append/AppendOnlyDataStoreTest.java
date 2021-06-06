@@ -22,23 +22,22 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AppendOnlyDataStoreTest {
-    private String appDirPath = OsUtils.getUserDataDir() + File.separator + "misq_StorageTest";
+    private final String appDirPath = OsUtils.getUserDataDir() + File.separator + "misq_StorageTest";
 
     @Test
-    public void testAppend() throws NoSuchAlgorithmException, IOException {
-        MockAppendOnlyData data = new MockAppendOnlyData("test" + UUID.randomUUID().toString());
+    public void testAppend() throws IOException {
+        MockAppendOnlyData data = new MockAppendOnlyData("test" + UUID.randomUUID());
         AppendOnlyDataStore store = new AppendOnlyDataStore(appDirPath, data.getMetaData());
         int previous = store.getMap().size();
         int iterations = 10;
         for (int i = 0; i < iterations; i++) {
-            data = new MockAppendOnlyData("test" + UUID.randomUUID().toString());
+            data = new MockAppendOnlyData("test" + UUID.randomUUID());
             boolean result = store.append(data);
             assertTrue(result);
         }

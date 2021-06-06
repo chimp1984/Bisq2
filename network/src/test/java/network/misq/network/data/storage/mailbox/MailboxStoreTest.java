@@ -46,11 +46,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 public class MailboxStoreTest {
-    private String appDirPath = OsUtils.getUserDataDir() + File.separator + "misq_StorageTest";
+    private final String appDirPath = OsUtils.getUserDataDir() + File.separator + "misq_StorageTest";
 
     @Test
     public void testAddAndRemoveMailboxMsg() throws GeneralSecurityException, IOException, InterruptedException {
-        MockMailboxMessage message = new MockMailboxMessage("test" + UUID.randomUUID().toString());
+        MockMailboxMessage message = new MockMailboxMessage("test" + UUID.randomUUID());
         MailboxDataStore store = new MailboxDataStore(appDirPath, message.getMetaData());
         KeyPair senderKeyPair = KeyGeneration.generateKeyPair();
         KeyPair receiverKeyPair = KeyGeneration.generateKeyPair();

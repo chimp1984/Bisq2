@@ -195,7 +195,6 @@ public class PopOverSkin implements Skin<PopOver> {
                 }
             }
 
-            ;
         };
 
         final EventHandler<MouseEvent> mouseReleasedHandler = new EventHandler<MouseEvent>() {
@@ -206,7 +205,6 @@ public class PopOverSkin implements Skin<PopOver> {
                 }
             }
 
-            ;
         };
 
         final EventHandler<MouseEvent> mouseDragHandler = new EventHandler<MouseEvent>() {
@@ -234,7 +232,6 @@ public class PopOverSkin implements Skin<PopOver> {
                 }
             }
 
-            ;
         };
 
         stackPane.setOnMousePressed(mousePressedHandler);

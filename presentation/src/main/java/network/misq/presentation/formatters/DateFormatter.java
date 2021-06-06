@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class DateFormatter {
-    public static Locale locale = Locale.US; //todo
+    public static final Locale locale = Locale.US; //todo
 
     public static String formatDateTime(Date date) {
         return formatDateTime(date, true);

@@ -53,7 +53,6 @@ public class RemoveRequest implements AuthenticatedDataRequest, Serializable {
     protected final int sequenceNumber;
     protected final byte[] signature;         // 47 bytes
     protected final long created;
-    ;
 
     public RemoveRequest(MetaData metaData,
                          byte[] hash,

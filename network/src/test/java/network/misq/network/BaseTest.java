@@ -192,7 +192,7 @@ public abstract class BaseTest {
         CountDownLatch receivedLatch = new CountDownLatch(8);
         alice1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("alice1 {} {}", message.toString(), connection);
+            log.error("alice1 {} {}", message, connection);
             if (connection.getPeerAddress().equals(bob1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice1Msg);
             } else if (connection.getPeerAddress().equals(bob2Address)) {
@@ -204,7 +204,7 @@ public abstract class BaseTest {
         });
         alice2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("alice2 {} {}", message.toString(), connection);
+            log.error("alice2 {} {}", message, connection);
             if (connection.getPeerAddress().equals(bob1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice2Msg);
             } else if (connection.getPeerAddress().equals(bob2Address)) {
@@ -218,7 +218,7 @@ public abstract class BaseTest {
 
         bob1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("bob1 {} {}", message.toString(), connection);
+            log.error("bob1 {} {}", message, connection);
             if (connection.getPeerAddress().equals(alive1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob1Msg);
             } else if (connection.getPeerAddress().equals(alive2Address)) {
@@ -230,7 +230,7 @@ public abstract class BaseTest {
         });
         bob2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("bob2 {} {}", message.toString(), connection);
+            log.error("bob2 {} {}", message, connection);
             if (connection.getPeerAddress().equals(alive1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob2Msg);
             } else if (connection.getPeerAddress().equals(alive2Address)) {

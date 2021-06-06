@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 
 public class MockNetworkService extends NetworkService {
     private static final Logger log = LoggerFactory.getLogger(MockNetworkService.class);
-    private Set<MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
+    private final Set<MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
 
     public MockNetworkService() {
         super();

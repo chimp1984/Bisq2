@@ -17,18 +17,6 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 // Notarizing account creation date with Open time stamp
-@Getter
-@EqualsAndHashCode
-public class AccountCreationDateProof implements ReputationProof {
-    private final String hashOfAccount;
-    private final String otsProof;
-
-    public AccountCreationDateProof(String hashOfAccount, String otsProof) {
-        this.hashOfAccount = hashOfAccount;
-        this.otsProof = otsProof;
-    }
+public record AccountCreationDateProof(String hashOfAccount, String otsProof) implements ReputationProof {
 }

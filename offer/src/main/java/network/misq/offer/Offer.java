@@ -73,7 +73,7 @@ public class Offer extends Listing {
                 .map(e-> e.getMinAmountAsPercentage())
                 .findAny().orElse(1d);*/
 
-        minBaseAmount = minAmountAsPercentage.map(perc -> Math.round(getBaseAsset().amount() * perc))
+        minBaseAmount = minAmountAsPercentage.map(percentage -> Math.round(getBaseAsset().amount() * percentage))
                 .orElse(getBaseAsset().amount());
     }
 

@@ -17,18 +17,6 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 // For some fiat methods is useful to know the makers bank or county of bank.
-@Getter
-@EqualsAndHashCode
-public class TransferOption implements OfferOption {
-    private final String countyCodeOfBank;
-    private final String bankName;
-
-    public TransferOption(String countyCodeOfBank, String bankName) {
-        this.countyCodeOfBank = countyCodeOfBank;
-        this.bankName = bankName;
-    }
+public record TransferOption(String countyCodeOfBank, String bankName) implements OfferOption {
 }

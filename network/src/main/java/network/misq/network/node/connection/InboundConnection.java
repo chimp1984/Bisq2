@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.node.proxy.GetServerSocketResult;
 
-import java.io.IOException;
 import java.net.Socket;
 
 @Slf4j
@@ -29,7 +28,7 @@ public class InboundConnection extends RawConnection {
     @Getter
     private final GetServerSocketResult getServerSocketResult;
 
-    public InboundConnection(Socket socket, GetServerSocketResult getServerSocketResult) throws IOException {
+    public InboundConnection(Socket socket, GetServerSocketResult getServerSocketResult) {
         super(socket);
         this.getServerSocketResult = getServerSocketResult;
         log.debug("Create inboundConnection from server: {}", getServerSocketResult);

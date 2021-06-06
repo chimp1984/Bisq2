@@ -17,19 +17,10 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 import java.util.Set;
 
 // Provides reputation proofs. E.g.Account age witness hash, signed account age witness,
 // tx id and signature of burned BSQ, or social media account address,...
-@Getter
-@EqualsAndHashCode
-public class ReputationOption implements OfferOption {
-    private final Set<ReputationProof> reputationProofs;
-
-    public ReputationOption(Set<ReputationProof> reputationProofs) {
-        this.reputationProofs = reputationProofs;
-    }
+public record ReputationOption(
+        Set<ReputationProof> reputationProofs) implements OfferOption {
 }

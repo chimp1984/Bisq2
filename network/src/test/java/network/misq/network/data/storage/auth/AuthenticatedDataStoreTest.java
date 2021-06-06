@@ -112,7 +112,7 @@ public class AuthenticatedDataStoreTest {
 
     @Test
     public void testAddAndRemove() throws GeneralSecurityException, IOException {
-        MockAuthenticatedPayload data = new MockAuthenticatedPayload("test" + UUID.randomUUID().toString());
+        MockAuthenticatedPayload data = new MockAuthenticatedPayload("test" + UUID.randomUUID());
         AuthenticatedDataStore store = new AuthenticatedDataStore(appDirPath, data.getMetaData());
         KeyPair keyPair = KeyGeneration.generateKeyPair();
 
@@ -195,7 +195,7 @@ public class AuthenticatedDataStoreTest {
         int iterations = 10;
         long ts = System.currentTimeMillis();
         for (int i = 0; i < iterations; i++) {
-            data = new MockAuthenticatedPayload("test" + UUID.randomUUID().toString());
+            data = new MockAuthenticatedPayload("test" + UUID.randomUUID());
             AddAuthenticatedDataRequest addRequest = AddAuthenticatedDataRequest.from(store, data, keyPair);
             Result addRequestResult = store.add(addRequest);
             assertTrue(addRequestResult.isSuccess());

@@ -11,7 +11,7 @@ public abstract class LightningEscrowProtocol extends ManyPartyProtocol {
     public enum State implements Protocol.State {
         START,
         START_MANUAL_PAYMENT,
-        MANUAL_PAYMENT_STARTED;
+        MANUAL_PAYMENT_STARTED
     }
 
     private final AssetTransfer transport;

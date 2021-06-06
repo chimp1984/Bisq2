@@ -34,7 +34,6 @@ import network.misq.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +81,7 @@ public class AuthenticatedDataStore extends DataStore {
         }
     }
 
-    public Result add(AddAuthenticatedDataRequest request) throws NoSuchAlgorithmException {
+    public Result add(AddAuthenticatedDataRequest request) {
         AuthenticatedData entry = request.getAuthenticatedData();
         AuthenticatedPayload authenticatedPayload = entry.getPayload();
         byte[] hash = DigestUtil.hash(authenticatedPayload.serialize());

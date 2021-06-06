@@ -24,13 +24,13 @@ import network.misq.desktop.common.Model;
 import network.misq.desktop.common.View;
 
 public class CreateOfferModel implements Model {
-    DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);
-    DoubleProperty minHeightProperty = new SimpleDoubleProperty(600);
-    StringProperty titleProperty = new SimpleStringProperty("Create offer");
-    BooleanProperty backButtonVisible = new SimpleBooleanProperty(true);
-    BooleanProperty nextButtonVisible = new SimpleBooleanProperty(true);
+    final DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);
+    final DoubleProperty minHeightProperty = new SimpleDoubleProperty(600);
+    final StringProperty titleProperty = new SimpleStringProperty("Create offer");
+    final BooleanProperty backButtonVisible = new SimpleBooleanProperty(true);
+    final BooleanProperty nextButtonVisible = new SimpleBooleanProperty(true);
 
-    ObjectProperty<View<Parent, Model, Controller>> view = new SimpleObjectProperty<>();
+    final ObjectProperty<View<Parent, Model, Controller>> view = new SimpleObjectProperty<>();
 
     public CreateOfferModel() {
     }

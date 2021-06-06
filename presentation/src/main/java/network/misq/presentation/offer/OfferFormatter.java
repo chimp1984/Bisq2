@@ -57,7 +57,7 @@ class OfferFormatter {
     }
 
     static String formatTransferOptions(TransferOption transferOption) {
-        return transferOption.getBankName() + " / " + transferOption.getCountyCodeOfBank();
+        return transferOption.bankName() + " / " + transferOption.countyCodeOfBank();
     }
 
     static String formatTransferTypes(List<TransferType> transferTypes) {

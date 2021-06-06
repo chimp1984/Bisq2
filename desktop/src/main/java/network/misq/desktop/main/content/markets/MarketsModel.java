@@ -22,7 +22,7 @@ import javafx.beans.property.StringProperty;
 import network.misq.desktop.common.Model;
 
 public class MarketsModel implements Model {
-    StringProperty formattedMarketPrice = new SimpleStringProperty("N/A");
+    final StringProperty formattedMarketPrice = new SimpleStringProperty("N/A");
 
     public void setMarketPrice(int marketPrice) {
         formattedMarketPrice.set(marketPrice / 100d + " BTC/USD");

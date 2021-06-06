@@ -25,7 +25,7 @@ import network.misq.network.data.storage.MetaData;
 @Getter
 public class MockAppendOnlyData implements AppendOnlyData {
     private final String text;
-    MetaData metaData;
+    final MetaData metaData;
 
     public MockAppendOnlyData(String text) {
         this.text = text;

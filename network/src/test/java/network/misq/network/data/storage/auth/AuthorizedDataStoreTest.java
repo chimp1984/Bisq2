@@ -54,7 +54,7 @@ public class AuthorizedDataStoreTest {
         byte[] privateKeyBytes = Hex.decode(privateKeyAsHex);
 
         PrivateKey privateKey = KeyGeneration.generatePrivate(privateKeyBytes);
-        NetworkData networkData = new MockNetworkData("test" + UUID.randomUUID().toString());
+        NetworkData networkData = new MockNetworkData("test" + UUID.randomUUID());
         byte[] signature = SignatureUtil.sign(networkData.serialize(), privateKey);
         MockAuthorizedPayload authorizedPayload = new MockAuthorizedPayload(networkData, signature, publicKey);
 

@@ -84,14 +84,10 @@ public class TorDemo {
     }
 
     private static TorServerSocket startServer() throws IOException, InterruptedException {
-        try {
-            TorServerSocket torServerSocket = tor.getTorServerSocket();
-            torServerSocket.bind(4000, 9999, "hiddenservice_2");
-            runServer(torServerSocket);
-            return torServerSocket;
-        } catch (IOException | InterruptedException e) {
-            throw e;
-        }
+        TorServerSocket torServerSocket = tor.getTorServerSocket();
+        torServerSocket.bind(4000, 9999, "hiddenservice_2");
+        runServer(torServerSocket);
+        return torServerSocket;
     }
 
     private static CompletableFuture<OnionAddress> startServerAsync() {

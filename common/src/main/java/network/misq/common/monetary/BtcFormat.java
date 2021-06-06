@@ -1704,7 +1704,7 @@ public abstract class BtcFormat extends Format {
                     "[" + Matcher.quoteReplacement(digit + zero + groupSep + decSep + moneySep + exp) + "]+";
 
             return numberFormat.toLocalizedPattern().
-                    replaceAll(prefixAndNumber, "$0" + groups.toString()).
+                    replaceAll(prefixAndNumber, "$0" + groups).
                     replaceAll("¤¤", Matcher.quoteReplacement(coinCode())).
                     replaceAll("¤", Matcher.quoteReplacement(coinSymbol()));
         }

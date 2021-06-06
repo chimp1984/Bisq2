@@ -45,13 +45,13 @@ public class PeerExchangeBase {
     protected PeerGroup peerGroupSeed, peerGroupNode1, peerGroupNode2, peerGroupNode3;
     protected Storage storage = new Storage("");
     protected List<NetworkNode> nodes;
-    protected int numSeeNodesAtBoostrap = 1;
-    protected int numPersistedPeersAtBoostrap = 8;
+    protected final int numSeeNodesAtBoostrap = 1;
+    protected final int numPersistedPeersAtBoostrap = 8;
     protected int numReportedPeersAtBoostrap = 20;
     protected int minNumReportedPeers = 20;
-    protected int minNumConnectedPeers = 30;
-    protected int maxNumConnectedPeers = 40;
-    protected int repeatPeerExchangeDelay = 200;
+    protected final int minNumConnectedPeers = 30;
+    protected final int maxNumConnectedPeers = 40;
+    protected final int repeatPeerExchangeDelay = 200;
     protected Map<Integer, Triple<PeerExchangeManager, PeerGroup, Node>> tuples;
 
 

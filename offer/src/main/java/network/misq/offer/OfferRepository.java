@@ -39,7 +39,7 @@ public class OfferRepository {
     private final List<Listing> offers = new CopyOnWriteArrayList<>();
     protected final PublishSubject<Listing> offerAddedSubject;
     protected final PublishSubject<Listing> offerRemovedSubject;
-    private INetworkService networkService;
+    private final INetworkService networkService;
 
     public OfferRepository(INetworkService networkService) {
         this.networkService = networkService;
@@ -51,8 +51,7 @@ public class OfferRepository {
         networkService.addListener(new MockNetworkService.Listener() {
             @Override
             public void onDataAdded(Serializable serializable) {
-                if (serializable instanceof Listing) {
-                    Listing offer = (Listing) serializable;
+                if (serializable instanceof Listing offer) {
                     offers.add(offer);
                     offerAddedSubject.onNext(offer);
                 }
@@ -60,8 +59,7 @@ public class OfferRepository {
 
             @Override
             public void onDataRemoved(Serializable serializable) {
-                if (serializable instanceof Listing) {
-                    Listing offer = (Listing) serializable;
+                if (serializable instanceof Listing offer) {
                     offers.remove(offer);
                     offerRemovedSubject.onNext(offer);
                 }

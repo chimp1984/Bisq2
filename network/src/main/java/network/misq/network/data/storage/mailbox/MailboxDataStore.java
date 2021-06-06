@@ -32,7 +32,6 @@ import network.misq.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +76,7 @@ public class MailboxDataStore extends DataStore {
         }
     }
 
-    public Result add(AddMailboxRequest request) throws NoSuchAlgorithmException {
+    public Result add(AddMailboxRequest request) {
         MailboxData data = request.getMailboxData();
         MailboxPayload payload = data.getMailboxPayload();
         byte[] hash = DigestUtil.hash(payload.serialize());

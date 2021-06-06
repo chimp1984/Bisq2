@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
 import network.misq.network.Address;
 
-import java.io.IOException;
 import java.net.Socket;
 
 @Slf4j
@@ -30,7 +29,7 @@ public class OutboundConnection extends RawConnection {
     @Getter
     private final Address address;
 
-    public OutboundConnection(Socket socket, Address address) throws IOException {
+    public OutboundConnection(Socket socket, Address address) {
         super(socket);
 
         this.address = address;

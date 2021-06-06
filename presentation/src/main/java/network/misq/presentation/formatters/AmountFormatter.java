@@ -20,8 +20,8 @@ package network.misq.presentation.formatters;
 import java.text.DecimalFormat;
 
 public class AmountFormatter {
-    private static DecimalFormat cryptoFormat = new DecimalFormat("#.####");
-    private static DecimalFormat fiatFormat = new DecimalFormat("#.##");
+    private static final DecimalFormat cryptoFormat = new DecimalFormat("#.####");
+    private static final DecimalFormat fiatFormat = new DecimalFormat("#.##");
 
     static {
         cryptoFormat.setMaximumFractionDigits(4);
@@ -41,14 +41,9 @@ public class AmountFormatter {
     }
 
     private static boolean isFiat(String currencyCode) {
-        switch (currencyCode) {
-            case "BTC":
-            case "XMR":
-            case "USDT":
-                return false;
-            default:
-
-                return true;
-        }
+        return switch (currencyCode) {
+            case "BTC", "XMR", "USDT" -> false;
+            default -> true;
+        };
     }
 }

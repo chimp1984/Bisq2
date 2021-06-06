@@ -28,7 +28,6 @@ import network.misq.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -63,7 +62,7 @@ public class AppendOnlyDataStore extends DataStore {
         }
     }
 
-    public boolean append(AppendOnlyData appendOnlyData) throws NoSuchAlgorithmException {
+    public boolean append(AppendOnlyData appendOnlyData) {
         if (map.size() > maxMapSize) {
             return false;
         }

@@ -113,10 +113,8 @@ public class NetworkService {
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         Map<NetworkType, Address> addressByNetworkType = networkId.getAddressByNetworkType();
-        networkId.getAddressByNetworkType().entrySet().forEach(entry -> {
+        networkId.getAddressByNetworkType().forEach((networkType, address) -> {
             try {
-                NetworkType networkType = entry.getKey();
-                Address address = entry.getValue();
                 if (p2pNodes.containsKey(networkType)) {
                     p2pNodes.get(networkType)
                             .confidentialSend(message, networkId, myKeyPair)

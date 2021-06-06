@@ -147,7 +147,6 @@ public class PopOver extends PopupControl {
             }
         }
 
-        ;
     };
 
     /**
@@ -355,7 +354,6 @@ public class PopOver extends PopupControl {
                             }
                         }
 
-                        ;
                     });
 
             /*
@@ -744,6 +742,6 @@ public class PopOver extends PopupControl {
      * All possible arrow locations.
      */
     public enum ArrowLocation {
-        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM, RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM, TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT;
+        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM, RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM, TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
     }
 }

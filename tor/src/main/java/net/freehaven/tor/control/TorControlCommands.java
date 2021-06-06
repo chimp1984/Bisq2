@@ -129,7 +129,7 @@ public interface TorControlCommands {
     public static final byte SIGNAL_USR2 = 0x0C;
     public static final byte SIGNAL_TERM = 0x0F;
 
-    public static final String ERROR_MSGS[] = {
+    public static final String[] ERROR_MSGS = {
             "Unspecified error",
             "Internal error",
             "Unrecognized message type",

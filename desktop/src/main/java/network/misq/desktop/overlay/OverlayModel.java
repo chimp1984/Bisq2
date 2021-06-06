@@ -25,7 +25,7 @@ import network.misq.desktop.common.Model;
 import network.misq.desktop.common.View;
 
 public class OverlayModel implements Model {
-    ObjectProperty<View<Parent, Model, Controller>> view = new SimpleObjectProperty<>();
+    final ObjectProperty<View<Parent, Model, Controller>> view = new SimpleObjectProperty<>();
 
     public void selectView(View<Parent, Model, Controller> view) {
         this.view.set(view);

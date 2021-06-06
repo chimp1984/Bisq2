@@ -25,7 +25,7 @@ import network.misq.desktop.common.Model;
 import network.misq.desktop.common.View;
 
 public class ContentViewModel implements Model {
-    ObjectProperty<View<? extends Node, Model, Controller>> view = new SimpleObjectProperty<>();
+    final ObjectProperty<View<? extends Node, Model, Controller>> view = new SimpleObjectProperty<>();
 
     public void selectView(View<? extends Node, Model, Controller> view) {
         this.view.set(view);

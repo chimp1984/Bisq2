@@ -28,9 +28,9 @@ import network.misq.desktop.main.content.offerbook.OfferListItem;
 @Getter
 public class OfferDetailsModel implements Model {
     private final OfferListItem item;
-    DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);
-    DoubleProperty minHeightProperty = new SimpleDoubleProperty(400);
-    StringProperty titleProperty = new SimpleStringProperty();
+    final DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);
+    final DoubleProperty minHeightProperty = new SimpleDoubleProperty(400);
+    final StringProperty titleProperty = new SimpleStringProperty();
 
     public OfferDetailsModel(OfferListItem item) {
         this.item = item;

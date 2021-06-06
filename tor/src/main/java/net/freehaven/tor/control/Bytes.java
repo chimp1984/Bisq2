@@ -109,8 +109,8 @@ final class Bytes {
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
 
-    public static final String hex(byte[] ba) {
-        StringBuffer buf = new StringBuffer();
+    public static String hex(byte[] ba) {
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < ba.length; ++i) {
             int b = (ba[i]) & 0xff;
             buf.append(NYBBLES[b >> 4]);
@@ -122,6 +122,5 @@ final class Bytes {
     private Bytes() {
     }
 
-    ;
 }
 

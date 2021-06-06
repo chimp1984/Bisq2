@@ -17,16 +17,6 @@
 
 package network.misq.offer.options;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
 // Data for verifying fee payment. Open question how we deal with fees...
-@Getter
-@EqualsAndHashCode
-public class AmountOption implements OfferOption {
-    private final double minAmountAsPercentage;
-
-    public AmountOption(double minAmountAsPercentage) {
-        this.minAmountAsPercentage = minAmountAsPercentage;
-    }
+public record AmountOption(double minAmountAsPercentage) implements OfferOption {
 }

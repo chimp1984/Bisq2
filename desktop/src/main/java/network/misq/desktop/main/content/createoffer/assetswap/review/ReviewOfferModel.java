@@ -25,7 +25,7 @@ import javafx.beans.value.ObservableValue;
 import network.misq.desktop.common.Model;
 
 public class ReviewOfferModel implements Model {
-    StringProperty formattedAskAmount = new SimpleStringProperty();
+    final StringProperty formattedAskAmount = new SimpleStringProperty();
     long askAmount;
 
     public void setAskValue(String value) {
