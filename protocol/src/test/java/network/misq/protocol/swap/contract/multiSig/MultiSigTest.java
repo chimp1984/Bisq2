@@ -19,7 +19,7 @@ package network.misq.protocol.swap.contract.multiSig;
 
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.account.FiatTransferType;
+import network.misq.account.FiatTransfer;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
@@ -71,7 +71,7 @@ public abstract class MultiSigTest {
         NetworkService networkService = new MockNetworkService();
         // create offer
         NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
-        Asset askAsset = new Asset("USD", 50000, List.of(FiatTransferType.ZELLE), AssetTransfer.Type.MANUAL);
+        Asset askAsset = new Asset("USD", 50000, List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset("BTC", 1, List.of(), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG),
                 makerNetworkId, bidAsset, askAsset);

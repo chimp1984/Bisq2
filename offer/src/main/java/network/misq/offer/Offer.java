@@ -30,7 +30,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Offer for a asset swap offer. Supports multiple protocolTypes in case the maker wants to give more flexibility
+ * Offer for a asset swap. Supports multiple protocolTypes in case the maker wants to give more flexibility
  * to takers.
  */
 @Getter

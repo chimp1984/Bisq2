@@ -18,7 +18,7 @@
 package network.misq.presentation.offer;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.account.TransferType;
+import network.misq.account.Transfer;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.offer.options.ReputationOption;
@@ -60,8 +60,8 @@ class OfferFormatter {
         return transferOption.bankName() + " / " + transferOption.countyCodeOfBank();
     }
 
-    static String formatTransferTypes(List<TransferType> transferTypes) {
-        return transferTypes.toString();
+    static String formatTransferTypes(List<Transfer> transfers) {
+        return transfers.toString();
     }
 
     static String formatAssetTransferType(AssetTransfer.Type assetTransferType) {

@@ -14,10 +14,6 @@ apply from: '../buildSrc/lombok-dependencies.gradle'
 dependencies {
     api platform(project(':platforms:common-platform'))
 
-    // todo why is com.google.guava:guava not resolved via 'api platform(project(':platforms:common-platform'))' ?
-    implementation("com.google.guava:guava:30.1.1-jre") {
-        exclude(module: 'j2objc-annotations')
-    }
     implementation project(':common')
     implementation project(':identity')
     implementation project(':account')
@@ -26,6 +22,8 @@ dependencies {
     implementation project(':protocol')
     implementation project(':support')
     implementation project(':persistence')
+
+    implementation 'com.google.guava:guava'
 }
 test {
     useJUnitPlatform()

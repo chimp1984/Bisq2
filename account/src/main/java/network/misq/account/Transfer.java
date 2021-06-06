@@ -17,8 +17,27 @@
 
 package network.misq.account;
 
-public enum CryptoTransferType implements TransferType {
-    NATIVE_CHAIN, // If coin is transferred via native chain BTC over. E.g. Bitcoin network
-    HOST_CHAIN, // If coin has no native chain. E.g. USDT -? Omni, ERC20,...
-    OTHER // If it does not fit the above
+public abstract class Transfer<T extends Transfer.Type> {
+    public interface Type {
+        String name();
+    }
+
+    protected T type;
+    protected String name;
+
+    Transfer(T type) {
+        this(type, type.name());
+    }
+
+    Transfer(T type, String name) {
+        this.type = type;
+        this.name = type.name();
+    }
+
+    Transfer(String name) {
+        this.name = name;
+        this.type = getDefaultType();
+    }
+
+    protected abstract T getDefaultType();
 }

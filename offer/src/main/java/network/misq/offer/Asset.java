@@ -17,13 +17,13 @@
 
 package network.misq.offer;
 
-import network.misq.account.TransferType;
+import network.misq.account.Transfer;
 import network.misq.contract.AssetTransfer;
 
 import java.util.List;
 
 public record Asset(String code,
                     long amount,
-                    List<TransferType> transferTypes,
+                    List<? extends Transfer<? extends Transfer.Type>> transfers,
                     AssetTransfer.Type assetTransferType) {
 }

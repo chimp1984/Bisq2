@@ -20,8 +20,7 @@ package network.misq.offer;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.account.FiatTransferType;
-import network.misq.account.TransferType;
+import network.misq.account.FiatTransfer;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.Address;
@@ -86,7 +85,7 @@ public class OfferRepository {
     public Offer createOffer(long askAmount) {
         NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
         Asset askAsset = new Asset("BTC", askAmount, List.of(), AssetTransfer.Type.MANUAL);
-        Asset bidAsset = new Asset("USD", 5000, List.of(FiatTransferType.ZELLE), AssetTransfer.Type.MANUAL);
+        Asset bidAsset = new Asset("USD", 5000, List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         return new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
                 makerNetworkId, bidAsset, askAsset);
     }
@@ -207,8 +206,10 @@ public class OfferRepository {
 
         private static Asset getRandomAsset(String code, long amount) {
             AssetTransfer.Type assetTransferType = new Random().nextBoolean() ? AssetTransfer.Type.AUTOMATIC : AssetTransfer.Type.MANUAL;
-            List<TransferType> transferTypes = List.of(FiatTransferType.values()[new Random().nextInt(FiatTransferType.values().length)]);
-            return new Asset(code, amount, transferTypes, assetTransferType);
+            List<FiatTransfer> transfers = new ArrayList<>(List.of(FiatTransfer.SEPA, FiatTransfer.ZELLE, FiatTransfer.REVOLUT));
+            Collections.shuffle(transfers);
+            transfers = List.of(transfers.get(0));
+            return new Asset(code, amount, transfers, assetTransferType);
         }
 
         private static Listing getOfferToRemove() {
