@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.currency;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,12 +24,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 @Getter
-public abstract class TradeCurrency implements Comparable<TradeCurrency> {
+public abstract class MisqCurrency implements Comparable<MisqCurrency> {
     protected final String code;
     @EqualsAndHashCode.Exclude
     protected final String name;
 
-    public TradeCurrency(String code, String name) {
+    public MisqCurrency(String code, String name) {
         this.code = code;
         this.name = name;
     }
@@ -52,7 +52,7 @@ public abstract class TradeCurrency implements Comparable<TradeCurrency> {
     }
 
     @Override
-    public int compareTo(TradeCurrency other) {
+    public int compareTo(MisqCurrency other) {
         return this.name.compareTo(other.name);
     }
 

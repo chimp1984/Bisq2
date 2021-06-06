@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.currency;
 
 
 import lombok.EqualsAndHashCode;
@@ -24,7 +24,7 @@ import lombok.ToString;
 
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public final class CryptoCurrency extends TradeCurrency {
+public final class CryptoCurrency extends MisqCurrency {
     // http://boschista.deviantart.com/journal/Cool-ASCII-Symbols-214218618
     private final static String PREFIX = "✦ ";
 

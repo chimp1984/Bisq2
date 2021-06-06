@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.currency;
 
 import network.misq.common.locale.CountryRepository;
 

@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.currency;
 
 
 import lombok.EqualsAndHashCode;
@@ -28,7 +28,7 @@ import java.util.Locale;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 
-public final class FiatCurrency extends TradeCurrency {
+public final class FiatCurrency extends MisqCurrency {
     // http://boschista.deviantart.com/journal/Cool-ASCII-Symbols-214218618
     private final static String PREFIX = "★ ";
 
