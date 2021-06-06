@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 public class AllNetworksIntegrationTest {
-    private P2pService alice1, alice2, bob1, bob2;
+    private NetworkService alice1, alice2, bob1, bob2;
     protected final Storage storage = new Storage("");
 
     private Set<NetworkConfig> getNetNetworkConfigs(Config.Role role, String id, int serverPort) {
@@ -57,10 +57,10 @@ public class AllNetworksIntegrationTest {
         Set<NetworkConfig> netNetworkConfigsBob1 = getNetNetworkConfigs(Config.Role.Bob, "bob1", 2222);
         Set<NetworkConfig> netNetworkConfigsBob2 = getNetNetworkConfigs(Config.Role.Bob, "bob2", 2223);
 
-        alice1 = new P2pService(netNetworkConfigsAlice1, Config.aliceKeyPairSupplier1);
-        alice2 = new P2pService(netNetworkConfigsAlice2, Config.aliceKeyPairSupplier2);
-        bob1 = new P2pService(netNetworkConfigsBob1, Config.bobKeyPairSupplier1);
-        bob2 = new P2pService(netNetworkConfigsBob2, Config.bobKeyPairSupplier2);
+        alice1 = new NetworkService(netNetworkConfigsAlice1, Config.aliceKeyPairSupplier1);
+        alice2 = new NetworkService(netNetworkConfigsAlice2, Config.aliceKeyPairSupplier2);
+        bob1 = new NetworkService(netNetworkConfigsBob1, Config.bobKeyPairSupplier1);
+        bob2 = new NetworkService(netNetworkConfigsBob2, Config.bobKeyPairSupplier2);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(4);
         alice1.initializeServer((res, error) -> {

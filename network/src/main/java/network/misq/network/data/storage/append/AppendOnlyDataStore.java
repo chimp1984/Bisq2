@@ -19,11 +19,11 @@ package network.misq.network.data.storage.append;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.persistence.Persistence;
 import network.misq.common.security.DigestUtil;
 import network.misq.network.data.storage.MapKey;
 import network.misq.network.data.storage.MetaData;
 import network.misq.network.data.storage.mailbox.DataStore;
+import network.misq.persistence.Persistence;
 
 import java.io.File;
 import java.io.IOException;

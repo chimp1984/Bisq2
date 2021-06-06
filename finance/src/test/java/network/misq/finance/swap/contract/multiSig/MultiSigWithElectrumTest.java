@@ -19,7 +19,7 @@ package network.misq.finance.swap.contract.multiSig;
 
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.chain.*;
+import network.misq.wallets.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

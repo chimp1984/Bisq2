@@ -44,11 +44,11 @@ import java.util.stream.Collectors;
  * High level API for the p2p network.
  */
 public class NetworkService {
-    private static final Logger log = LoggerFactory.getLogger(P2pService.class);
+    private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
     private final Map<NetworkType, NetworkNode> p2pNodes = new ConcurrentHashMap<>();
 
-    public P2pService(Set<NetworkConfig> networkConfigs, KeyPairRepository keyPairRepository) {
+    public NetworkService(Set<NetworkConfig> networkConfigs, KeyPairRepository keyPairRepository) {
         Storage storage = new Storage("");//todo
         networkConfigs.forEach(networkConfig -> {
             NetworkType networkType = networkConfig.getNetworkType();

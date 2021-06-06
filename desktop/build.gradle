@@ -48,7 +48,7 @@ dependencies {
     }
 
     implementation project(':common')
-    implementation project(':p2p')
+    implementation project(':network')
     implementation project(':finance')
     implementation project(':presentation')
     implementation project(':api')

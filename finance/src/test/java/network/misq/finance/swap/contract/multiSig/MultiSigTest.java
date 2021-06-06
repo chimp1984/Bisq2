@@ -21,8 +21,6 @@ package network.misq.finance.swap.contract.multiSig;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.MockNetworkService;
 import network.misq.account.FiatTransferType;
-import network.misq.chain.Chain;
-import network.misq.chain.Wallet;
 import network.misq.finance.Asset;
 import network.misq.finance.ContractMaker;
 import network.misq.finance.ProtocolType;
@@ -35,6 +33,8 @@ import network.misq.finance.swap.offer.SwapOffer;
 import network.misq.network.Address;
 import network.misq.network.NetworkId;
 import network.misq.network.NetworkService;
+import network.misq.wallets.Chain;
+import network.misq.wallets.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;

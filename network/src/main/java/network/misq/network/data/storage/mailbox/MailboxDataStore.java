@@ -19,7 +19,6 @@ package network.misq.network.data.storage.mailbox;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.persistence.Persistence;
 import network.misq.common.security.DigestUtil;
 import network.misq.network.data.filter.ProtectedDataFilter;
 import network.misq.network.data.inventory.Inventory;
@@ -28,6 +27,7 @@ import network.misq.network.data.storage.MetaData;
 import network.misq.network.data.storage.Util;
 import network.misq.network.data.storage.auth.AuthenticatedDataRequest;
 import network.misq.network.data.storage.auth.Result;
+import network.misq.persistence.Persistence;
 
 import java.io.File;
 import java.io.IOException;

@@ -19,6 +19,8 @@ dependencies {
         exclude(module: 'j2objc-annotations')
     }
     implementation project(':common')
+    implementation project(':identity')
+    implementation project(':persistence')
 }
 test {
     useJUnitPlatform()

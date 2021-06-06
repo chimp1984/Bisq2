@@ -20,7 +20,11 @@ dependencies {
         exclude(module: 'j2objc-annotations')
     }
     implementation project(':common')
-    implementation project(':p2p')
+    implementation project(':identity')
+    implementation project(':account')
+    implementation project(':wallets')
+    implementation project(':network')
+    implementation project(':persistence')
     implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
 }
 

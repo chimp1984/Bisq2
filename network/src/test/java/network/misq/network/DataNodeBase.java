@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class DataNodeBase {
-    protected P2pService p2pServiceSeed, p2pService1, p2pService2;
+    protected NetworkService p2pServiceSeed, p2pService1, p2pService2;
 
     protected void bootstrap(Set<NetworkConfig> networkConfigsSeed,
                              Set<NetworkConfig> networkConfigsNode1,
@@ -55,8 +55,8 @@ public class DataNodeBase {
     }
 
 
-    protected CompletableFuture<P2pService> getP2pServiceFuture(Set<NetworkConfig> networkConfigs) {
-        P2pService p2pService = new P2pService(networkConfigs, null);
+    protected CompletableFuture<NetworkService> getP2pServiceFuture(Set<NetworkConfig> networkConfigs) {
+        NetworkService p2pService = new NetworkService(networkConfigs, null);
         return p2pService.bootstrap().thenApply(result -> p2pService);
     }
 }

@@ -19,14 +19,14 @@ package network.misq.finance.swap.contract.multiSig;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.chain.Chain;
-import network.misq.chain.Wallet;
 import network.misq.finance.contract.SecurityProvider;
 import network.misq.finance.contract.sharedState.*;
 import network.misq.finance.swap.contract.multiSig.maker.FundsSentMessage;
 import network.misq.finance.swap.contract.multiSig.maker.TxInputsMessage;
 import network.misq.finance.swap.contract.multiSig.taker.DepositTxBroadcastMessage;
 import network.misq.finance.swap.contract.multiSig.taker.PayoutTxBroadcastMessage;
+import network.misq.wallets.Chain;
+import network.misq.wallets.Wallet;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;

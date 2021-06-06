@@ -1,7 +1,7 @@
 package network.misq.finance.contract.sharedState;
 
-import network.misq.chain.Bitcoind;
 import network.misq.finance.swap.contract.multiSig.MultiSig;
+import network.misq.wallets.Bitcoind;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
