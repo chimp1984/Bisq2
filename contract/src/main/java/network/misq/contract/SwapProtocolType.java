@@ -15,22 +15,11 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.dispute;
+package network.misq.contract;
 
-import network.misq.account.Account;
-import network.misq.contract.Contract;
-import network.misq.id.Identity;
-import network.misq.network.NetworkService;
-import network.misq.offer.Listing;
-import network.misq.persistence.Persistence;
-import network.misq.trade.Trade;
-
-public class Dispute {
-    Identity identity;
-    Account account;
-    Contract contract;
-    Listing offer;
-    Trade trade;
-    NetworkService networkService;
-    Persistence persistence;
+public enum SwapProtocolType implements ProtocolType {
+    ATOMIC_CROSS_CHAIN_SWAP,
+    LN_SWAP,
+    MULTISIG,
+    REPUTATION
 }

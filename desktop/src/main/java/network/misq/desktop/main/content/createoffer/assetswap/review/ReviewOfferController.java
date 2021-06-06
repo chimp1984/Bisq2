@@ -20,16 +20,20 @@ package network.misq.desktop.main.content.createoffer.assetswap.review;
 import lombok.Getter;
 import network.misq.api.Api;
 import network.misq.desktop.common.Controller;
-import network.misq.offer.OpenOffers;
+import network.misq.offer.Offer;
+import network.misq.offer.OfferRepository;
+import network.misq.offer.OpenOfferRepository;
 
 public class ReviewOfferController implements Controller {
-    private final OpenOffers openOffers;
+    private final OfferRepository offerRepository;
+    private final OpenOfferRepository openOfferRepository;
     private ReviewOfferModel model;
     @Getter
     private ReviewOfferView view;
 
     public ReviewOfferController(Api api) {
-        openOffers = api.getOpenOffers();
+        offerRepository = api.getOfferRepository();
+        openOfferRepository = api.getOpenOfferRepository();
     }
 
     @Override
@@ -51,6 +55,8 @@ public class ReviewOfferController implements Controller {
     }
 
     public void onPublish() {
-        openOffers.createNewOffer(model.askAmount);
+        Offer offer = offerRepository.createOffer(model.askAmount);
+        offerRepository.publishOffer(offer);
+        openOfferRepository.newOpenOffer(offer);
     }
 }

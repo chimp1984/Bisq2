@@ -21,5 +21,5 @@ public enum FiatTransferType implements TransferType {
     SEPA,
     REVOLUT,
     ZELLE,
-    OTHER
+    OTHER;
 }

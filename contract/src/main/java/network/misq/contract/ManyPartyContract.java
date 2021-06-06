@@ -10,6 +10,7 @@ public class ManyPartyContract extends Contract {
 
     public ManyPartyContract(ProtocolType protocolType, Role myRole, Map<Role, Party> partyMap) {
         super(protocolType, myRole);
+
         this.partyMap = Map.copyOf(partyMap);
     }
 }

@@ -21,7 +21,5 @@ package network.misq.id;
 import network.misq.persistence.Persistence;
 
 public class Identity {
-    Identity identity;
     Persistence persistence;
-
 }

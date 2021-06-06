@@ -15,22 +15,20 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.dispute;
+package network.misq.offer.options;
 
-import network.misq.account.Account;
-import network.misq.contract.Contract;
-import network.misq.id.Identity;
-import network.misq.network.NetworkService;
-import network.misq.offer.Listing;
-import network.misq.persistence.Persistence;
-import network.misq.trade.Trade;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class Dispute {
-    Identity identity;
-    Account account;
-    Contract contract;
-    Listing offer;
-    Trade trade;
-    NetworkService networkService;
-    Persistence persistence;
+// For some fiat methods is useful to know the makers bank or county of bank.
+@Getter
+@EqualsAndHashCode
+public class TransferOptions {
+    private final String countyCodeOfBank;
+    private final String bankName;
+
+    public TransferOptions(String countyCodeOfBank, String bankName) {
+        this.countyCodeOfBank = countyCodeOfBank;
+        this.bankName = bankName;
+    }
 }

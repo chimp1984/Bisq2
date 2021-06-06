@@ -24,7 +24,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
-import network.misq.offer.SwapOffer;
+import network.misq.offer.Offer;
 import network.misq.presentation.offer.OfferEntity;
 
 public class OfferListItem extends OfferEntity {
@@ -34,7 +34,7 @@ public class OfferListItem extends OfferEntity {
     @Getter
     private final StringProperty quoteAmountProperty = new SimpleStringProperty("");
 
-    public OfferListItem(SwapOffer offer, BehaviorSubject<Double> marketPriceSubject) {
+    public OfferListItem(Offer offer, BehaviorSubject<Double> marketPriceSubject) {
         super(offer, marketPriceSubject);
     }
 

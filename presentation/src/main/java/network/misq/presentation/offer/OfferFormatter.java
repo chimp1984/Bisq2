@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.account.TransferType;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
-import network.misq.offer.ReputationOptions;
-import network.misq.offer.TransferOptions;
+import network.misq.offer.options.ReputationOptions;
+import network.misq.offer.options.TransferOptions;
 import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.DateFormatter;
 

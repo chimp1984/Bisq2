@@ -17,45 +17,86 @@
 
 package network.misq.offer;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.contract.ProtocolType;
+import network.misq.contract.SwapProtocolType;
 import network.misq.network.NetworkId;
+import network.misq.offer.options.FeeOptions;
+import network.misq.offer.options.ReputationOptions;
+import network.misq.offer.options.SupportOptions;
+import network.misq.offer.options.TransferOptions;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-@EqualsAndHashCode
+import static com.google.common.base.Preconditions.checkArgument;
+
+/**
+ * Offer for a asset swap offer. Supports multiple protocolTypes in case the maker wants to give more flexibility
+ * to takers.
+ */
 @Getter
-public class Offer implements Serializable {
-    private final String id;
-    private final long date;
-    private final List<? extends ProtocolType> protocolTypes;
-    private final NetworkId makerNetworkId;
-    private final Optional<DisputeResolutionOptions> disputeResolutionOptions;
-    private final Optional<FeeOptions> feeOptions;
-    private final Optional<ReputationOptions> reputationOptions;
-    private final Optional<TransferOptions> transferOptions;
+public class Offer extends Listing {
+    private final Asset bidAsset;
+    private final Asset askAsset;
+    private final String baseCurrency;
+    private final Optional<Double> marketBasedPrice;
+    private final Optional<Double> minAmountAsPercentage;
 
-    public Offer(List<? extends ProtocolType> protocolTypes, NetworkId makerNetworkId) {
-        this(protocolTypes, makerNetworkId, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    private transient final long minBaseAmount;
+
+    public Offer(List<SwapProtocolType> protocolTypes,
+                 NetworkId makerNetworkId,
+                 Asset bidAsset,
+                 Asset askAsset) {
+        this(bidAsset, askAsset, bidAsset.getCode(), protocolTypes, makerNetworkId,
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty());
     }
 
-    public Offer(List<? extends ProtocolType> protocolTypes,
+    public Offer(Asset bidAsset,
+                 Asset askAsset,
+                 String baseCurrency,
+                 List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
-                 Optional<DisputeResolutionOptions> disputeResolutionOptions,
+                 Optional<Double> marketBasedPrice,
+                 Optional<Double> minAmountAsPercentage,
+                 Optional<SupportOptions> disputeResolutionOptions,
                  Optional<FeeOptions> feeOptions,
                  Optional<ReputationOptions> reputationOptions,
                  Optional<TransferOptions> transferOptions) {
-        id = UUID.randomUUID().toString();
-        date = System.currentTimeMillis();
-        this.protocolTypes = protocolTypes;
-        this.makerNetworkId = makerNetworkId;
-        this.disputeResolutionOptions = disputeResolutionOptions;
-        this.feeOptions = feeOptions;
-        this.reputationOptions = reputationOptions;
-        this.transferOptions = transferOptions;
+        super(protocolTypes, makerNetworkId, disputeResolutionOptions, feeOptions, reputationOptions, transferOptions);
+
+        this.bidAsset = bidAsset;
+        this.askAsset = askAsset;
+        this.baseCurrency = baseCurrency;
+        this.marketBasedPrice = marketBasedPrice;
+        this.minAmountAsPercentage = minAmountAsPercentage;
+
+        minBaseAmount = minAmountAsPercentage.map(perc -> Math.round(getBaseAsset().getAmount() * perc))
+                .orElse(getBaseAsset().getAmount());
+    }
+
+    public double getFixPrice() {
+        double baseAssetAmount = (double) getBaseAsset().getAmount();
+        double quoteAssetAmount = (double) getQuoteAsset().getAmount();
+        checkArgument(quoteAssetAmount > 0);
+        return quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
+    }
+
+
+    public Asset getBaseAsset() {
+        if (askAsset.getCode().equals(baseCurrency)) {
+            return askAsset;
+        } else {
+            return bidAsset;
+        }
+    }
+
+    public Asset getQuoteAsset() {
+        if (bidAsset.getCode().equals(baseCurrency)) {
+            return askAsset;
+        } else {
+            return bidAsset;
+        }
     }
 }

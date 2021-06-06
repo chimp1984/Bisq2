@@ -22,8 +22,8 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Getter;
 import network.misq.network.MarketPriceService;
 import network.misq.network.MockNetworkService;
-import network.misq.offer.OfferbookRepository;
-import network.misq.offer.OpenOffers;
+import network.misq.offer.OfferRepository;
+import network.misq.offer.OpenOfferRepository;
 import network.misq.presentation.offer.OfferEntity;
 import network.misq.presentation.offer.OfferbookEntity;
 
@@ -32,17 +32,17 @@ import java.util.List;
 @Getter
 public class Api {
     private final MockNetworkService networkService;
-    private final OfferbookRepository offerbookRepository;
+    private final OfferRepository offerRepository;
     private final MarketPriceService marketPriceService;
-    private final OpenOffers openOffers;
+    private final OpenOfferRepository openOfferRepository;
     private final OfferbookEntity offerbookEntity;
 
     public Api() {
         networkService = new MockNetworkService();
-        offerbookRepository = new OfferbookRepository(networkService);
+        offerRepository = new OfferRepository(networkService);
         marketPriceService = new MarketPriceService();
-        openOffers = new OpenOffers(networkService);
-        offerbookEntity = new OfferbookEntity(offerbookRepository, marketPriceService);
+        openOfferRepository = new OpenOfferRepository(networkService);
+        offerbookEntity = new OfferbookEntity(offerRepository, marketPriceService);
     }
 
     /**
@@ -51,8 +51,8 @@ public class Api {
     public void initialize() {
         networkService.initialize();
         marketPriceService.initialize();
-        offerbookRepository.initialize();
-        openOffers.initialize();
+        offerRepository.initialize();
+        openOfferRepository.initialize();
         offerbookEntity.initialize();
     }
 

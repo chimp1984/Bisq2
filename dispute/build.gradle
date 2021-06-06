@@ -23,7 +23,7 @@ dependencies {
     implementation project(':account')
     implementation project(':contract')
     implementation project(':offer')
-    implementation project(':trade')
+    implementation project(':protocol')
     implementation project(':network')
     implementation project(':persistence')
 }

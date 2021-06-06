@@ -20,7 +20,7 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import network.misq.common.data.Couple;
-import network.misq.offer.SwapOffer;
+import network.misq.offer.Offer;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public class OfferEntity implements Comparable<OfferEntity> {
     protected Disposable marketPriceDisposable;
-    protected final SwapOffer offer;
+    protected final Offer offer;
     protected final BehaviorSubject<Double> marketPriceSubject;
     protected double price;
     protected final String formattedBaseAmountWithMinAmount;
@@ -36,7 +36,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
     protected String formattedPrice;
     protected String formattedQuoteAmount;
 
-    public OfferEntity(SwapOffer offer, BehaviorSubject<Double> marketPriceSubject) {
+    public OfferEntity(Offer offer, BehaviorSubject<Double> marketPriceSubject) {
         this.offer = offer;
         this.marketPriceSubject = marketPriceSubject;
 
@@ -65,7 +65,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
         return price;
     }
 
-    public SwapOffer getOffer() {
+    public Offer getOffer() {
         return offer;
     }
 
@@ -222,14 +222,14 @@ public class OfferEntity implements Comparable<OfferEntity> {
                 .orElse(0);
     }
 
-    private static double getLowestPrice(List<SwapOffer> offers, Optional<Double> marketPrice) {
+    private static double getLowestPrice(List<Offer> offers, Optional<Double> marketPrice) {
         return offers.stream()
                 .mapToDouble(offer -> getPrice(offer.getFixPrice(), offer.getMarketBasedPrice(), marketPrice))
                 .min()
                 .orElse(0);
     }
 
-    private static double getHighestPrice(List<SwapOffer> offers, Optional<Double> marketPrice) {
+    private static double getHighestPrice(List<Offer> offers, Optional<Double> marketPrice) {
         return offers.stream()
                 .mapToDouble(offer -> getPrice(offer.getFixPrice(), offer.getMarketBasedPrice(), marketPrice))
                 .max()

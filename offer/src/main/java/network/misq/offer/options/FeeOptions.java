@@ -15,22 +15,27 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.dispute;
+package network.misq.offer.options;
 
-import network.misq.account.Account;
-import network.misq.contract.Contract;
-import network.misq.id.Identity;
-import network.misq.network.NetworkService;
-import network.misq.offer.Listing;
-import network.misq.persistence.Persistence;
-import network.misq.trade.Trade;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class Dispute {
-    Identity identity;
-    Account account;
-    Contract contract;
-    Listing offer;
-    Trade trade;
-    NetworkService networkService;
-    Persistence persistence;
+// Data for verifying fee payment. Open question how we deal with fees...
+@Getter
+@EqualsAndHashCode
+public class FeeOptions {
+    public enum Type {
+        BTC,
+        BSQ
+    }
+
+    private final Type type;
+    private final int blockHeightAtFeePayment;
+    private final String feeTxId;
+
+    public FeeOptions(Type type, int blockHeightAtFeePayment, String feeTxId) {
+        this.type = type;
+        this.blockHeightAtFeePayment = blockHeightAtFeePayment;
+        this.feeTxId = feeTxId;
+    }
 }
