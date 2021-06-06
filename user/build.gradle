@@ -22,6 +22,8 @@ dependencies {
     implementation project(':identity')
     implementation project(':account')
     implementation project(':contract')
+    implementation project(':offer')
+    implementation project(':protocol')
     implementation project(':support')
     implementation project(':persistence')
 }

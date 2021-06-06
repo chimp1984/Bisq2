@@ -21,14 +21,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.contract.ProtocolType;
 import network.misq.network.NetworkId;
-import network.misq.offer.options.FeeOptions;
-import network.misq.offer.options.ReputationOptions;
-import network.misq.offer.options.SupportOptions;
-import network.misq.offer.options.TransferOptions;
+import network.misq.offer.options.OfferOption;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @EqualsAndHashCode
@@ -38,28 +36,18 @@ public abstract class Listing implements Serializable {
     private final long date;
     private final List<? extends ProtocolType> protocolTypes;
     private final NetworkId makerNetworkId;
-    private final Optional<SupportOptions> disputeResolutionOptions;
-    private final Optional<FeeOptions> feeOptions;
-    private final Optional<ReputationOptions> reputationOptions;
-    private final Optional<TransferOptions> transferOptions;
+    private final Set<OfferOption> offerOptions;
 
     public Listing(List<? extends ProtocolType> protocolTypes, NetworkId makerNetworkId) {
-        this(protocolTypes, makerNetworkId, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        this(protocolTypes, makerNetworkId, new HashSet<>());
     }
 
     public Listing(List<? extends ProtocolType> protocolTypes,
-                   NetworkId makerNetworkId,
-                   Optional<SupportOptions> disputeResolutionOptions,
-                   Optional<FeeOptions> feeOptions,
-                   Optional<ReputationOptions> reputationOptions,
-                   Optional<TransferOptions> transferOptions) {
+                   NetworkId makerNetworkId, Set<OfferOption> offerOptions) {
+        this.offerOptions = offerOptions;
         id = UUID.randomUUID().toString();
         date = System.currentTimeMillis();
         this.protocolTypes = protocolTypes;
         this.makerNetworkId = makerNetworkId;
-        this.disputeResolutionOptions = disputeResolutionOptions;
-        this.feeOptions = feeOptions;
-        this.reputationOptions = reputationOptions;
-        this.transferOptions = transferOptions;
     }
 }

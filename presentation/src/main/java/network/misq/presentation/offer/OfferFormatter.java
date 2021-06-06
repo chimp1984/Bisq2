@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.account.TransferType;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
-import network.misq.offer.options.ReputationOptions;
-import network.misq.offer.options.TransferOptions;
+import network.misq.offer.options.ReputationOption;
+import network.misq.offer.options.TransferOption;
 import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.DateFormatter;
 
@@ -52,12 +52,12 @@ class OfferFormatter {
         return protocolTypes.toString();
     }
 
-    static String formatReputationOptions(Optional<ReputationOptions> reputationOptions) {
+    static String formatReputationOptions(Optional<ReputationOption> reputationOptions) {
         return reputationOptions.toString();
     }
 
-    static String formatTransferOptions(Optional<TransferOptions> transferOptions) {
-        return transferOptions.map(e -> e.getBankName() + " / " + e.getCountyCodeOfBank()).orElse("-");
+    static String formatTransferOptions(TransferOption transferOption) {
+        return transferOption.getBankName() + " / " + transferOption.getCountyCodeOfBank();
     }
 
     static String formatTransferTypes(List<TransferType> transferTypes) {

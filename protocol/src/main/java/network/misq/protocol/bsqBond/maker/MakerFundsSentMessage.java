@@ -15,23 +15,9 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.user;
+package network.misq.protocol.bsqBond.maker;
 
-import network.misq.account.Account;
-import network.misq.id.Identity;
-import network.misq.offer.OpenOffer;
-import network.misq.persistence.Persistence;
-import network.misq.protocol.Deal;
-import network.misq.support.Dispute;
+import network.misq.protocol.bsqBond.messages.FundsSentMessage;
 
-import java.util.Collection;
-
-public class User {
-    // expected dependencies
-    Collection<Identity> identities; // A user can manage multiple identities and assign it to offers or other interactions
-    Collection<Account> accounts;
-    Collection<OpenOffer> openOffers;
-    Collection<Deal> deals;
-    Collection<Dispute> disputes;
-    Persistence persistence;
+public class MakerFundsSentMessage extends FundsSentMessage {
 }

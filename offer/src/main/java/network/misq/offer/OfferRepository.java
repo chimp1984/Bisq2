@@ -190,17 +190,21 @@ public class OfferRepository {
             }
             NetworkId makerNetworkId = new NetworkId(Address.localHost(1000 + new Random().nextInt(1000)), null, "default");
 
-            Optional<SupportOptions> disputeResolutionOptions = Optional.empty();
-            Optional<FeeOptions> feeOptions = Optional.empty();
+            Set<OfferOption> options = new HashSet<>();
             ReputationProof accountCreationDateProof = new AccountCreationDateProof("hashOfAccount", "otsProof)");
-            Optional<ReputationOptions> reputationOptions = Optional.of(new ReputationOptions(Set.of(accountCreationDateProof)));
-            Optional<TransferOptions> transferOptions = new Random().nextBoolean() ?
-                    Optional.of(new TransferOptions("USA", "HSBC")) :
-                    new Random().nextBoolean() ? Optional.of(new TransferOptions("DE", "N26")) :
-                            Optional.empty();
+            ReputationOption reputationOptions = new ReputationOption(Set.of(accountCreationDateProof));
+            options.add(reputationOptions);
+
+            TransferOption transferOptions = new Random().nextBoolean() ?
+                    new TransferOption("USA", "HSBC") :
+                    new Random().nextBoolean() ? new TransferOption("DE", "N26") :
+                            null;
+            if (transferOptions != null) {
+                options.add(transferOptions);
+            }
+
             return new Offer(bidAsset, askAsset, baseCurrency, protocolTypes, makerNetworkId,
-                    marketBasedPrice, minAmountAsPercentage,
-                    disputeResolutionOptions, feeOptions, reputationOptions, transferOptions);
+                    marketBasedPrice, minAmountAsPercentage, options);
         }
 
         private static Asset getRandomAsset(String code, long amount) {

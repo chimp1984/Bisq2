@@ -15,23 +15,24 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.user;
+package network.misq.protocol;
 
 import network.misq.account.Account;
+import network.misq.contract.Contract;
 import network.misq.id.Identity;
-import network.misq.offer.OpenOffer;
+import network.misq.network.NetworkService;
+import network.misq.offer.Offer;
 import network.misq.persistence.Persistence;
-import network.misq.protocol.Deal;
-import network.misq.support.Dispute;
+import network.misq.wallets.Wallet;
 
-import java.util.Collection;
 
-public class User {
+public class Deal {
     // expected dependencies
-    Collection<Identity> identities; // A user can manage multiple identities and assign it to offers or other interactions
-    Collection<Account> accounts;
-    Collection<OpenOffer> openOffers;
-    Collection<Deal> deals;
-    Collection<Dispute> disputes;
+    Identity identity;
+    Account account;
+    Contract contract;
+    Offer offer;
+    NetworkService networkService;
     Persistence persistence;
+    Wallet wallet;
 }

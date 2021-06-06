@@ -24,6 +24,7 @@ dependencies {
     implementation project(':contract')
     implementation project(':network')
     implementation project(':persistence')
+    implementation project(':wallets')
     implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
 
 }

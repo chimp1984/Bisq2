@@ -22,6 +22,7 @@ import network.misq.id.Identity;
 import network.misq.persistence.Persistence;
 
 public class Account {
+    // expected dependencies
     Identity identity;
     Persistence persistence;
 

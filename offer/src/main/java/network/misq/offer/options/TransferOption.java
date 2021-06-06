@@ -15,23 +15,20 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.user;
+package network.misq.offer.options;
 
-import network.misq.account.Account;
-import network.misq.id.Identity;
-import network.misq.offer.OpenOffer;
-import network.misq.persistence.Persistence;
-import network.misq.protocol.Deal;
-import network.misq.support.Dispute;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import java.util.Collection;
+// For some fiat methods is useful to know the makers bank or county of bank.
+@Getter
+@EqualsAndHashCode
+public class TransferOption implements OfferOption {
+    private final String countyCodeOfBank;
+    private final String bankName;
 
-public class User {
-    // expected dependencies
-    Collection<Identity> identities; // A user can manage multiple identities and assign it to offers or other interactions
-    Collection<Account> accounts;
-    Collection<OpenOffer> openOffers;
-    Collection<Deal> deals;
-    Collection<Dispute> disputes;
-    Persistence persistence;
+    public TransferOption(String countyCodeOfBank, String bankName) {
+        this.countyCodeOfBank = countyCodeOfBank;
+        this.bankName = bankName;
+    }
 }

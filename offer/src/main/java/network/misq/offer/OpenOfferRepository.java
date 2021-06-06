@@ -22,12 +22,16 @@ import network.misq.contract.SwapProtocolType;
 import network.misq.network.Address;
 import network.misq.network.INetworkService;
 import network.misq.network.NetworkId;
+import network.misq.wallets.Wallet;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class OpenOfferRepository {
+    // Expected dependency for deactivating offers if not sufficient wallet balance
+    Wallet wallet;
+
     private final INetworkService networkService;
     private final Set<OpenOffer> openOffers = new CopyOnWriteArraySet<>();
 

@@ -20,13 +20,12 @@ package network.misq.offer;
 import lombok.Getter;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.NetworkId;
-import network.misq.offer.options.FeeOptions;
-import network.misq.offer.options.ReputationOptions;
-import network.misq.offer.options.SupportOptions;
-import network.misq.offer.options.TransferOptions;
+import network.misq.offer.options.OfferOption;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -49,8 +48,7 @@ public class Offer extends Listing {
                  Asset bidAsset,
                  Asset askAsset) {
         this(bidAsset, askAsset, bidAsset.getCode(), protocolTypes, makerNetworkId,
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty());
+                Optional.empty(), Optional.empty(), new HashSet<>());
     }
 
     public Offer(Asset bidAsset,
@@ -58,19 +56,22 @@ public class Offer extends Listing {
                  String baseCurrency,
                  List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
-                 Optional<Double> marketBasedPrice,
-                 Optional<Double> minAmountAsPercentage,
-                 Optional<SupportOptions> disputeResolutionOptions,
-                 Optional<FeeOptions> feeOptions,
-                 Optional<ReputationOptions> reputationOptions,
-                 Optional<TransferOptions> transferOptions) {
-        super(protocolTypes, makerNetworkId, disputeResolutionOptions, feeOptions, reputationOptions, transferOptions);
+                 Optional<Double> marketBasedPrice, //todo use option
+                 Optional<Double> minAmountAsPercentage, //todo use option
+                 Set<OfferOption> offerOptions) {
+        super(protocolTypes, makerNetworkId, offerOptions);
 
         this.bidAsset = bidAsset;
         this.askAsset = askAsset;
         this.baseCurrency = baseCurrency;
         this.marketBasedPrice = marketBasedPrice;
         this.minAmountAsPercentage = minAmountAsPercentage;
+
+       /* minAmountAsPercentage =   offerOptions.stream()
+                .filter(e-> e instanceof AmountOption)
+                .map(e->(AmountOption)e)
+                .map(e-> e.getMinAmountAsPercentage())
+                .findAny().orElse(1d);*/
 
         minBaseAmount = minAmountAsPercentage.map(perc -> Math.round(getBaseAsset().getAmount() * perc))
                 .orElse(getBaseAsset().getAmount());
@@ -82,7 +83,6 @@ public class Offer extends Listing {
         checkArgument(quoteAssetAmount > 0);
         return quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
     }
-
 
     public Asset getBaseAsset() {
         if (askAsset.getCode().equals(baseCurrency)) {

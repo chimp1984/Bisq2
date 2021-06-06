@@ -21,6 +21,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import network.misq.common.data.Couple;
 import network.misq.offer.Offer;
+import network.misq.offer.options.TransferOption;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -43,7 +44,12 @@ public class OfferEntity implements Comparable<OfferEntity> {
         formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().getAmount(),
                 offer.getMinAmountAsPercentage(),
                 offer.getBaseCurrency());
-        formattedTransferOptions = OfferFormatter.formatTransferOptions(offer.getTransferOptions());
+
+        formattedTransferOptions = offer.getOfferOptions().stream()
+                .filter(offerOption -> offerOption instanceof TransferOption)
+                .map(offerOption -> (TransferOption) offerOption)
+                .map(OfferFormatter::formatTransferOptions)
+                .findAny().orElse("");
 
         marketPriceDisposable = marketPriceSubject.subscribe(this::updatedPriceAndAmount, Throwable::printStackTrace);
     }
