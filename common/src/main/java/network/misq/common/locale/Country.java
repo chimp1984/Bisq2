@@ -17,20 +17,5 @@
 
 package network.misq.common.locale;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-
-@EqualsAndHashCode
-@ToString
-public final class Country {
-    public final String code;
-    public final String name;
-    public final Region region;
-
-    public Country(String code, String name, Region region) {
-        this.code = code;
-        this.name = name;
-        this.region = region;
-    }
+public record Country(String code, String name, Region region) {
 }

@@ -85,7 +85,7 @@ public class OfferbookModel implements Model {
         applyBaseCurrency();
 
         resetFilter();
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().getCode().equals(selectedAskCurrencyProperty.get());
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().code().equals(selectedAskCurrencyProperty.get());
         setCurrencyPredicate(predicate);
         amountFilterModel.activate();
 
@@ -124,13 +124,13 @@ public class OfferbookModel implements Model {
 
     public void setSelectAskCurrency(String currency) {
         selectedAskCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().getCode().equals(currency);
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().code().equals(currency);
         setCurrencyPredicate(predicate);
     }
 
     public void setSelectBidCurrency(String currency) {
         selectedBidCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getBidAsset().getCode().equals(currency);
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getBidAsset().code().equals(currency);
         setCurrencyPredicate(predicate);
     }
 

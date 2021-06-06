@@ -17,38 +17,5 @@
 
 package network.misq.common.data;
 
-import java.util.Objects;
-
-public class Triple<A, B, C> {
-    final public A first;
-    final public B second;
-    final public C third;
-
-    public Triple(A first, B second, C third) {
-        this.first = first;
-        this.second = second;
-        this.third = third;
-    }
-
-    @SuppressWarnings("SimplifiableIfStatement")
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Triple)) return false;
-
-        Triple<?, ?, ?> triple = (Triple<?, ?, ?>) o;
-
-        if (!Objects.equals(first, triple.first)) return false;
-        if (!Objects.equals(second, triple.second)) return false;
-        return Objects.equals(third, triple.third);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = first != null ? first.hashCode() : 0;
-        result = 31 * result + (second != null ? second.hashCode() : 0);
-        result = 31 * result + (third != null ? third.hashCode() : 0);
-        return result;
-    }
+public record Triple<A, B, C>(A first, B second, C third) {
 }

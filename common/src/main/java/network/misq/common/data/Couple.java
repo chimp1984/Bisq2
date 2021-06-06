@@ -18,44 +18,6 @@
 package network.misq.common.data;
 
 import java.io.Serializable;
-import java.util.Objects;
 
-public class Couple<A, B> implements Serializable {
-    private static final long serialVersionUID = 1;
-
-    final public A first;
-    final public B second;
-
-    public Couple(A first, B second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    @SuppressWarnings("SimplifiableIfStatement")
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Couple)) return false;
-
-        Couple<?, ?> couple = (Couple<?, ?>) o;
-
-        if (!Objects.equals(first, couple.first)) return false;
-        return Objects.equals(second, couple.second);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = first != null ? first.hashCode() : 0;
-        result = 31 * result + (second != null ? second.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Tuple2{" +
-                "\n     first=" + first +
-                ",\n     second=" + second +
-                "\n}";
-    }
+public record Couple<A, B>(A first, B second) implements Serializable {
 }

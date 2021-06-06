@@ -20,6 +20,7 @@ package network.misq.protocol.swap.contract.bsqBond;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.account.FiatTransferType;
+import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
@@ -62,8 +63,8 @@ public class BsqBondTest {
         // create offer
         NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
 
-        Asset askAsset = new Asset("USD", 100, List.of(FiatTransferType.ZELLE));
-        Asset bidAsset = new Asset("EUR", 90, List.of(FiatTransferType.REVOLUT, FiatTransferType.SEPA));
+        Asset askAsset = new Asset("USD", 100, List.of(FiatTransferType.ZELLE), AssetTransfer.Type.MANUAL);
+        Asset bidAsset = new Asset("EUR", 90, List.of(FiatTransferType.REVOLUT, FiatTransferType.SEPA), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG, SwapProtocolType.REPUTATION),
                 makerNetworkId, bidAsset, askAsset);
 

@@ -17,27 +17,13 @@
 
 package network.misq.offer;
 
-import lombok.Getter;
 import network.misq.account.TransferType;
 import network.misq.contract.AssetTransfer;
 
 import java.util.List;
 
-@Getter
-public class Asset {
-    private final String code;
-    private final long amount;
-    private final List<TransferType> transferTypes; // E.g. Native chain, host chain, fiat method (zelle, sepa)
-    private final AssetTransfer.Type assetTransferType; // In case of crypto it can be automatic or manual. Fiat usually is always manual.
-
-    public Asset(String code, long amount, List<TransferType> transferTypes) {
-        this(code, amount, transferTypes, AssetTransfer.Type.MANUAL);
-    }
-
-    public Asset(String code, long amount, List<TransferType> transferTypes, AssetTransfer.Type assetTransferType) {
-        this.code = code;
-        this.amount = amount;
-        this.transferTypes = transferTypes;
-        this.assetTransferType = assetTransferType;
-    }
+public record Asset(String code,
+                    long amount,
+                    List<TransferType> transferTypes,
+                    AssetTransfer.Type assetTransferType) {
 }

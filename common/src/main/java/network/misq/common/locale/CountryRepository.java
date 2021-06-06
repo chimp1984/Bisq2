@@ -40,6 +40,6 @@ public class CountryRepository {
         COUNTRIES.add(new Country("GE", "Georgia", new Region("AS", Region.getRegionName("AS"))));
         COUNTRIES.add(new Country("BW", "Botswana", new Region("AF", Region.getRegionName("AF"))));
         COUNTRIES.add(new Country("IR", "Iran", new Region("AS", Region.getRegionName("AS"))));
-        COUNTRIES.sort(Comparator.comparing(locale -> locale.name));
+        COUNTRIES.sort(Comparator.comparing(Country::name));
     }
 }

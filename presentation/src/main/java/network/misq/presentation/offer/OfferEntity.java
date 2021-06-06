@@ -41,7 +41,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
         this.offer = offer;
         this.marketPriceSubject = marketPriceSubject;
 
-        formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().getAmount(),
+        formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().amount(),
                 offer.getMinAmountAsPercentage(),
                 offer.getBaseCurrency());
 
@@ -96,11 +96,11 @@ public class OfferEntity implements Comparable<OfferEntity> {
     }
 
     public int compareBaseAmount(OfferEntity other) {
-        return Long.compare(offer.getBaseAsset().getAmount(), other.getOffer().getBaseAsset().getAmount());
+        return Long.compare(offer.getBaseAsset().amount(), other.getOffer().getBaseAsset().amount());
     }
 
     public int compareQuoteAmount(OfferEntity other) {
-        return Long.compare(offer.getQuoteAsset().getAmount(), other.getOffer().getQuoteAsset().getAmount());
+        return Long.compare(offer.getQuoteAsset().amount(), other.getOffer().getQuoteAsset().amount());
     }
 
     public int comparePrice(OfferEntity other) {
@@ -121,13 +121,13 @@ public class OfferEntity implements Comparable<OfferEntity> {
         Couple<String, Double> priceTuple = getPriceTuple(offer.getFixPrice(),
                 offer.getMarketBasedPrice(),
                 marketPrice);
-        formattedPrice = priceTuple.first;
-        price = priceTuple.second;
-        formattedQuoteAmount = getFormattedQuoteAmount(offer.getBaseAsset().getAmount(),
+        formattedPrice = priceTuple.first();
+        price = priceTuple.second();
+        formattedQuoteAmount = getFormattedQuoteAmount(offer.getBaseAsset().amount(),
                 offer.getMinAmountAsPercentage(),
                 offer.getMarketBasedPrice(),
                 marketPrice,
-                offer.getQuoteAsset().getCode());
+                offer.getQuoteAsset().code());
     }
 
 
@@ -211,7 +211,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
 
     private static long getMinQuoteAmountValue(List<OfferEntity> offers, Double marketPrice) {
         return offers.stream()
-                .mapToLong(o -> getMinQuoteAmount(o.getOffer().getBaseAsset().getAmount(),
+                .mapToLong(o -> getMinQuoteAmount(o.getOffer().getBaseAsset().amount(),
                         o.getOffer().getMinAmountAsPercentage(),
                         o.getOffer().getMarketBasedPrice(),
                         marketPrice))
@@ -221,7 +221,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
 
     private static long getMaxQuoteAmountValue(List<OfferEntity> offers, Double marketPrice) {
         return offers.stream()
-                .mapToLong(o -> getQuoteAmount(o.getOffer().getBaseAsset().getAmount(),
+                .mapToLong(o -> getQuoteAmount(o.getOffer().getBaseAsset().amount(),
                         o.getOffer().getMarketBasedPrice(),
                         marketPrice))
                 .max()

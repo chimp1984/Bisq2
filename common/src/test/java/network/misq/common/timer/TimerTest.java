@@ -50,9 +50,7 @@ public class TimerTest {
 
         CountDownLatch latch2 = new CountDownLatch(3);
         long ts2 = System.currentTimeMillis();
-        UserThread.runPeriodically(() -> {
-            latch2.countDown();
-        }, 100, TimeUnit.MILLISECONDS);
+        UserThread.runPeriodically(latch2::countDown, 100, TimeUnit.MILLISECONDS);
         latch2.await(5, TimeUnit.SECONDS);
         assertTrue(Math.abs(System.currentTimeMillis() - ts2 - 300) < 60);
     }

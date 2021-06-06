@@ -17,15 +17,10 @@
 
 package network.misq.common.locale;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 import java.util.HashMap;
 import java.util.Map;
 
-@EqualsAndHashCode
-@ToString
-public final class Region {
+public record Region(String code, String name) {
     public static final Map<String, String> NAME_BY_CODE = new HashMap<>();
     // Key is: ISO 3166 code, value is region code as defined in regionCodeToNameMap
     public static final Map<String, String> REGION_CODE_BY_COUNTRY_CODE = new HashMap<>();
@@ -294,14 +289,6 @@ public final class Region {
 
     public static String getRegionCode(String countryCode) {
         return REGION_CODE_BY_COUNTRY_CODE.getOrDefault(countryCode, "Undefined");
-    }
-
-    public final String code;
-    public final String name;
-
-    public Region(String code, String name) {
-        this.code = code;
-        this.name = name;
     }
 
 

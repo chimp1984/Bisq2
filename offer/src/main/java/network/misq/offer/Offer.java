@@ -47,7 +47,7 @@ public class Offer extends Listing {
                  NetworkId makerNetworkId,
                  Asset bidAsset,
                  Asset askAsset) {
-        this(bidAsset, askAsset, bidAsset.getCode(), protocolTypes, makerNetworkId,
+        this(bidAsset, askAsset, bidAsset.code(), protocolTypes, makerNetworkId,
                 Optional.empty(), Optional.empty(), new HashSet<>());
     }
 
@@ -73,19 +73,19 @@ public class Offer extends Listing {
                 .map(e-> e.getMinAmountAsPercentage())
                 .findAny().orElse(1d);*/
 
-        minBaseAmount = minAmountAsPercentage.map(perc -> Math.round(getBaseAsset().getAmount() * perc))
-                .orElse(getBaseAsset().getAmount());
+        minBaseAmount = minAmountAsPercentage.map(perc -> Math.round(getBaseAsset().amount() * perc))
+                .orElse(getBaseAsset().amount());
     }
 
     public double getFixPrice() {
-        double baseAssetAmount = (double) getBaseAsset().getAmount();
-        double quoteAssetAmount = (double) getQuoteAsset().getAmount();
+        double baseAssetAmount = (double) getBaseAsset().amount();
+        double quoteAssetAmount = (double) getQuoteAsset().amount();
         checkArgument(quoteAssetAmount > 0);
         return quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
     }
 
     public Asset getBaseAsset() {
-        if (askAsset.getCode().equals(baseCurrency)) {
+        if (askAsset.code().equals(baseCurrency)) {
             return askAsset;
         } else {
             return bidAsset;
@@ -93,7 +93,7 @@ public class Offer extends Listing {
     }
 
     public Asset getQuoteAsset() {
-        if (bidAsset.getCode().equals(baseCurrency)) {
+        if (bidAsset.code().equals(baseCurrency)) {
             return askAsset;
         } else {
             return bidAsset;

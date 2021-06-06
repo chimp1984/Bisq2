@@ -33,7 +33,7 @@ public class FiatCurrencyRepository {
 
     public static void applyLocale(Locale locale) {
         fiatCurrencyByCode = CountryRepository.COUNTRIES.stream()
-                .map(country -> getFiatCurrencyByCountryCode(country.code, locale))
+                .map(country -> getFiatCurrencyByCountryCode(country.code(), locale))
                 .distinct()
                 .collect(Collectors.toMap(FiatCurrency::getCode, Function.identity(), (x, y) -> x, HashMap::new));
     }

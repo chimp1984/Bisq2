@@ -18,6 +18,7 @@
 package network.misq.offer;
 
 import network.misq.account.FiatTransferType;
+import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.Address;
 import network.misq.network.INetworkService;
@@ -44,8 +45,8 @@ public class OpenOfferRepository {
 
     public void createNewOffer(long askAmount) {
         NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
-        Asset askAsset = new Asset("BTC", askAmount, List.of());
-        Asset bidAsset = new Asset("USD", 5000, List.of(FiatTransferType.ZELLE));
+        Asset askAsset = new Asset("BTC", askAmount, List.of(), AssetTransfer.Type.MANUAL);
+        Asset bidAsset = new Asset("USD", 5000, List.of(FiatTransferType.ZELLE), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
                 makerNetworkId, bidAsset, askAsset);
         networkService.addData(offer);

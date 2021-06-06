@@ -41,8 +41,6 @@ public class FileUtils {
     public static void write(String fileName, byte[] data) throws IOException {
         try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
             outputStream.write(data);
-        } catch (IOException e) {
-            throw e;
         }
     }
 

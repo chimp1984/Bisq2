@@ -60,9 +60,9 @@ public class PeerExchangeBase {
         NetworkConfig networkConfig = getNetworkConfig(1000);
         CountDownLatch latch = new CountDownLatch(1);
         getTuple(networkConfig).whenComplete((tuple, e) -> {
-            peerExchangeManagerSeed = tuple.first;
-            peerGroupSeed = tuple.second;
-            nodeSeed = tuple.third;
+            peerExchangeManagerSeed = tuple.first();
+            peerGroupSeed = tuple.second();
+            nodeSeed = tuple.third();
             log.info("bootstrap seed");
             peerExchangeManagerSeed.bootstrap()
                     .whenComplete((success, t) -> {
@@ -84,9 +84,9 @@ public class PeerExchangeBase {
     protected void bootstrapNode1() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         getTuple(getNetworkConfig(2001)).whenComplete((tuple, e) -> {
-            peerExchangeManager1 = tuple.first;
-            peerGroupNode1 = tuple.second;
-            node1 = tuple.third;
+            peerExchangeManager1 = tuple.first();
+            peerGroupNode1 = tuple.second();
+            node1 = tuple.third();
             log.info("bootstrap node1");
             // n1->s
             peerExchangeManager1.bootstrap()
@@ -117,9 +117,9 @@ public class PeerExchangeBase {
         CountDownLatch latch = new CountDownLatch(1);
         getTuple(getNetworkConfig(2002))
                 .whenComplete((tuple, e) -> {
-                    peerExchangeManager2 = tuple.first;
-                    peerGroupNode2 = tuple.second;
-                    node2 = tuple.third;
+                    peerExchangeManager2 = tuple.first();
+                    peerGroupNode2 = tuple.second();
+                    node2 = tuple.third();
                     log.info("bootstrap node2");
                     // n2->s
                     peerExchangeManager2.bootstrap()
@@ -175,9 +175,9 @@ public class PeerExchangeBase {
     protected void bootstrapNode3() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         getTuple(getNetworkConfig(2003)).whenComplete((tuple, e) -> {
-            peerExchangeManager3 = tuple.first;
-            peerGroupNode3 = tuple.second;
-            node3 = tuple.third;
+            peerExchangeManager3 = tuple.first();
+            peerGroupNode3 = tuple.second();
+            node3 = tuple.third();
             log.info("bootstrap node3");
             // n3 -> s
             peerExchangeManager3.bootstrap()
@@ -234,7 +234,7 @@ public class PeerExchangeBase {
             int counter = i;
             getTuple(getNetworkConfig(2000 + counter)).whenComplete((tuple, e) -> {
                 tuples.put(counter, tuple);
-                PeerExchangeManager node = tuple.first;
+                PeerExchangeManager node = tuple.first();
                 log.info("bootstrap node {}", counter);
                 node.bootstrap()
                         .whenComplete((success, t) -> {
@@ -250,7 +250,7 @@ public class PeerExchangeBase {
                         continue;
                     }*/
                     int finalJ = j;
-                    tuples.get(j).first.bootstrap()
+                    tuples.get(j).first().bootstrap()
                             .whenComplete((success, t) -> {
                                 if (success && t == null) {
                                     log.info("Repeated bootstrap completed: node {}", finalJ);
@@ -280,7 +280,7 @@ public class PeerExchangeBase {
 
 
         tuples.forEach((key, value) -> {
-            PeerGroup peerGroup = value.second;
+            PeerGroup peerGroup = value.second();
             log.error("node 200{}, numConnection={}, numReported={}", key, peerGroup.getConnections(), peerGroup.getReportedPeers().size());
         });
         Thread.sleep(100);
@@ -297,7 +297,7 @@ public class PeerExchangeBase {
 
       /*  for (int i = 0; i < numNodes; i++) {
             Tuple2<PeerExchangeManager, PeerGroup> tuple = tuples.get(i);
-            PeerExchangeManager node = tuple.first;
+            PeerExchangeManager node = tuple.first();
             log.info("Repeated bootstrap node {}", i);
             int c = i;
             node.bootstrap()
@@ -314,7 +314,7 @@ public class PeerExchangeBase {
       /*  boolean bootstrapped2 = latch2.await(5, TimeUnit.SECONDS);
         assertTrue(bootstrapped2);*/
         tuples.forEach((key, value) -> {
-            PeerGroup peerGroup = value.second;
+            PeerGroup peerGroup = value.second();
             log.error("Repeated: node 200{}, numConnection={}, numReported={}", key, peerGroup.getConnections().size(), peerGroup.getReportedPeers().size());
         });
 

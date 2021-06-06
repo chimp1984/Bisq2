@@ -29,7 +29,7 @@ public final class CryptoCurrency extends MisqCurrency {
     private final static String PREFIX = "✦ ";
 
     @Getter
-    private boolean isAsset;
+    private final boolean isAsset;
 
     public CryptoCurrency(String currencyCode,
                           String name) {

@@ -45,7 +45,7 @@ public class ReviewOfferView extends View<VBox, ReviewOfferModel, ReviewOfferCon
         gridPane.setVgap(10);
 
         int rowIndex = 0;
-        askTextField = addRow(rowIndex, "I want (ask):", "").second;
+        askTextField = addRow(rowIndex, "I want (ask):", "").second();
 
         publishButton = new AutoTooltipButton("Publish");
         root.getChildren().addAll(header, gridPane, publishButton);
