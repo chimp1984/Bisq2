@@ -11,7 +11,9 @@ dependencies {
         api('javax.annotation:javax.annotation-api') {
             version { require '1.3.2' }
         }
-        //  api "javax.annotation:javax.annotation-api:$javaxAnnotationVersion"
+        api('org.jetbrains:annotations') {
+            version { require '21.0.1' }
+        }
 
         /////////////////////////////////////////////////////////////////////////////////
         // Protobuf dependency constraints
@@ -28,6 +30,7 @@ dependencies {
         /////////////////////////////////////////////////////////////////////////////////
         api('com.google.guava:guava') {
             version { require '30.1.1-jre' }
+            //exclude(module: 'j2objc-annotations')
         }
         // Declaring the guava dependency above will bring in the transitive dependencies below.
         // If some other dependency brings in other versions of the transitive dependencies below,
