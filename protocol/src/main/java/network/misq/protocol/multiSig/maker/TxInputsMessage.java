@@ -18,7 +18,7 @@
 package network.misq.protocol.multiSig.maker;
 
 import lombok.Getter;
-import network.misq.network.message.Message;
+import network.misq.network.p2p.message.Message;
 
 @Getter
 public class TxInputsMessage implements Message {

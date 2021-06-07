@@ -17,7 +17,7 @@
 
 package network.misq.offer.options;
 
-import network.misq.network.NetworkId;
+import network.misq.network.p2p.NetworkId;
 
 import java.util.Set;
 

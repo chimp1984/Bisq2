@@ -18,6 +18,8 @@
 package network.misq.network;
 
 import lombok.extern.slf4j.Slf4j;
+import network.misq.network.p2p.NetworkConfig;
+import network.misq.network.p2p.P2pService;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class DataNodeBase {
-    protected NetworkService p2pServiceSeed, p2pService1, p2pService2;
+    protected P2pService p2pServiceSeed, p2pService1, p2pService2;
 
     protected void bootstrap(Set<NetworkConfig> networkConfigsSeed,
                              Set<NetworkConfig> networkConfigsNode1,
@@ -55,8 +57,8 @@ public class DataNodeBase {
     }
 
 
-    protected CompletableFuture<NetworkService> getP2pServiceFuture(Set<NetworkConfig> networkConfigs) {
-        NetworkService p2pService = new NetworkService(networkConfigs, null);
+    protected CompletableFuture<P2pService> getP2pServiceFuture(Set<NetworkConfig> networkConfigs) {
+        P2pService p2pService = new P2pService(networkConfigs, null);
         return p2pService.bootstrap().thenApply(result -> p2pService);
     }
 }

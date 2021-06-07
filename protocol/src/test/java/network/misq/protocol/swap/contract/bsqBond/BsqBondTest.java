@@ -24,13 +24,13 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.Address;
-import network.misq.network.NetworkId;
-import network.misq.network.NetworkService;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.P2pService;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;
-import network.misq.protocol.MockNetworkService;
+import network.misq.protocol.MockP2pService;
 import network.misq.protocol.ProtocolExecutor;
 import network.misq.protocol.bsqBond.BsqBondProtocol;
 import network.misq.protocol.bsqBond.maker.MakerBsqBondProtocol;
@@ -48,13 +48,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 @Slf4j
 public class BsqBondTest {
 
-    private NetworkService networkService;
+    private P2pService networkService;
 
     @BeforeEach
     public void setup() {
         // We share a network mock to call MessageListeners when sending a msg (e.g. alice send a msg and
         // bob receives the event)
-        networkService = new MockNetworkService();
+        networkService = new MockP2pService();
     }
 
     @Test

@@ -20,9 +20,9 @@ package network.misq.network.data.storage.auth;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.data.NetworkData;
-import network.misq.network.data.storage.MetaData;
-import network.misq.network.data.storage.auth.authorized.AuthorizedPayload;
+import network.misq.network.p2p.data.NetworkData;
+import network.misq.network.p2p.data.storage.MetaData;
+import network.misq.network.p2p.data.storage.auth.authorized.AuthorizedPayload;
 
 import java.security.PublicKey;
 import java.util.Set;

@@ -23,8 +23,9 @@ import network.misq.common.security.DigestUtil;
 import network.misq.common.security.KeyGeneration;
 import network.misq.common.security.SignatureUtil;
 import network.misq.common.util.OsUtils;
-import network.misq.network.data.NetworkData;
-import network.misq.network.data.storage.MapKey;
+import network.misq.network.p2p.data.NetworkData;
+import network.misq.network.p2p.data.storage.MapKey;
+import network.misq.network.p2p.data.storage.auth.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

@@ -19,7 +19,8 @@ package network.misq.network;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.data.storage.Storage;
+import network.misq.network.p2p.*;
+import network.misq.network.p2p.data.storage.Storage;
 
 import java.security.GeneralSecurityException;
 import java.util.Set;

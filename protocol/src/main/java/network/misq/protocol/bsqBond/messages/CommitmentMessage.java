@@ -18,7 +18,7 @@
 package network.misq.protocol.bsqBond.messages;
 
 import lombok.Getter;
-import network.misq.network.message.Message;
+import network.misq.network.p2p.message.Message;
 
 public abstract class CommitmentMessage implements Message {
     @Getter

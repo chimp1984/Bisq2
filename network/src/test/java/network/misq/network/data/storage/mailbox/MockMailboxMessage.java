@@ -19,7 +19,8 @@ package network.misq.network.data.storage.mailbox;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.data.storage.MetaData;
+import network.misq.network.p2p.data.storage.MetaData;
+import network.misq.network.p2p.data.storage.mailbox.MailboxMessage;
 
 import java.util.concurrent.TimeUnit;
 

@@ -19,7 +19,8 @@ package network.misq.network.data.storage.append;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.data.storage.MetaData;
+import network.misq.network.p2p.data.storage.MetaData;
+import network.misq.network.p2p.data.storage.append.AppendOnlyData;
 
 @EqualsAndHashCode
 @Getter

@@ -18,6 +18,7 @@
 package network.misq.network.data.storage.append;
 
 import network.misq.common.util.OsUtils;
+import network.misq.network.p2p.data.storage.append.AppendOnlyDataStore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

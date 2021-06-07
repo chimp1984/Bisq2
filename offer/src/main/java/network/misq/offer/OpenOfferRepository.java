@@ -20,9 +20,9 @@ package network.misq.offer;
 import network.misq.account.FiatTransfer;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
-import network.misq.network.Address;
-import network.misq.network.INetworkService;
-import network.misq.network.NetworkId;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.INetworkService;
+import network.misq.network.p2p.NetworkId;
 import network.misq.wallets.Wallet;
 
 import java.util.List;

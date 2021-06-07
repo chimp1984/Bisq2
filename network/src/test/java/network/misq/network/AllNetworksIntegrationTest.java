@@ -18,7 +18,11 @@
 package network.misq.network;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.data.storage.Storage;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.NetworkConfig;
+import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.data.storage.Storage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 public class AllNetworksIntegrationTest {
-    private NetworkService alice1, alice2, bob1, bob2;
+    private P2pService alice1, alice2, bob1, bob2;
     protected final Storage storage = new Storage("");
 
     private Set<NetworkConfig> getNetNetworkConfigs(Config.Role role, String id, int serverPort) {
@@ -57,10 +61,10 @@ public class AllNetworksIntegrationTest {
         Set<NetworkConfig> netNetworkConfigsBob1 = getNetNetworkConfigs(Config.Role.Bob, "bob1", 2222);
         Set<NetworkConfig> netNetworkConfigsBob2 = getNetNetworkConfigs(Config.Role.Bob, "bob2", 2223);
 
-        alice1 = new NetworkService(netNetworkConfigsAlice1, Config.aliceKeyPairSupplier1);
-        alice2 = new NetworkService(netNetworkConfigsAlice2, Config.aliceKeyPairSupplier2);
-        bob1 = new NetworkService(netNetworkConfigsBob1, Config.bobKeyPairSupplier1);
-        bob2 = new NetworkService(netNetworkConfigsBob2, Config.bobKeyPairSupplier2);
+        alice1 = new P2pService(netNetworkConfigsAlice1, Config.aliceKeyPairSupplier1);
+        alice2 = new P2pService(netNetworkConfigsAlice2, Config.aliceKeyPairSupplier2);
+        bob1 = new P2pService(netNetworkConfigsBob1, Config.bobKeyPairSupplier1);
+        bob2 = new P2pService(netNetworkConfigsBob2, Config.bobKeyPairSupplier2);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(4);
         alice1.initializeServer((res, error) -> {

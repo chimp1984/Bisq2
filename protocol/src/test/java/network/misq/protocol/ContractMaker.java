@@ -18,8 +18,8 @@
 package network.misq.protocol;
 
 import network.misq.contract.*;
-import network.misq.network.Address;
-import network.misq.network.NetworkId;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.NetworkId;
 import network.misq.offer.Listing;
 
 import java.util.Map;

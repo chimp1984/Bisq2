@@ -18,46 +18,32 @@
 package network.misq.network;
 
 
-import network.misq.common.util.CollectionUtil;
-import network.misq.network.data.filter.DataFilter;
-import network.misq.network.data.inventory.RequestInventoryResult;
-import network.misq.network.data.storage.Storage;
-import network.misq.network.message.Message;
-import network.misq.network.node.Connection;
-import network.misq.network.node.MessageListener;
-import network.misq.network.node.proxy.GetServerSocketResult;
-import network.misq.network.router.gossip.GossipResult;
+import network.misq.network.http.MarketPriceService;
+import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.Connection;
+import network.misq.network.p2p.node.MessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
- * High level API for the p2p network.
+ * High level API for network access to p2p network as well to http services (over Tor). If user has only I2P selected
+ * for p2p network a tor instance will be still bootstrapped for usage for the http requests. Only if user has
+ * clearNet enabled clearNet is used for https.
  */
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
-    private final Map<NetworkType, NetworkNode> p2pNodes = new ConcurrentHashMap<>();
+    private P2pService p2pService;
+    private MarketPriceService marketPriceService;
 
-    public NetworkService(Set<NetworkConfig> networkConfigs, KeyPairRepository keyPairRepository) {
-        Storage storage = new Storage("");//todo
-        networkConfigs.forEach(networkConfig -> {
-            NetworkType networkType = networkConfig.getNetworkType();
-            NetworkNode networkNode = new NetworkNode(networkConfig, storage, keyPairRepository);
-            p2pNodes.put(networkType, networkNode);
-        });
-    }
-
-    public NetworkService() {
+    public NetworkService(P2pService p2pService, MarketPriceService marketPriceService) {
+        this.p2pService = p2pService;
+        this.marketPriceService = marketPriceService;
     }
 
 
@@ -65,149 +51,25 @@ public class NetworkService {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<GetServerSocketResult, Throwable> resultHandler) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-        AtomicInteger completed = new AtomicInteger(0);
-        AtomicInteger failed = new AtomicInteger(0);
-        int numNodes = p2pNodes.size();
-        p2pNodes.values().forEach(networkNode -> {
-            networkNode.initializeServer()
-                    .whenComplete((serverInfo, throwable) -> {
-                        if (serverInfo != null) {
-                            resultHandler.accept(serverInfo, null);
-                            int compl = completed.incrementAndGet();
-                            if (compl + failed.get() == numNodes) {
-                                future.complete(compl == numNodes);
-                            }
-                        } else {
-                            log.error(throwable.toString(), throwable);
-                            resultHandler.accept(null, throwable);
-                            if (failed.incrementAndGet() + completed.get() == numNodes) {
-                                future.complete(false);
-                            }
-                        }
-                    });
-        });
-        return future;
-    }
-
-    public CompletableFuture<Boolean> bootstrap() {
-        List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        p2pNodes.values().forEach(networkNode -> {
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            allFutures.add(future);
-            networkNode.bootstrap()
-                    .whenComplete((success, e) -> {
-                        if (e == null) {
-                            future.complete(success); // Can be still false
-                        } else {
-                            future.complete(false);
-                        }
-                    });
-        });
-        return CollectionUtil.allOf(allFutures)                                 // We require all futures the be completed
-                .thenApply(resultList -> resultList.stream().anyMatch(e -> e))  // If at least one network succeeded
-                .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
+    public CompletableFuture<Boolean> initialize() {
+        return p2pService.bootstrap();
     }
 
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        Map<NetworkType, Address> addressByNetworkType = networkId.getAddressByNetworkType();
-        networkId.getAddressByNetworkType().forEach((networkType, address) -> {
-            try {
-                if (p2pNodes.containsKey(networkType)) {
-                    p2pNodes.get(networkType)
-                            .confidentialSend(message, networkId, myKeyPair)
-                            .whenComplete((connection, throwable) -> {
-                                if (connection != null) {
-                                    future.complete(connection);
-                                } else {
-                                    log.error(throwable.toString(), throwable);
-                                    future.completeExceptionally(throwable);
-                                }
-                            });
-                } else {
-                    p2pNodes.values().forEach(networkNode -> {
-                        networkNode.relay(message, networkId, myKeyPair)
-                                .whenComplete((connection, throwable) -> {
-                                    if (connection != null) {
-                                        future.complete(connection);
-                                    } else {
-                                        log.error(throwable.toString(), throwable);
-                                        future.completeExceptionally(throwable);
-                                    }
-                                });
-                    });
-                }
-            } catch (GeneralSecurityException e) {
-                e.printStackTrace();
-            }
-        });
+        p2pService.confidentialSend(message, networkId, myKeyPair);
         return future;
     }
 
-    public void requestAddData(Message message, Consumer<GossipResult> resultHandler) {
-        p2pNodes.values().forEach(networkNode -> {
-            networkNode.requestAddData(message)
-                    .whenComplete((gossipResult, throwable) -> {
-                        if (gossipResult != null) {
-                            resultHandler.accept(gossipResult);
-                        } else {
-                            log.error(throwable.toString());
-                        }
-                    });
-        });
-    }
-
-    public void requestRemoveData(Message message, Consumer<GossipResult> resultHandler) {
-        p2pNodes.values().forEach(dataService -> {
-            dataService.requestRemoveData(message)
-                    .whenComplete((gossipResult, throwable) -> {
-                        if (gossipResult != null) {
-                            resultHandler.accept(gossipResult);
-                        } else {
-                            log.error(throwable.toString());
-                        }
-                    });
-        });
-    }
-
-    public void requestInventory(DataFilter dataFilter, Consumer<RequestInventoryResult> resultHandler) {
-        p2pNodes.values().forEach(networkNode -> {
-            networkNode.requestInventory(dataFilter)
-                    .whenComplete((requestInventoryResult, throwable) -> {
-                        if (requestInventoryResult != null) {
-                            resultHandler.accept(requestInventoryResult);
-                        } else {
-                            log.error(throwable.toString());
-                        }
-                    });
-        });
-    }
-
     public void addMessageListener(MessageListener messageListener) {
-        p2pNodes.values().forEach(networkNode -> {
-            networkNode.addMessageListener(messageListener);
-        });
+        p2pService.addMessageListener(messageListener);
     }
 
     public void removeMessageListener(MessageListener messageListener) {
-        p2pNodes.values().forEach(networkNode -> {
-            networkNode.removeMessageListener(messageListener);
-        });
+        p2pService.removeMessageListener(messageListener);
     }
 
     public void shutdown() {
-        p2pNodes.values().forEach(NetworkNode::shutdown);
-    }
-
-    public Optional<Address> findMyAddress(NetworkType networkType) {
-        return p2pNodes.get(networkType).findMyAddress();
-    }
-
-    public Set<Address> findMyAddresses() {
-        return p2pNodes.values().stream()
-                .flatMap(networkNode -> networkNode.findMyAddress().stream())
-                .collect(Collectors.toSet());
+        p2pService.shutdown();
     }
 }

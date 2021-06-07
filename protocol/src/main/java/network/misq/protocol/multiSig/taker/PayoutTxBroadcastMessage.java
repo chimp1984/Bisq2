@@ -18,7 +18,7 @@
 package network.misq.protocol.multiSig.taker;
 
 import lombok.Getter;
-import network.misq.network.message.Message;
+import network.misq.network.p2p.message.Message;
 
 @Getter
 public class PayoutTxBroadcastMessage implements Message {

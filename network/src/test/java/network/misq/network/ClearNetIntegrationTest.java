@@ -19,6 +19,9 @@ package network.misq.network;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.NetworkConfig;
+import network.misq.network.p2p.NetworkType;
 import org.junit.jupiter.api.Test;
 
 import java.security.GeneralSecurityException;

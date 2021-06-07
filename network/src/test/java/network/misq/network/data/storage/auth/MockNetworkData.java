@@ -19,8 +19,8 @@ package network.misq.network.data.storage.auth;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.data.NetworkData;
-import network.misq.network.data.storage.MetaData;
+import network.misq.network.p2p.data.NetworkData;
+import network.misq.network.p2p.data.storage.MetaData;
 
 import java.util.concurrent.TimeUnit;
 

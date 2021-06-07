@@ -23,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.account.FiatTransfer;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
-import network.misq.network.Address;
-import network.misq.network.INetworkService;
-import network.misq.network.MockNetworkService;
-import network.misq.network.NetworkId;
+import network.misq.network.p2p.Address;
+import network.misq.network.p2p.INetworkService;
+import network.misq.network.p2p.MockNetworkService;
+import network.misq.network.p2p.NetworkId;
 import network.misq.offer.options.*;
 
 import java.io.Serializable;

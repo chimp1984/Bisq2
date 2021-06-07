@@ -23,11 +23,12 @@ import network.misq.common.ObjectSerializer;
 import network.misq.common.security.DigestUtil;
 import network.misq.common.security.KeyGeneration;
 import network.misq.common.util.OsUtils;
-import network.misq.network.data.filter.FilterItem;
-import network.misq.network.data.filter.ProtectedDataFilter;
-import network.misq.network.data.inventory.Inventory;
-import network.misq.network.data.storage.MapKey;
-import network.misq.network.data.storage.Util;
+import network.misq.network.p2p.data.filter.FilterItem;
+import network.misq.network.p2p.data.filter.ProtectedDataFilter;
+import network.misq.network.p2p.data.inventory.Inventory;
+import network.misq.network.p2p.data.storage.MapKey;
+import network.misq.network.p2p.data.storage.Util;
+import network.misq.network.p2p.data.storage.auth.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

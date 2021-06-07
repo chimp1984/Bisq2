@@ -19,8 +19,8 @@ package network.misq.protocol.multiSig;
 
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.NetworkService;
-import network.misq.network.node.MessageListener;
+import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.node.MessageListener;
 import network.misq.protocol.Protocol;
 import network.misq.protocol.SecurityProvider;
 import network.misq.protocol.TwoPartyProtocol;
@@ -70,7 +70,7 @@ public abstract class MultiSigProtocol extends TwoPartyProtocol implements Messa
     protected final AssetTransfer assetTransfer;
     protected final MultiSig multiSig;
 
-    public MultiSigProtocol(TwoPartyContract contract, NetworkService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
+    public MultiSigProtocol(TwoPartyContract contract, P2pService p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
         super(contract, p2pService);
         this.assetTransfer = transfer;
 

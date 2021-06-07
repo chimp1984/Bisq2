@@ -19,6 +19,9 @@ package network.misq.network;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
+import network.misq.network.p2p.NetworkConfig;
+import network.misq.network.p2p.NetworkType;
+import network.misq.network.p2p.NodeId;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;

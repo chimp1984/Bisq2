@@ -20,7 +20,7 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.MarketPriceService;
+import network.misq.network.http.MarketPriceService;
 import network.misq.offer.Offer;
 import network.misq.offer.OfferRepository;
 

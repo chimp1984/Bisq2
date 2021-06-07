@@ -19,7 +19,7 @@ package network.misq.offer;
 
 import lombok.Getter;
 import network.misq.contract.SwapProtocolType;
-import network.misq.network.NetworkId;
+import network.misq.network.p2p.NetworkId;
 import network.misq.offer.options.OfferOption;
 
 import java.util.HashSet;

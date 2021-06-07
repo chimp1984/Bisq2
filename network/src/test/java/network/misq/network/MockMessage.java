@@ -19,7 +19,7 @@ package network.misq.network;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.message.Message;
+import network.misq.network.p2p.message.Message;
 
 @EqualsAndHashCode
 @Getter
