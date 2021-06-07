@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class OfferbookEntity {
+public class OfferEntityRepository {
     protected final OfferRepository offerRepository;
     protected final List<OfferEntity> offerEntities = new CopyOnWriteArrayList<>();
     protected final PublishSubject<OfferEntity> offerEntityAddedSubject;
@@ -38,7 +38,7 @@ public class OfferbookEntity {
     private final NetworkService networkService;
     private Disposable oferAddedDisposable, oferRemovedDisposable;
 
-    public OfferbookEntity(OfferRepository offerRepository, NetworkService networkService) {
+    public OfferEntityRepository(OfferRepository offerRepository, NetworkService networkService) {
         this.offerRepository = offerRepository;
         this.networkService = networkService;
 

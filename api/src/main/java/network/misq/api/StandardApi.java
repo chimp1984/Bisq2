@@ -27,7 +27,7 @@ import network.misq.network.p2p.MockNetworkService;
 import network.misq.offer.OfferRepository;
 import network.misq.offer.OpenOfferRepository;
 import network.misq.presentation.offer.OfferEntity;
-import network.misq.presentation.offer.OfferbookEntity;
+import network.misq.presentation.offer.OfferEntityRepository;
 import network.misq.security.KeyPairRepository;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class StandardApi implements Api {
     private final NetworkService networkService;
     private final OfferRepository offerRepository;
     private final OpenOfferRepository openOfferRepository;
-    private final OfferbookEntity offerbookEntity;
+    private final OfferEntityRepository offerEntityRepository;
     private final IdentityRepository identityRepository;
 
     public StandardApi(KeyPairRepository.Options keyPairRepositoryOptions,
@@ -58,7 +58,7 @@ public class StandardApi implements Api {
         offerRepository = new OfferRepository(mockNetworkService);
         openOfferRepository = new OpenOfferRepository(mockNetworkService);
 
-        offerbookEntity = new OfferbookEntity(offerRepository, networkService);
+        offerEntityRepository = new OfferEntityRepository(offerRepository, networkService);
     }
 
     /**
@@ -72,7 +72,7 @@ public class StandardApi implements Api {
         allFutures.add(networkService.initialize());
         allFutures.add(offerRepository.initialize());
         allFutures.add(openOfferRepository.initialize());
-        allFutures.add(offerbookEntity.initialize());
+        allFutures.add(offerEntityRepository.initialize());
         // Once all have successfully completed our initialize is complete as well
         return CollectionUtil.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))
@@ -84,7 +84,7 @@ public class StandardApi implements Api {
      * Activates the offerbookEntity. To be called before it is used by a client.
      */
     public void activateOfferbookEntity() {
-        offerbookEntity.activate();
+        offerEntityRepository.activate();
     }
 
     /**
@@ -92,7 +92,7 @@ public class StandardApi implements Api {
      * Stops event processing, etc.
      */
     public void deactivateOfferbookEntity() {
-        offerbookEntity.deactivate();
+        offerEntityRepository.deactivate();
     }
 
     /**
@@ -102,7 +102,7 @@ public class StandardApi implements Api {
      * updated fields like market based prices and amounts.
      */
     public List<OfferEntity> getOfferEntities() {
-        return offerbookEntity.getOfferEntities();
+        return offerEntityRepository.getOfferEntities();
     }
 
     /**
@@ -110,7 +110,7 @@ public class StandardApi implements Api {
      * The subscriber need to take care of dispose calls once inactive.
      */
     public PublishSubject<OfferEntity> getOfferEntityAddedSubject() {
-        return offerbookEntity.getOfferEntityAddedSubject();
+        return offerEntityRepository.getOfferEntityAddedSubject();
     }
 
     /**
@@ -118,7 +118,7 @@ public class StandardApi implements Api {
      * The subscriber need to take care of dispose calls once inactive.
      */
     public PublishSubject<OfferEntity> getOfferEntityRemovedSubject() {
-        return offerbookEntity.getOfferEntityRemovedSubject();
+        return offerEntityRepository.getOfferEntityRemovedSubject();
     }
 
     /**
