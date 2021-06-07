@@ -47,10 +47,10 @@ public abstract class Config {
         Carol
     }
 
-    final static KeyPairRepository aliceKeyPairSupplier1 = new KeyPairRepository(new KeyPairRepository.Option(""));
-    final static KeyPairRepository aliceKeyPairSupplier2 = new KeyPairRepository(new KeyPairRepository.Option(""));
-    final static KeyPairRepository bobKeyPairSupplier1 = new KeyPairRepository(new KeyPairRepository.Option(""));
-    final static KeyPairRepository bobKeyPairSupplier2 = new KeyPairRepository(new KeyPairRepository.Option(""));
+    final static KeyPairRepository aliceKeyPairSupplier1 = new KeyPairRepository(new KeyPairRepository.Options(""));
+    final static KeyPairRepository aliceKeyPairSupplier2 = new KeyPairRepository(new KeyPairRepository.Options(""));
+    final static KeyPairRepository bobKeyPairSupplier1 = new KeyPairRepository(new KeyPairRepository.Options(""));
+    final static KeyPairRepository bobKeyPairSupplier2 = new KeyPairRepository(new KeyPairRepository.Options(""));
 
     static {
         aliceKeyPairSupplier1.add(keyPairAlice1, "default");

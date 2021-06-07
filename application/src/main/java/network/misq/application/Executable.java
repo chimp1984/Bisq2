@@ -8,22 +8,23 @@ public abstract class Executable {
     private static final Logger log = LoggerFactory.getLogger(Executable.class);
 
     protected String appName = "Misq";
+    private Options options;
 
     public Executable() {
     }
 
     public void execute(String[] args) {
-        // process options
+        options = Parser.parse(args);
         doExecute();
     }
 
     protected void doExecute() {
-        setupApi();
+        setupApi(options);
 
         launchApplication();
     }
 
-    protected abstract void setupApi();
+    protected abstract void setupApi(Options options);
 
     abstract protected void launchApplication();
 

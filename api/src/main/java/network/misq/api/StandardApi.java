@@ -44,16 +44,18 @@ public class StandardApi implements Api {
     private final OfferbookEntity offerbookEntity;
     private final IdentityRepository identityRepository;
 
-    public StandardApi(KeyPairRepository.Option keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
+    public StandardApi(KeyPairRepository.Options keyPairRepositoryOptions,
+                       NetworkService.Option networkServiceOptions) {
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
         networkService = new NetworkService(networkServiceOptions, keyPairRepository);
+        identityRepository = new IdentityRepository(networkService);
 
+        // add data use case is not available yet at networkService
         MockNetworkService mockNetworkService = new MockNetworkService();
         offerRepository = new OfferRepository(mockNetworkService);
         openOfferRepository = new OpenOfferRepository(mockNetworkService);
 
         offerbookEntity = new OfferbookEntity(offerRepository, networkService);
-        identityRepository = new IdentityRepository(networkService);
     }
 
     /**
@@ -62,6 +64,7 @@ public class StandardApi implements Api {
     public void initialize() {
         keyPairRepository.initialize();
         networkService.initialize();
+        identityRepository.initialize();
         offerRepository.initialize();
         openOfferRepository.initialize();
         offerbookEntity.initialize();

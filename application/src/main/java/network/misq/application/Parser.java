@@ -15,7 +15,11 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.api;
+package network.misq.application;
 
-public class ApiBuilder {
+public class Parser {
+    public static Options parse(String[] args) {
+        //todo
+        return new Options("Misq");
+    }
 }

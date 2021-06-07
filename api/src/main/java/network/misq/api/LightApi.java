@@ -29,7 +29,7 @@ public class LightApi implements Api {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
 
-    public LightApi(KeyPairRepository.Option keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
+    public LightApi(KeyPairRepository.Options keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
         networkService = new NetworkService(networkServiceOptions, keyPairRepository);
     }

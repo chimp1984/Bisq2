@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.api.StandardApi;
 import network.misq.application.Executable;
+import network.misq.application.Options;
 import network.misq.common.util.OsUtils;
 import network.misq.network.NetworkService;
 import network.misq.network.http.MarketPriceService;
@@ -43,13 +44,14 @@ public class DesktopApplication extends Executable {
     }
 
     @Override
-    protected void setupApi() {
+    protected void setupApi(Options options) {
         String appDirPath = OsUtils.getUserDataDir() + appName;
         NodeId nodeId = new NodeId("default", 8888, Sets.newHashSet(NetworkType.CLEAR));
         Set<NetworkConfig> networkConfigs = new HashSet<>();
         networkConfigs.add(new NetworkConfig(appDirPath, nodeId, NetworkType.CLEAR));
 
-        KeyPairRepository.Option keyPairRepositoryOptions = new KeyPairRepository.Option(appDirPath);
+        KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepository.Options(appDirPath);
+
         P2pService.Option p2pServiceOption = new P2pService.Option(appDirPath, networkConfigs);
         MarketPriceService.Option marketPriceServiceOption = new MarketPriceService.Option("TODO MarketPriceService URL");
         NetworkService.Option networkServiceOptions = new NetworkService.Option(p2pServiceOption, marketPriceServiceOption);

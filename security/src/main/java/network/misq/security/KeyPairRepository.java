@@ -25,16 +25,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class KeyPairRepository {
-    public void initialize() {
 
-    }
-
-    public static record Option(String baseDirPath) {
+    public static record Options(String baseDirPath) {
     }
 
     private final Map<String, KeyPair> keyPairsByPubKeyHash = new ConcurrentHashMap<>();
 
-    public KeyPairRepository(Option option) {
+    public KeyPairRepository(Options options) {
+    }
+
+    public void initialize() {
     }
 
     public void add(KeyPair keyPair, String tag) {
