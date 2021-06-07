@@ -19,7 +19,6 @@ package network.misq.api.options;
 
 import com.google.common.collect.Sets;
 import lombok.Getter;
-import network.misq.application.OptionsParser;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
 import network.misq.network.http.MarketPriceService;
@@ -34,7 +33,7 @@ import java.util.Set;
 /**
  * Parses the program arguments which are relevant for that domain and stores it in the options field.
  */
-public class NetworkServiceOptionsParser implements OptionsParser {
+public class NetworkServiceOptionsParser {
     @Getter
     private final NetworkService.Options options;
 

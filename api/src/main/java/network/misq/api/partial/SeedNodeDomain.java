@@ -38,11 +38,11 @@ import java.util.concurrent.TimeUnit;
  * Provides the completely setup instances to other clients (Api)
  */
 @Getter
-public class SeedNodeSetup {
+public class SeedNodeDomain {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
 
-    public SeedNodeSetup(ApplicationOptions applicationOptions, String[] args) {
+    public SeedNodeDomain(ApplicationOptions applicationOptions, String[] args) {
         KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
 

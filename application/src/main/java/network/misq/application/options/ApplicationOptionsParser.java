@@ -17,6 +17,7 @@
 
 package network.misq.application.options;
 
+
 import network.misq.common.util.OsUtils;
 
 import java.io.File;

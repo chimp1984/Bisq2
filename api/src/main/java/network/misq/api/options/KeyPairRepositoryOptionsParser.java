@@ -18,14 +18,13 @@
 package network.misq.api.options;
 
 import lombok.Getter;
-import network.misq.application.OptionsParser;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.security.KeyPairRepository;
 
 /**
  * Parses the program arguments which are relevant for that domain and stores it in the options field.
  */
-public class KeyPairRepositoryOptionsParser implements OptionsParser {
+public class KeyPairRepositoryOptionsParser {
     @Getter
     private final KeyPairRepository.Options options;
 
