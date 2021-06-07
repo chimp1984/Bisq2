@@ -31,6 +31,7 @@ import network.misq.offer.options.*;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
@@ -67,7 +68,11 @@ public class OfferRepository {
         });
     }
 
-    public void initialize() {
+    public CompletableFuture<Boolean> initialize() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        //todo
+        future.complete(true);
+        return future;
     }
 
     public List<Listing> getOffers() {

@@ -20,6 +20,7 @@ package network.misq.api;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Getter;
+import network.misq.common.util.CollectionUtil;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.MockNetworkService;
@@ -29,8 +30,10 @@ import network.misq.presentation.offer.OfferEntity;
 import network.misq.presentation.offer.OfferbookEntity;
 import network.misq.security.KeyPairRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Api for fully featured nodes, like a desktop app.
@@ -59,15 +62,22 @@ public class StandardApi implements Api {
     }
 
     /**
-     * Initializes all domain objects. Order is relevant.
+     * Initializes all domain objects.
+     * We do in parallel as far as possible. If there are dependencies we chain those as sequence.
      */
-    public void initialize() {
-        keyPairRepository.initialize();
-        networkService.initialize();
-        identityRepository.initialize();
-        offerRepository.initialize();
-        openOfferRepository.initialize();
-        offerbookEntity.initialize();
+    public CompletableFuture<Boolean> initialize() {
+        List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
+        // Assuming identityRepository depends on keyPairRepository being initialized... 
+        allFutures.add(keyPairRepository.initialize().thenCompose(success -> identityRepository.initialize()));
+        allFutures.add(networkService.initialize());
+        allFutures.add(offerRepository.initialize());
+        allFutures.add(openOfferRepository.initialize());
+        allFutures.add(offerbookEntity.initialize());
+        // Once all have successfully completed our initialize is complete as well
+        return CollectionUtil.allOf(allFutures)
+                .thenApply(success -> success.stream().allMatch(e -> e))
+                .orTimeout(10, TimeUnit.SECONDS)
+                .thenCompose(CompletableFuture::completedFuture);
     }
 
     /**

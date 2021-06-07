@@ -27,6 +27,7 @@ import network.misq.wallets.Wallet;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class OpenOfferRepository {
@@ -40,7 +41,11 @@ public class OpenOfferRepository {
         this.networkService = networkService;
     }
 
-    public void initialize() {
+    public CompletableFuture<Boolean> initialize() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        //todo
+        future.complete(true);
+        return future;
     }
 
     public void createNewOffer(long askAmount) {

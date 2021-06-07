@@ -21,6 +21,8 @@ package network.misq.id;
 import network.misq.network.NetworkService;
 import network.misq.persistence.Persistence;
 
+import java.util.concurrent.CompletableFuture;
+
 public class IdentityRepository {
     // expected dependencies
     Persistence persistence;
@@ -30,6 +32,10 @@ public class IdentityRepository {
         this.networkService = networkService;
     }
 
-    public void initialize() {
+    public CompletableFuture<Boolean> initialize() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        //todo
+        future.complete(true);
+        return future;
     }
 }

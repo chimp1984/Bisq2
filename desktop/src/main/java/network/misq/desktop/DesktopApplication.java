@@ -69,6 +69,11 @@ public class DesktopApplication extends Executable {
 
     @Override
     protected void applicationLaunched() {
-        api.initialize();
+        api.initialize().whenComplete((success, throwable) -> {
+            if (!success) {
+                log.error("API Initialisation failed", throwable);
+                //todo handle error
+            }
+        });
     }
 }

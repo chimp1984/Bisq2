@@ -17,34 +17,56 @@
 
 package network.misq.security;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class KeyPairRepository {
+    public static final String DEFAULT = "default";
+    private final String baseDirPath;
 
     public static record Options(String baseDirPath) {
     }
 
-    private final Map<String, KeyPair> keyPairsByPubKeyHash = new ConcurrentHashMap<>();
+    // Key is an arbitrary tag, but usually associated with interaction like offer ID. 
+    // Throws when attempting to use an already existing tag at add method.
+    private final Map<String, KeyPair> keyPairsByTag = new ConcurrentHashMap<>();
 
     public KeyPairRepository(Options options) {
+        baseDirPath = options.baseDirPath;
     }
 
-    public void initialize() {
+    public CompletableFuture<Boolean> initialize() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        try {
+            KeyPair keyPair = KeyGeneration.generateKeyPair();
+            add(keyPair, DEFAULT);
+            future.complete(true);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+            future.completeExceptionally(e);
+        }
+        return future;
     }
 
     public void add(KeyPair keyPair, String tag) {
-        checkArgument(!keyPairsByPubKeyHash.containsKey(tag));
-        keyPairsByPubKeyHash.put(tag, keyPair);
+        checkArgument(!keyPairsByTag.containsKey(tag));
+        keyPairsByTag.put(tag, keyPair);
+        persist();
+    }
+
+    private void persist() {
+        // todo persist
     }
 
     public Optional<KeyPair> findKeyPair(String tag) {
-        if (keyPairsByPubKeyHash.containsKey(tag)) {
-            return Optional.of(keyPairsByPubKeyHash.get(tag));
+        if (keyPairsByTag.containsKey(tag)) {
+            return Optional.of(keyPairsByTag.get(tag));
         } else {
             return Optional.empty();
         }

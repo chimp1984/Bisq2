@@ -74,7 +74,7 @@ public class NetworkService {
     public CompletableFuture<Boolean> initialize() {
         return p2pService.bootstrap();
     }
-
+   
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         p2pService.confidentialSend(message, peerNetworkId, myKeyPair);

@@ -25,6 +25,7 @@ import network.misq.offer.Offer;
 import network.misq.offer.OfferRepository;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,11 @@ public class OfferbookEntity {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void initialize() {
+    public CompletableFuture<Boolean> initialize() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        //todo
+        future.complete(true);
+        return future;
     }
 
     public void activate() {
