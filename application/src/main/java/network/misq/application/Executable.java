@@ -9,11 +9,8 @@ import org.slf4j.LoggerFactory;
 public abstract class Executable {
     private static final Logger log = LoggerFactory.getLogger(Executable.class);
 
-    protected String appName = "Misq";
-    private final ApplicationOptions applicationOptions;
-
     public Executable(String[] args) {
-        applicationOptions = ApplicationOptionsParser.parse(args);
+        ApplicationOptions applicationOptions = ApplicationOptionsParser.parse(args);
         setupDomain(applicationOptions, args);
         createApi();
         launchApplication();

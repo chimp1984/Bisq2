@@ -16,6 +16,7 @@
  */
 
 /**
- * Does not know about the concrete application or domain but provides general purpose application specific features
+ * Does not know about the concrete application or domains but provides general purpose application specific features.
+ * Defines the basic startup structure and provides application specific options like app name.
  */
 package network.misq.application;
