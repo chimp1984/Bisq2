@@ -15,30 +15,23 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.api;
+package network.misq.api.partial;
 
 import lombok.Getter;
+import network.misq.api.Domain;
 import network.misq.network.NetworkService;
 import network.misq.security.KeyPairRepository;
 
 /**
- * Ali for nodes which do not use the full feature set like seed nodes.
+ * Api for seed node with limited feature set
  */
 @Getter
-public class LightApi implements Api {
+public class SeedNodeApi {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
 
-    public LightApi(KeyPairRepository.Options keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
-        keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
-        networkService = new NetworkService(networkServiceOptions, keyPairRepository);
-    }
-
-    /**
-     * Initializes all domain objects. Order is relevant.
-     */
-    public void initialize() {
-        keyPairRepository.initialize();
-        networkService.initialize();
+    public SeedNodeApi(Domain domain) {
+        keyPairRepository = domain.getKeyPairRepository();
+        networkService = domain.getNetworkService();
     }
 }

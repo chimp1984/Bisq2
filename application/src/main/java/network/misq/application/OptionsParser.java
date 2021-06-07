@@ -17,6 +17,5 @@
 
 package network.misq.application;
 
-public record Options(String appName) {
-
+public interface OptionsParser {
 }

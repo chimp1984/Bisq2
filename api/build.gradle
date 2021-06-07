@@ -27,6 +27,7 @@ dependencies {
     implementation project(':support')
     implementation project(':user')
     implementation project(':presentation')
+    implementation project(':application')
 
     implementation 'com.google.guava:guava'
     implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'

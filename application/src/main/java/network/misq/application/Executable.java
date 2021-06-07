@@ -1,5 +1,7 @@
 package network.misq.application;
 
+import network.misq.application.options.ApplicationOptions;
+import network.misq.application.options.ApplicationOptionsParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,27 +10,20 @@ public abstract class Executable {
     private static final Logger log = LoggerFactory.getLogger(Executable.class);
 
     protected String appName = "Misq";
-    private Options options;
+    private final ApplicationOptions applicationOptions;
 
-    public Executable() {
-    }
-
-    public void execute(String[] args) {
-        options = Parser.parse(args);
-        doExecute();
-    }
-
-    protected void doExecute() {
-        setupApi(options);
-
+    public Executable(String[] args) {
+        applicationOptions = ApplicationOptionsParser.parse(args);
+        setupDomain(applicationOptions, args);
+        createApi();
         launchApplication();
     }
 
-    protected abstract void setupApi(Options options);
+    abstract protected void setupDomain(ApplicationOptions applicationOptions, String[] args);
+
+    abstract protected void createApi();
 
     abstract protected void launchApplication();
 
-    protected void applicationLaunched() {
-
-    }
+    abstract protected void initializeDomain();
 }

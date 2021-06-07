@@ -15,11 +15,8 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.application;
+package network.misq.application.options;
 
-public class Parser {
-    public static Options parse(String[] args) {
-        //todo
-        return new Options("Misq");
-    }
+public record ApplicationOptions(String appDir, String appName) {
+
 }

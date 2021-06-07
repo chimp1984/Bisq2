@@ -47,8 +47,7 @@ import java.util.stream.Collectors;
 public class P2pService {
     private static final Logger log = LoggerFactory.getLogger(P2pService.class);
 
-    public static record Option(String appDirPath,
-                                Set<NetworkConfig> networkConfigs) {
+    public static record Option(String appDirPath, Set<NetworkConfig> networkConfigs) {
     }
 
     private final Map<NetworkType, NetworkNode> p2pNodes = new ConcurrentHashMap<>();

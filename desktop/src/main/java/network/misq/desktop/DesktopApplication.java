@@ -17,45 +17,30 @@
 
 package network.misq.desktop;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.api.StandardApi;
+import network.misq.api.Api;
+import network.misq.api.Domain;
 import network.misq.application.Executable;
-import network.misq.application.Options;
-import network.misq.common.util.OsUtils;
-import network.misq.network.NetworkService;
-import network.misq.network.http.MarketPriceService;
-import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.NetworkType;
-import network.misq.network.p2p.NodeId;
-import network.misq.network.p2p.P2pService;
-import network.misq.security.KeyPairRepository;
-
-import java.util.HashSet;
-import java.util.Set;
+import network.misq.application.options.ApplicationOptions;
 
 @Slf4j
 public class DesktopApplication extends Executable {
     private StageController stageController;
-    protected StandardApi api;
+    protected Api api;
+    private Domain domain;
 
-    public DesktopApplication() {
-        super();
+    public DesktopApplication(String[] args) {
+        super(args);
     }
 
     @Override
-    protected void setupApi(Options options) {
-        String appDirPath = OsUtils.getUserDataDir() + appName;
-        NodeId nodeId = new NodeId("default", 8888, Sets.newHashSet(NetworkType.CLEAR));
-        Set<NetworkConfig> networkConfigs = new HashSet<>();
-        networkConfigs.add(new NetworkConfig(appDirPath, nodeId, NetworkType.CLEAR));
+    protected void setupDomain(ApplicationOptions applicationOptions, String[] args) {
+        domain = new Domain(applicationOptions, args);
+    }
 
-        KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepository.Options(appDirPath);
-
-        P2pService.Option p2pServiceOption = new P2pService.Option(appDirPath, networkConfigs);
-        MarketPriceService.Option marketPriceServiceOption = new MarketPriceService.Option("TODO MarketPriceService URL");
-        NetworkService.Option networkServiceOptions = new NetworkService.Option(p2pServiceOption, marketPriceServiceOption);
-        api = new StandardApi(keyPairRepositoryOptions, networkServiceOptions);
+    @Override
+    protected void createApi() {
+        api = new Api(domain);
     }
 
     @Override
@@ -63,13 +48,13 @@ public class DesktopApplication extends Executable {
         stageController = new StageController(api);
         stageController.launchApplication().whenComplete((success, throwable) -> {
             log.info("Java FX Application initialized");
-            applicationLaunched();
+            initializeDomain();
         });
     }
 
     @Override
-    protected void applicationLaunched() {
-        api.initialize().whenComplete((success, throwable) -> {
+    protected void initializeDomain() {
+        domain.initialize().whenComplete((success, throwable) -> {
             if (!success) {
                 log.error("API Initialisation failed", throwable);
                 //todo handle error

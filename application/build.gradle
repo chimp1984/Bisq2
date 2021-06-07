@@ -15,9 +15,6 @@ dependencies {
     api platform(project(':platforms:common-platform'))
 
     implementation project(':common')
-    implementation project(':network')
-    implementation project(':api')
-
 
     implementation 'com.google.guava:guava'
 }

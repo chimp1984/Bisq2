@@ -42,16 +42,16 @@ import java.util.concurrent.CompletableFuture;
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
-    public static record Option(P2pService.Option p2pServiceOption,
-                                MarketPriceService.Option marketPriceServiceOption) {
+    public static record Options(P2pService.Option p2pServiceOption,
+                                 MarketPriceService.Option marketPriceServiceOption) {
     }
 
     private P2pService p2pService;
     private MarketPriceService marketPriceService;
 
-    public NetworkService(Option option, KeyPairRepository keyPairRepository) {
-        this.p2pService = new P2pService(option.p2pServiceOption(), keyPairRepository);
-        this.marketPriceService = new MarketPriceService(option.marketPriceServiceOption());
+    public NetworkService(Options options, KeyPairRepository keyPairRepository) {
+        this.p2pService = new P2pService(options.p2pServiceOption(), keyPairRepository);
+        this.marketPriceService = new MarketPriceService(options.marketPriceServiceOption());
     }
 
 
