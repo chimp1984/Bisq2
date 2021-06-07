@@ -18,16 +18,20 @@
 package network.misq.network;
 
 
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import network.misq.network.http.MarketPriceService;
+import network.misq.network.p2p.Address;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
+import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,27 +42,47 @@ import java.util.concurrent.CompletableFuture;
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
+    public static record Option(P2pService.Option p2pServiceOption,
+                                MarketPriceService.Option marketPriceServiceOption) {
+    }
+
     private P2pService p2pService;
     private MarketPriceService marketPriceService;
 
-    public NetworkService(P2pService p2pService, MarketPriceService marketPriceService) {
-        this.p2pService = p2pService;
-        this.marketPriceService = marketPriceService;
+    public NetworkService(Option option, KeyPairRepository keyPairRepository) {
+        this.p2pService = new P2pService(option.p2pServiceOption(), keyPairRepository);
+        this.marketPriceService = new MarketPriceService(option.marketPriceServiceOption());
     }
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // API
+    // API MarketPriceService
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public BehaviorSubject<Double> getMarketPriceSubject() {
+        return marketPriceService.getMarketPriceSubject();
+    }
+
+    public CompletableFuture<Integer> requestPriceUpdate() {
+        return marketPriceService.requestPriceUpdate();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // API P2pService
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public CompletableFuture<Boolean> initialize() {
         return p2pService.bootstrap();
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        p2pService.confidentialSend(message, networkId, myKeyPair);
+        p2pService.confidentialSend(message, peerNetworkId, myKeyPair);
         return future;
+    }
+
+    public Set<Address> findMyAddresses() {
+        return p2pService.findMyAddresses();
     }
 
     public void addMessageListener(MessageListener messageListener) {

@@ -19,7 +19,7 @@ package network.misq.protocol;
 
 import network.misq.account.Account;
 import network.misq.contract.Contract;
-import network.misq.id.Identity;
+import network.misq.id.IdentityRepository;
 import network.misq.network.p2p.P2pService;
 import network.misq.offer.Offer;
 import network.misq.persistence.Persistence;
@@ -28,7 +28,7 @@ import network.misq.wallets.Wallet;
 
 public class Deal {
     // expected dependencies
-    Identity identity;
+    IdentityRepository identityRepository;
     Account account;
     Contract contract;
     Offer offer;

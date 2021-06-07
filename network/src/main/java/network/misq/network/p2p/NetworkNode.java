@@ -34,6 +34,7 @@ import network.misq.network.p2p.peers.PeerGroup;
 import network.misq.network.p2p.peers.PeerManager;
 import network.misq.network.p2p.peers.exchange.DefaultPeerExchangeStrategy;
 import network.misq.network.p2p.router.gossip.GossipResult;
+import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

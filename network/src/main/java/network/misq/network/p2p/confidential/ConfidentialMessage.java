@@ -19,8 +19,8 @@ package network.misq.network.p2p.confidential;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.common.security.ConfidentialData;
 import network.misq.network.p2p.message.Message;
+import network.misq.security.ConfidentialData;
 
 @EqualsAndHashCode
 @Getter

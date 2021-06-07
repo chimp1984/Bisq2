@@ -19,10 +19,10 @@ package network.misq.network.p2p.data.storage.mailbox;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.common.security.ConfidentialData;
-import network.misq.common.security.HybridEncryption;
 import network.misq.network.p2p.data.storage.MetaData;
 import network.misq.network.p2p.data.storage.auth.AuthenticatedPayload;
+import network.misq.security.ConfidentialData;
+import network.misq.security.HybridEncryption;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;

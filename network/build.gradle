@@ -16,10 +16,11 @@ apply from: '../buildSrc/gen-protos.gradle'
 
 dependencies {
     api platform(project(':platforms:common-platform'))
-    
+
     implementation project(':common')
     implementation project(':tor')
     implementation project(':i2p')
+    implementation project(':security')
     implementation project(':persistence')
 
     implementation 'com.google.guava:guava'

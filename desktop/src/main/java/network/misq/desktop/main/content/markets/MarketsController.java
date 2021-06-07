@@ -19,18 +19,16 @@ package network.misq.desktop.main.content.markets;
 
 import javafx.application.Platform;
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.FullApi;
 import network.misq.desktop.common.Controller;
-import network.misq.network.http.MarketPriceService;
 
 public class MarketsController implements Controller {
-    private final Api api;
+    private final FullApi api;
     private MarketsModel model;
-    private MarketPriceService marketPriceService;
     @Getter
     private MarketsView view;
 
-    public MarketsController(Api api) {
+    public MarketsController(FullApi api) {
         this.api = api;
     }
 
@@ -38,7 +36,6 @@ public class MarketsController implements Controller {
     public void initialize() {
         this.model = new MarketsModel();
         this.view = new MarketsView(model, this);
-        this.marketPriceService = api.getMarketPriceService();
     }
 
     @Override
@@ -52,7 +49,7 @@ public class MarketsController implements Controller {
     }
 
     void onRefresh() {
-        marketPriceService.requestPriceUpdate()
+        api.requestPriceUpdate()
                 .whenComplete((marketPrice, t) -> Platform.runLater(() -> model.setMarketPrice(marketPrice)));
     }
 }

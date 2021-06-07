@@ -59,7 +59,7 @@ public class MockP2pService extends P2pService {
     }
 
     @Override
-    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         new Thread(() -> {
             try {

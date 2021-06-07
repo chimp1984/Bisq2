@@ -43,11 +43,13 @@ dependencies {
     api platform(project(':platforms:common-platform'))
 
     implementation project(':common')
+    implementation project(':security')
     implementation project(':network')
     implementation project(':contract')
     implementation project(':offer')
     implementation project(':presentation')
     implementation project(':api')
+    implementation project(':application')
 
     implementation 'com.google.guava:guava'
 

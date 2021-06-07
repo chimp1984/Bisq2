@@ -19,7 +19,7 @@ package network.misq.desktop;
 
 import javafx.application.Application;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.api.Api;
+import network.misq.api.FullApi;
 import network.misq.common.timer.UserThread;
 import network.misq.desktop.common.Controller;
 import network.misq.desktop.common.View;
@@ -31,13 +31,13 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class StageController implements Controller {
-    private final Api api;
+    private final FullApi api;
     private final StageModel model;
     private StageView stageView;
     private MainViewController mainViewController;
     private OverlayController overlayController;
 
-    public StageController(Api api) {
+    public StageController(FullApi api) {
         this.api = api;
         this.model = new StageModel();
     }

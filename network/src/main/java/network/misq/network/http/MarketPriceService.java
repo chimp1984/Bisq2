@@ -29,11 +29,15 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class MarketPriceService {
+    public static record Option(String url) {
+    }
+
     @Getter
     private double marketPrice;
     protected final BehaviorSubject<Double> marketPriceSubject;
 
-    public MarketPriceService() {
+    public MarketPriceService(Option option) {
+        log.error("option.url {}", option.url());
         marketPriceSubject = BehaviorSubject.create();
         marketPrice = 50000 + new Random().nextInt(10000) / 10000d;
         marketPriceSubject.onNext(marketPrice);

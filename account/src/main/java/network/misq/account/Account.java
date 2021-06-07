@@ -18,12 +18,12 @@
 package network.misq.account;
 
 
-import network.misq.id.Identity;
+import network.misq.id.IdentityRepository;
 import network.misq.persistence.Persistence;
 
 public class Account {
     // expected dependencies
-    Identity identity;
+    IdentityRepository identityRepository;
     Persistence persistence;
 
 }

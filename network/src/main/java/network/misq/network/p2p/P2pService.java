@@ -27,6 +27,7 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.proxy.GetServerSocketResult;
 import network.misq.network.p2p.router.gossip.GossipResult;
+import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +47,17 @@ import java.util.stream.Collectors;
 public class P2pService {
     private static final Logger log = LoggerFactory.getLogger(P2pService.class);
 
+    public static record Option(String appDirPath,
+                                Set<NetworkConfig> networkConfigs) {
+    }
+
     private final Map<NetworkType, NetworkNode> p2pNodes = new ConcurrentHashMap<>();
 
-    public P2pService(Set<NetworkConfig> networkConfigs, KeyPairRepository keyPairRepository) {
+    public P2pService(Option option, KeyPairRepository keyPairRepository) {
+        this(option.appDirPath(), option.networkConfigs(), keyPairRepository);
+    }
+
+    public P2pService(String appDirPath, Set<NetworkConfig> networkConfigs, KeyPairRepository keyPairRepository) {
         Storage storage = new Storage("");//todo
         networkConfigs.forEach(networkConfig -> {
             NetworkType networkType = networkConfig.getNetworkType();
@@ -110,14 +119,13 @@ public class P2pService {
                 .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        Map<NetworkType, Address> addressByNetworkType = networkId.getAddressByNetworkType();
-        networkId.getAddressByNetworkType().forEach((networkType, address) -> {
+        peerNetworkId.getAddressByNetworkType().forEach((networkType, address) -> {
             try {
                 if (p2pNodes.containsKey(networkType)) {
                     p2pNodes.get(networkType)
-                            .confidentialSend(message, networkId, myKeyPair)
+                            .confidentialSend(message, peerNetworkId, myKeyPair)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
                                     future.complete(connection);
@@ -128,7 +136,7 @@ public class P2pService {
                             });
                 } else {
                     p2pNodes.values().forEach(networkNode -> {
-                        networkNode.relay(message, networkId, myKeyPair)
+                        networkNode.relay(message, peerNetworkId, myKeyPair)
                                 .whenComplete((connection, throwable) -> {
                                     if (connection != null) {
                                         future.complete(connection);

@@ -19,7 +19,7 @@ package network.misq.desktop.main.content.offerbook;
 
 import javafx.geometry.Bounds;
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.FullApi;
 import network.misq.desktop.common.Controller;
 import network.misq.desktop.main.content.ContentViewController;
 import network.misq.desktop.main.content.createoffer.CreateOfferController;
@@ -34,11 +34,11 @@ public class OfferbookController implements Controller {
     @Getter
     private OfferbookView view;
     @Getter
-    private final Api api;
+    private final FullApi api;
     private final ContentViewController contentViewController;
     private final OverlayController overlayController;
 
-    public OfferbookController(Api api, ContentViewController contentViewController, OverlayController overlayController) {
+    public OfferbookController(FullApi api, ContentViewController contentViewController, OverlayController overlayController) {
         this.api = api;
         this.contentViewController = contentViewController;
         this.overlayController = overlayController;

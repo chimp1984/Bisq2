@@ -21,9 +21,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.encoding.Hex;
-import network.misq.common.security.DigestUtil;
-import network.misq.common.security.SignatureUtil;
 import network.misq.network.p2p.data.storage.MetaData;
+import network.misq.security.DigestUtil;
+import network.misq.security.SignatureUtil;
 
 import java.io.Serializable;
 import java.security.GeneralSecurityException;

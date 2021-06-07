@@ -19,7 +19,6 @@ package network.misq.network.p2p.data.storage.auth;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.security.DigestUtil;
 import network.misq.network.p2p.data.filter.ProtectedDataFilter;
 import network.misq.network.p2p.data.inventory.Inventory;
 import network.misq.network.p2p.data.storage.MapKey;
@@ -30,6 +29,7 @@ import network.misq.network.p2p.data.storage.mailbox.DataStore;
 import network.misq.network.p2p.data.storage.mailbox.MailboxData;
 import network.misq.network.p2p.data.storage.mailbox.MailboxPayload;
 import network.misq.persistence.Persistence;
+import network.misq.security.DigestUtil;
 
 import java.io.File;
 import java.io.IOException;

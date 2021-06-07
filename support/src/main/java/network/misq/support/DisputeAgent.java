@@ -17,7 +17,7 @@
 
 package network.misq.support;
 
-import network.misq.id.Identity;
+import network.misq.id.IdentityRepository;
 import network.misq.network.p2p.P2pService;
 import network.misq.persistence.Persistence;
 
@@ -25,7 +25,7 @@ import java.util.Collection;
 
 public class DisputeAgent {
     // expected dependencies
-    Identity disputeAgentIdentity;
+    IdentityRepository disputeAgentIdentityRepository;
     Collection<Dispute> disputes;
     P2pService networkService;
     Persistence persistence;

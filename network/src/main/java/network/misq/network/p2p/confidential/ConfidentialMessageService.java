@@ -19,10 +19,7 @@ package network.misq.network.p2p.confidential;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.ObjectSerializer;
-import network.misq.common.security.ConfidentialData;
-import network.misq.common.security.HybridEncryption;
 import network.misq.network.p2p.Address;
-import network.misq.network.p2p.KeyPairRepository;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.message.Message;
@@ -30,6 +27,9 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.peers.PeerGroup;
+import network.misq.security.ConfidentialData;
+import network.misq.security.HybridEncryption;
+import network.misq.security.KeyPairRepository;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;

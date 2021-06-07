@@ -20,7 +20,7 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.http.MarketPriceService;
+import network.misq.network.NetworkService;
 import network.misq.offer.Offer;
 import network.misq.offer.OfferRepository;
 
@@ -30,16 +30,16 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class OfferbookEntity {
-    protected final MarketPriceService marketPriceService;
     protected final OfferRepository offerRepository;
     protected final List<OfferEntity> offerEntities = new CopyOnWriteArrayList<>();
     protected final PublishSubject<OfferEntity> offerEntityAddedSubject;
     protected final PublishSubject<OfferEntity> offerEntityRemovedSubject;
+    private final NetworkService networkService;
     private Disposable oferAddedDisposable, oferRemovedDisposable;
 
-    public OfferbookEntity(OfferRepository offerRepository, MarketPriceService marketPriceService) {
+    public OfferbookEntity(OfferRepository offerRepository, NetworkService networkService) {
         this.offerRepository = offerRepository;
-        this.marketPriceService = marketPriceService;
+        this.networkService = networkService;
 
         offerEntityAddedSubject = PublishSubject.create();
         offerEntityRemovedSubject = PublishSubject.create();
@@ -65,14 +65,14 @@ public class OfferbookEntity {
         });
         oferRemovedDisposable = offerRepository.getOfferRemovedSubject().subscribe(offer -> {
             if (offer instanceof Offer) {
-                OfferEntity offerEntity = new OfferEntity((Offer) offer, marketPriceService.getMarketPriceSubject());
+                OfferEntity offerEntity = new OfferEntity((Offer) offer, networkService.getMarketPriceSubject());
                 offerEntities.add(offerEntity);
                 offerEntityAddedSubject.onNext(offerEntity);
             }
         });
 
         offerEntities.addAll(offerRepository.getOffers().stream()
-                .map(offer -> new OfferEntity((Offer) offer, marketPriceService.getMarketPriceSubject()))
+                .map(offer -> new OfferEntity((Offer) offer, networkService.getMarketPriceSubject()))
                 .collect(Collectors.toList()));
     }
 

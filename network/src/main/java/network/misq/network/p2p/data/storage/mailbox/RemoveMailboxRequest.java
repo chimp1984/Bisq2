@@ -20,11 +20,11 @@ package network.misq.network.p2p.data.storage.mailbox;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.security.DigestUtil;
-import network.misq.common.security.SignatureUtil;
 import network.misq.network.p2p.data.storage.MetaData;
 import network.misq.network.p2p.data.storage.auth.AuthenticatedData;
 import network.misq.network.p2p.data.storage.auth.RemoveRequest;
+import network.misq.security.DigestUtil;
+import network.misq.security.SignatureUtil;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
