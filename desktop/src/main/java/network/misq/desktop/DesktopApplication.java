@@ -19,7 +19,7 @@ package network.misq.desktop;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.api.FullApi;
+import network.misq.api.StandardApi;
 import network.misq.application.Executable;
 import network.misq.common.util.OsUtils;
 import network.misq.network.NetworkService;
@@ -36,7 +36,7 @@ import java.util.Set;
 @Slf4j
 public class DesktopApplication extends Executable {
     private StageController stageController;
-    protected FullApi api;
+    protected StandardApi api;
 
     public DesktopApplication() {
         super();
@@ -53,7 +53,7 @@ public class DesktopApplication extends Executable {
         P2pService.Option p2pServiceOption = new P2pService.Option(appDirPath, networkConfigs);
         MarketPriceService.Option marketPriceServiceOption = new MarketPriceService.Option("TODO MarketPriceService URL");
         NetworkService.Option networkServiceOptions = new NetworkService.Option(p2pServiceOption, marketPriceServiceOption);
-        api = new FullApi(keyPairRepositoryOptions, networkServiceOptions);
+        api = new StandardApi(keyPairRepositoryOptions, networkServiceOptions);
     }
 
     @Override

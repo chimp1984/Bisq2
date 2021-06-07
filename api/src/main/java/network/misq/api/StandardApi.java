@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
  * Api for fully featured nodes, like a desktop app.
  */
 @Getter
-public class FullApi implements Api {
+public class StandardApi implements Api {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
     private final OfferRepository offerRepository;
@@ -44,7 +44,7 @@ public class FullApi implements Api {
     private final OfferbookEntity offerbookEntity;
     private final IdentityRepository identityRepository;
 
-    public FullApi(KeyPairRepository.Option keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
+    public StandardApi(KeyPairRepository.Option keyPairRepositoryOptions, NetworkService.Option networkServiceOptions) {
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
         networkService = new NetworkService(networkServiceOptions, keyPairRepository);
 

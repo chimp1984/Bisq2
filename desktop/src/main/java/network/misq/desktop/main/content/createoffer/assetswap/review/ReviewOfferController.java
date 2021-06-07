@@ -18,7 +18,7 @@
 package network.misq.desktop.main.content.createoffer.assetswap.review;
 
 import lombok.Getter;
-import network.misq.api.FullApi;
+import network.misq.api.StandardApi;
 import network.misq.desktop.common.Controller;
 import network.misq.offer.Offer;
 import network.misq.offer.OfferRepository;
@@ -31,7 +31,7 @@ public class ReviewOfferController implements Controller {
     @Getter
     private ReviewOfferView view;
 
-    public ReviewOfferController(FullApi api) {
+    public ReviewOfferController(StandardApi api) {
         offerRepository = api.getOfferRepository();
         openOfferRepository = api.getOpenOfferRepository();
     }
