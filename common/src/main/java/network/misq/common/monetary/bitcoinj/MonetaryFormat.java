@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.monetary.bitcoinj;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormatSymbols;
@@ -344,7 +344,7 @@ public final class MonetaryFormat {
     /**
      * Format the given monetary value to a human readable form.
      */
-    public CharSequence format(Monetary monetary) {
+    public CharSequence format(BitcoinJMonetary monetary) {
         // preparation
         int maxDecimals = minDecimals;
         if (decimalGroups != null)
@@ -410,21 +410,21 @@ public final class MonetaryFormat {
     }
 
     /**
-     * Parse a human readable coin value to a {@link Coin} instance.
+     * Parse a human readable coin value to a {@link BitcoinJCoin} instance.
      *
      * @throws NumberFormatException if the string cannot be parsed for some reason
      */
-    public Coin parse(String str) throws NumberFormatException {
-        return Coin.valueOf(parseValue(str, Coin.SMALLEST_UNIT_EXPONENT));
+    public BitcoinJCoin parse(String str) throws NumberFormatException {
+        return BitcoinJCoin.valueOf(parseValue(str, BitcoinJCoin.SMALLEST_UNIT_EXPONENT));
     }
 
     /**
-     * Parse a human readable fiat value to a {@link Fiat} instance.
+     * Parse a human readable fiat value to a {@link BitcoinJFiat} instance.
      *
      * @throws NumberFormatException if the string cannot be parsed for some reason
      */
-    public Fiat parseFiat(String currencyCode, String str) throws NumberFormatException {
-        return Fiat.valueOf(currencyCode, parseValue(str, Fiat.SMALLEST_UNIT_EXPONENT));
+    public BitcoinJFiat parseFiat(String currencyCode, String str) throws NumberFormatException {
+        return BitcoinJFiat.valueOf(currencyCode, parseValue(str, BitcoinJFiat.SMALLEST_UNIT_EXPONENT));
     }
 
     private long parseValue(String str, int smallestUnitExponent) {

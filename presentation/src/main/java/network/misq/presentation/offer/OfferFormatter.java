@@ -19,11 +19,11 @@ package network.misq.presentation.offer;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.account.Transfer;
+import network.misq.common.monetary.Monetary;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.offer.options.ReputationOption;
 import network.misq.offer.options.TransferOption;
-import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.DateFormatter;
 
 import java.util.Date;
@@ -32,16 +32,12 @@ import java.util.Optional;
 
 @Slf4j
 class OfferFormatter {
-    static String formatAmountWithMinAmount(long amount, Optional<Double> minAmountAsPercentage, String currencyCode) {
+    static String formatAmountWithMinAmount(Monetary amount, Optional<Double> minAmountAsPercentage) {
         String minAmountString = minAmountAsPercentage
-                .map(e -> Math.round(amount * e))
-                .map(e -> AmountFormatter.formatAmount(e, currencyCode) + " - ")
+                .map(percentage -> Math.round(amount.getValue() * percentage))
+                .map(minAmount -> Monetary.from(amount, minAmount).format() + " - ")
                 .orElse("");
-        return minAmountString + formatAmount(amount, currencyCode);
-    }
-
-    static String formatAmount(long amount, String currencyCode) {
-        return AmountFormatter.formatAmount(amount, currencyCode);
+        return minAmountString + amount.formatWithCode();
     }
 
     static String formatDate(long date) {

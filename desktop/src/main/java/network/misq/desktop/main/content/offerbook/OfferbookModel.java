@@ -60,6 +60,7 @@ public class OfferbookModel implements Model {
     private final ObservableList<String> currenciesProperty = FXCollections.observableArrayList("BTC", "USD", "EUR", "XMR", "USDT");
     @Getter
     private final RangeFilterModel amountFilterModel;
+
     private Disposable offerEntityAddedDisposable, offerEntityRemovedDisposable, marketPriceDisposable;
 
     public OfferbookModel(Api api) {
@@ -85,7 +86,7 @@ public class OfferbookModel implements Model {
         applyBaseCurrency();
 
         resetFilter();
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().code().equals(selectedAskCurrencyProperty.get());
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().currencyCode().equals(selectedAskCurrencyProperty.get());
         setCurrencyPredicate(predicate);
         amountFilterModel.activate();
 
@@ -107,9 +108,15 @@ public class OfferbookModel implements Model {
         api.deactivateOfferbookEntity();
         amountFilterModel.deactivate();
 
-        offerEntityAddedDisposable.dispose();
-        offerEntityRemovedDisposable.dispose();
-        marketPriceDisposable.dispose();
+        if (offerEntityAddedDisposable != null) {
+            offerEntityAddedDisposable.dispose();
+        }
+        if (offerEntityRemovedDisposable != null) {
+            offerEntityRemovedDisposable.dispose();
+        }
+        if (marketPriceDisposable != null) {
+            marketPriceDisposable.dispose();
+        }
     }
 
 
@@ -124,13 +131,13 @@ public class OfferbookModel implements Model {
 
     public void setSelectAskCurrency(String currency) {
         selectedAskCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().code().equals(currency);
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().currencyCode().equals(currency);
         setCurrencyPredicate(predicate);
     }
 
     public void setSelectBidCurrency(String currency) {
         selectedBidCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getBidAsset().code().equals(currency);
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getBidAsset().currencyCode().equals(currency);
         setCurrencyPredicate(predicate);
     }
 

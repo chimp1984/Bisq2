@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.monetary.bitcoinj;
 
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static network.misq.common.monetary.Coin.SMALLEST_UNIT_EXPONENT;
+import static network.misq.common.monetary.bitcoinj.BitcoinJCoin.SMALLEST_UNIT_EXPONENT;
 
 /**
  * <p>This class, a concrete extension of {@link BtcFormat}, is distinguished in that each
@@ -45,7 +45,7 @@ import static network.misq.common.monetary.Coin.SMALLEST_UNIT_EXPONENT;
  * @see Format
  * @see NumberFormat
  * @see DecimalFormat
- * @see Coin
+ * @see BitcoinJCoin
  */
 
 public final class BtcFixedFormat extends BtcFormat {

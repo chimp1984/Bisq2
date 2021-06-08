@@ -17,17 +17,22 @@
 
 package network.misq.common.locale;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Locale;
 import java.util.Set;
 
 public class LocaleRepository {
-    public static Locale DEFAULT_LOCALE;
+    @Setter
+    @Getter
+    private static Locale defaultLocale;
 
     static {
-        DEFAULT_LOCALE = Locale.getDefault();
+        defaultLocale = Locale.getDefault();
         // On some systems there is no country defined, in that case we use en_US
-        if (DEFAULT_LOCALE.getCountry() == null || DEFAULT_LOCALE.getCountry().isEmpty()) {
-            DEFAULT_LOCALE = Locale.US;
+        if (defaultLocale.getCountry() == null || defaultLocale.getCountry().isEmpty()) {
+            defaultLocale = Locale.US;
         }
     }
 

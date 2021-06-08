@@ -29,6 +29,16 @@ public abstract class MisqCurrency implements Comparable<MisqCurrency> {
     @EqualsAndHashCode.Exclude
     protected final String name;
 
+    public static boolean isFiat(String code) {
+        return FiatCurrencyRepository.getFiatCurrencyByCode().containsKey(code);
+    }
+
+    // We only can check if the currency is not fiat and if the code matches the format, but we do not maintain a list 
+    // of crypto currencies to be flexible with any newly added one. 
+    public static boolean isMaybeCrypto(String code) {
+        return !isFiat(code) && code.length() >= 3;
+    }
+
     public MisqCurrency(String code, String name) {
         this.code = code;
         this.name = name;

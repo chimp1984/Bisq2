@@ -15,7 +15,8 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.offer.options;
 
-public record AmountOption(double minAmountAsPercentage) implements OfferOption {
-}
+// The classes in that package got copied from the BitcoinJ library as we do not want to include the dependency 
+// to BitcoinJ.
+// It will likely be removed once our own monetary classes have been tested enough and shown its usefulness.
+package network.misq.common.monetary.bitcoinj;

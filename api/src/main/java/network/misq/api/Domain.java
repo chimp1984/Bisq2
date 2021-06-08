@@ -21,6 +21,8 @@ import lombok.Getter;
 import network.misq.api.options.KeyPairRepositoryOptionsParser;
 import network.misq.api.options.NetworkServiceOptionsParser;
 import network.misq.application.options.ApplicationOptions;
+import network.misq.common.currency.FiatCurrencyRepository;
+import network.misq.common.locale.LocaleRepository;
 import network.misq.common.util.CollectionUtil;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
@@ -32,6 +34,7 @@ import network.misq.security.KeyPairRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +55,10 @@ public class Domain {
     private final IdentityRepository identityRepository;
 
     public Domain(ApplicationOptions applicationOptions, String[] args) {
+        Locale locale = applicationOptions.getLocale();
+        LocaleRepository.setDefaultLocale(locale);
+        FiatCurrencyRepository.applyLocale(locale);
+        
         KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
 

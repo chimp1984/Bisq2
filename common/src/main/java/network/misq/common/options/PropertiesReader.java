@@ -19,6 +19,7 @@ package network.misq.common.options;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
@@ -33,15 +34,20 @@ public class PropertiesReader {
         return optionalPropertyFileName;
     }
 
+    @Nullable
     public static Properties getProperties(String propertyFileName) {
         Properties properties = new Properties();
         try {
             InputStream inputStream = PropertiesReader.class.getClassLoader().getResourceAsStream(propertyFileName);
+            if (inputStream == null) {
+                return null;
+            }
             properties.load(inputStream);
+            return properties;
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Could not load property file with propertyFileName {}", propertyFileName);
+            return null;
         }
-        return properties;
     }
 }

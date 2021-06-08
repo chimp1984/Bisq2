@@ -41,9 +41,8 @@ public class OfferEntity implements Comparable<OfferEntity> {
         this.offer = offer;
         this.marketPriceSubject = marketPriceSubject;
 
-        formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().amount(),
-                offer.getMinAmountAsPercentage(),
-                offer.getBaseCurrency());
+        formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().monetary(),
+                offer.getMinAmountAsPercentage());
 
         formattedTransferOptions = offer.getOfferOptions().stream()
                 .filter(offerOption -> offerOption instanceof TransferOption)
@@ -127,7 +126,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
                 offer.getMinAmountAsPercentage(),
                 offer.getMarketBasedPrice(),
                 marketPrice,
-                offer.getQuoteAsset().code());
+                offer.getQuoteAsset().currencyCode());
     }
 
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.monetary.bitcoinj;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -23,17 +23,17 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * An exchange rate is expressed as a ratio of a {@link Coin} and a {@link Fiat} amount.
+ * An exchange rate is expressed as a ratio of a {@link BitcoinJCoin} and a {@link BitcoinJFiat} amount.
  */
 public class ExchangeRate implements Serializable {
 
-    public final Coin coin;
-    public final Fiat fiat;
+    public final BitcoinJCoin coin;
+    public final BitcoinJFiat fiat;
 
     /**
      * Construct exchange rate. This amount of coin is worth that amount of fiat.
      */
-    public ExchangeRate(Coin coin, Fiat fiat) {
+    public ExchangeRate(BitcoinJCoin coin, BitcoinJFiat fiat) {
         checkArgument(coin.isPositive());
         checkArgument(fiat.isPositive());
         checkArgument(fiat.currencyCode != null, "currency code required");
@@ -44,8 +44,8 @@ public class ExchangeRate implements Serializable {
     /**
      * Construct exchange rate. One coin is worth this amount of fiat.
      */
-    public ExchangeRate(Fiat fiat) {
-        this(Coin.COIN, fiat);
+    public ExchangeRate(BitcoinJFiat fiat) {
+        this(BitcoinJCoin.COIN, fiat);
     }
 
     /**
@@ -53,14 +53,14 @@ public class ExchangeRate implements Serializable {
      *
      * @throws ArithmeticException if the converted fiat amount is too high or too low.
      */
-    public Fiat coinToFiat(Coin convertCoin) {
+    public BitcoinJFiat coinToFiat(BitcoinJCoin convertCoin) {
         // Use BigInteger because it's much easier to maintain full precision without overflowing.
         final BigInteger converted = BigInteger.valueOf(convertCoin.value).multiply(BigInteger.valueOf(fiat.value))
                 .divide(BigInteger.valueOf(coin.value));
         if (converted.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0
                 || converted.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0)
             throw new ArithmeticException("Overflow");
-        return Fiat.valueOf(fiat.currencyCode, converted.longValue());
+        return BitcoinJFiat.valueOf(fiat.currencyCode, converted.longValue());
     }
 
     /**
@@ -68,7 +68,7 @@ public class ExchangeRate implements Serializable {
      *
      * @throws ArithmeticException if the converted coin amount is too high or too low.
      */
-    public Coin fiatToCoin(Fiat convertFiat) {
+    public BitcoinJCoin fiatToCoin(BitcoinJFiat convertFiat) {
         checkArgument(convertFiat.currencyCode.equals(fiat.currencyCode), "Currency mismatch: %s vs %s",
                 convertFiat.currencyCode, fiat.currencyCode);
         // Use BigInteger because it's much easier to maintain full precision without overflowing.
@@ -78,7 +78,7 @@ public class ExchangeRate implements Serializable {
                 || converted.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0)
             throw new ArithmeticException("Overflow");
         try {
-            return Coin.valueOf(converted.longValue());
+            return BitcoinJCoin.valueOf(converted.longValue());
         } catch (IllegalArgumentException x) {
             throw new ArithmeticException("Overflow: " + x.getMessage());
         }

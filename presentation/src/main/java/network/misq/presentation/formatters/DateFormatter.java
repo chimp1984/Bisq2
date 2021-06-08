@@ -17,21 +17,20 @@
 
 package network.misq.presentation.formatters;
 
+import network.misq.common.locale.LocaleRepository;
+
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 public class DateFormatter {
-    public static final Locale locale = Locale.US; //todo
-
     public static String formatDateTime(Date date) {
         return formatDateTime(date, true);
     }
 
     public static String formatDateTime(Date date, boolean useLocaleAndLocalTimezone) {
-        DateFormat dateInstance = DateFormat.getDateInstance(DateFormat.DEFAULT, locale);
-        DateFormat timeInstance = DateFormat.getTimeInstance(DateFormat.DEFAULT, locale);
+        DateFormat dateInstance = DateFormat.getDateInstance(DateFormat.DEFAULT, LocaleRepository.getDefaultLocale());
+        DateFormat timeInstance = DateFormat.getTimeInstance(DateFormat.DEFAULT, LocaleRepository.getDefaultLocale());
         if (!useLocaleAndLocalTimezone) {
             dateInstance.setTimeZone(TimeZone.getTimeZone("UTC"));
             timeInstance.setTimeZone(TimeZone.getTimeZone("UTC"));

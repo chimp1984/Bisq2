@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.offer.options;
+package network.misq.offer;
 
-public record AmountOption(double minAmountAsPercentage) implements OfferOption {
+public class MarketPriceUtil {
 }

@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class FiatCurrencyRepository {
-    private static Map<String, FiatCurrency> fiatCurrencyByCode = new HashMap<>();
+    private static Map<String, FiatCurrency> fiatCurrencyByCode;
 
     public static void applyLocale(Locale locale) {
         fiatCurrencyByCode = CountryRepository.COUNTRIES.stream()

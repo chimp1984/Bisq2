@@ -17,10 +17,15 @@
 
 package network.misq.offer;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import network.misq.common.util.MathUtils;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.NetworkId;
+import network.misq.offer.options.AmountOption;
 import network.misq.offer.options.OfferOption;
+import network.misq.offer.options.PriceOption;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,51 +35,83 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Offer for a asset swap. Supports multiple protocolTypes in case the maker wants to give more flexibility
- * to takers.
+ * Offer for an 2 party asset exchange (swap).
  */
+@Slf4j
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class Offer extends Listing {
-    private final Asset bidAsset;
     private final Asset askAsset;
-    private final String baseCurrency;
-    private final Optional<Double> marketBasedPrice;
-    private final Optional<Double> minAmountAsPercentage;
+    private final Asset bidAsset;
+    private final boolean isBaseCurrencyAskSide;
+    private final Set<OfferOption> offerOptions;
 
     private transient final long minBaseAmount;
+    private final double fixPrice;
+
 
     public Offer(List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
-                 Asset bidAsset,
-                 Asset askAsset) {
-        this(bidAsset, askAsset, bidAsset.code(), protocolTypes, makerNetworkId,
-                Optional.empty(), Optional.empty(), new HashSet<>());
+                 Asset askAsset,
+                 Asset bidAsset) {
+        this(askAsset, bidAsset, true, protocolTypes, makerNetworkId, new HashSet<>());
     }
 
-    public Offer(Asset bidAsset,
-                 Asset askAsset,
-                 String baseCurrency,
+    /**
+     * @param askAsset              The asset on the ask side (what the maker asks for)
+     * @param bidAsset              The asset on the bid side (what the maker offers)
+     * @param isBaseCurrencyAskSide If the base currency for the price quote is the currency of the ask asset.
+     * @param protocolTypes         The list of the supported swap protocol types. Order in the list can be used as priority.
+     * @param makerNetworkId        The networkId the maker used for that listing. It encapsulate the network addresses
+     *                              of the supported networks and the pubKey used for data protection in the storage layer.
+     * @param offerOptions          Options for different aspects of an offer like min amount, market based price, fee options... Can be specific to protocol type.
+     */
+    public Offer(Asset askAsset,
+                 Asset bidAsset,
+                 boolean isBaseCurrencyAskSide,
                  List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
-                 Optional<Double> marketBasedPrice, //todo use option
-                 Optional<Double> minAmountAsPercentage, //todo use option
                  Set<OfferOption> offerOptions) {
         super(protocolTypes, makerNetworkId, offerOptions);
 
-        this.bidAsset = bidAsset;
         this.askAsset = askAsset;
-        this.baseCurrency = baseCurrency;
-        this.marketBasedPrice = marketBasedPrice;
-        this.minAmountAsPercentage = minAmountAsPercentage;
+        this.bidAsset = bidAsset;
+        this.isBaseCurrencyAskSide = isBaseCurrencyAskSide;
+        this.offerOptions = offerOptions;
 
-       /* minAmountAsPercentage =   offerOptions.stream()
-                .filter(e-> e instanceof AmountOption)
-                .map(e->(AmountOption)e)
-                .map(e-> e.getMinAmountAsPercentage())
-                .findAny().orElse(1d);*/
-
-        minBaseAmount = minAmountAsPercentage.map(percentage -> Math.round(getBaseAsset().amount() * percentage))
+        minBaseAmount = getMinAmountAsPercentage()
+                .map(percentage -> MathUtils.roundDoubleToLong(getBaseAsset().amount() * percentage))
                 .orElse(getBaseAsset().amount());
+
+        double baseAssetAmount = (double) getBaseAsset().amount();
+        double quoteAssetAmount = (double) getQuoteAsset().amount();
+        checkArgument(quoteAssetAmount > 0);
+
+  /*      BigDecimal quote = BigDecimal.valueOf(getQuoteAsset().amount());
+        BigDecimal base = BigDecimal.valueOf(getBaseAsset().amount());
+        BigDecimal div = quote.divide(base);
+        int unitExponent = getBaseAsset().smallestUnitExponent() - getQuoteAsset().smallestUnitExponent();
+        div.movePointRight(unitExponent);
+
+
+
+        // Use BigInteger because it's much easier to maintain full precision without overflowing.
+        final BigInteger converted = BigInteger.valueOf(getQuoteAsset().amount()).multiply(BigInteger.valueOf(getBaseAsset().amount()))
+                .divide(BigInteger.valueOf(coin.value));
+        
+        // btc x usd / price  1 x 50k /50k
+        if (converted.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0
+                || converted.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0)
+            throw new ArithmeticException("Overflow");
+                
+                
+                */
+        fixPrice = quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
+    }
+
+
+    public long getMinBaseAmount() {
+        return minBaseAmount;
     }
 
     public double getFixPrice() {
@@ -85,18 +122,30 @@ public class Offer extends Listing {
     }
 
     public Asset getBaseAsset() {
-        if (askAsset.code().equals(baseCurrency)) {
-            return askAsset;
-        } else {
-            return bidAsset;
-        }
+        return isBaseCurrencyAskSide ? askAsset : bidAsset;
     }
 
     public Asset getQuoteAsset() {
-        if (bidAsset.code().equals(baseCurrency)) {
-            return askAsset;
-        } else {
-            return bidAsset;
-        }
+        return isBaseCurrencyAskSide ? bidAsset : askAsset;
+    }
+
+    public String getBaseCurrency() {
+        return isBaseCurrencyAskSide ? askAsset.currencyCode() : bidAsset.currencyCode();
+    }
+
+    public Optional<Double> getMinAmountAsPercentage() {
+        return findAmountOption(offerOptions).map(AmountOption::minAmountAsPercentage);
+    }
+
+    public Optional<Double> getMarketBasedPrice() {
+        return findPriceOption(offerOptions).map(PriceOption::marketBasedPrice);
+    }
+
+    private Optional<AmountOption> findAmountOption(Set<OfferOption> offerOptions) {
+        return offerOptions.stream().filter(e -> e instanceof AmountOption).map(e -> (AmountOption) e).findAny();
+    }
+
+    private Optional<PriceOption> findPriceOption(Set<OfferOption> offerOptions) {
+        return offerOptions.stream().filter(e -> e instanceof PriceOption).map(e -> (PriceOption) e).findAny();
     }
 }

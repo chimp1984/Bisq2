@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.monetary.bitcoinj;
 
 import com.google.common.collect.ImmutableList;
 
@@ -28,7 +28,7 @@ import java.util.Locale;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
-import static network.misq.common.monetary.Coin.SMALLEST_UNIT_EXPONENT;
+import static network.misq.common.monetary.bitcoinj.BitcoinJCoin.SMALLEST_UNIT_EXPONENT;
 
 /**
  * <p>This class, a concrete extension of {@link BtcFormat}, is distinguished by its
@@ -53,7 +53,7 @@ import static network.misq.common.monetary.Coin.SMALLEST_UNIT_EXPONENT;
  * @see java.text.NumberFormat
  * @see java.text.DecimalFormat
  * @see DecimalFormatSymbols
- * @see network.misq.common.monetary.Coin
+ * @see BitcoinJCoin
  */
 
 public final class BtcAutoFormat extends BtcFormat {

@@ -17,6 +17,27 @@
 
 package network.misq.application.options;
 
+import network.misq.common.options.PropertiesReader;
+
+import java.util.Locale;
+import java.util.Properties;
+
 public record ApplicationOptions(String appDir, String appName) {
 
+
+    // To ensure the locale is set initially we should write it to property file instead of persisting it in 
+    // preferences which might be read out to a later moment.
+    public Locale getLocale() {
+        Properties properties = PropertiesReader.getProperties("misq.properties");
+        if (properties == null) {
+            return Locale.getDefault();
+        }
+        String language = properties.getProperty("language");
+        String country = properties.getProperty("country");
+        if (language == null || country == null) {
+            return Locale.getDefault();
+        }
+
+        return new Locale(language, country);
+    }
 }

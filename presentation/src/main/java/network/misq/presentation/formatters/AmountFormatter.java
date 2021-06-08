@@ -17,33 +17,11 @@
 
 package network.misq.presentation.formatters;
 
-import java.text.DecimalFormat;
+import network.misq.common.monetary.Monetary;
 
 public class AmountFormatter {
-    private static final DecimalFormat cryptoFormat = new DecimalFormat("#.####");
-    private static final DecimalFormat fiatFormat = new DecimalFormat("#.##");
-
-    static {
-        cryptoFormat.setMaximumFractionDigits(4);
-        fiatFormat.setMaximumFractionDigits(2);
-    }
 
     public static String formatAmount(long amount, String currencyCode) {
-        return getFormat(currencyCode).format(amount / getPrecision(currencyCode));
-    }
-
-    private static double getPrecision(String currencyCode) {
-        return isFiat(currencyCode) ? 10000d : 100000000d;
-    }
-
-    private static DecimalFormat getFormat(String currencyCode) {
-        return isFiat(currencyCode) ? fiatFormat : cryptoFormat;
-    }
-
-    private static boolean isFiat(String currencyCode) {
-        return switch (currencyCode) {
-            case "BTC", "XMR", "USDT" -> false;
-            default -> true;
-        };
+        return Monetary.from(amount, currencyCode).formatWithCode();
     }
 }

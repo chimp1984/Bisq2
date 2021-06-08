@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package network.misq.common.monetary;
+package network.misq.common.monetary.bitcoinj;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import network.misq.common.monetary.BtcAutoFormat.Style;
+import network.misq.common.monetary.bitcoinj.BtcAutoFormat.Style;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,8 +33,8 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.math.RoundingMode.HALF_UP;
-import static network.misq.common.monetary.BtcAutoFormat.Style.CODE;
-import static network.misq.common.monetary.BtcAutoFormat.Style.SYMBOL;
+import static network.misq.common.monetary.bitcoinj.BtcAutoFormat.Style.CODE;
+import static network.misq.common.monetary.bitcoinj.BtcAutoFormat.Style.SYMBOL;
 
 /**
  * <p>Instances of this class format and parse locale-specific numerical
@@ -257,7 +257,7 @@ import static network.misq.common.monetary.BtcAutoFormat.Style.SYMBOL;
  * <h2>Formatting</h2>
  *
  * <p>You format a Bitcoin monetary value by passing it to the {@link BtcFormat#format(Object)}
- * method.  This argument can be either a {@link Coin}-type object or a
+ * method.  This argument can be either a {@link BitcoinJCoin}-type object or a
  * numerical object such as {@link Long} or {@link BigDecimal}.
  * Integer-based types such as {@link BigInteger} are interpreted as representing a
  * number of satoshis, while a {@link BigDecimal} is interpreted as representing a
@@ -389,7 +389,7 @@ import static network.misq.common.monetary.BtcAutoFormat.Style.SYMBOL;
  * <h2>Parsing</h2>
  *
  * <p>The {@link #parse(String)} method accepts a {@link String} argument, and returns a
- * {@link Coin}-type value.  The difference in parsing behavior between instances of {@link
+ * {@link BitcoinJCoin}-type value.  The difference in parsing behavior between instances of {@link
  * BtcFixedFormat} and {@link BtcAutoFormat} is analogous to the difference in formatting
  * behavior between instances of those classes.  Instances of {@link BtcAutoFormat} recognize
  * currency codes and symbols in the {@link String} being parsed, and interpret them as
@@ -428,7 +428,7 @@ import static network.misq.common.monetary.BtcAutoFormat.Style.SYMBOL;
  * indicator is absent.</p>
  *
  * <p>The {@code parse()} method returns an instance of the
- * {@link Coin} class.  Therefore, attempting to parse a value greater
+ * {@link BitcoinJCoin} class.  Therefore, attempting to parse a value greater
  * than the maximum that a {@code Coin} object can represent will
  * raise a {@code ParseException}, as will any other detected
  * parsing error.</p>
@@ -460,7 +460,7 @@ import static network.misq.common.monetary.BtcAutoFormat.Style.SYMBOL;
  * @see DecimalFormat
  * @see DecimalFormatSymbols
  * @see FieldPosition
- * @see Coin
+ * @see BitcoinJCoin
  */
 
 public abstract class BtcFormat extends Format {
@@ -530,7 +530,7 @@ public abstract class BtcFormat extends Format {
      * units indicated by the given scale differs from that same value denominated in satoshis
      */
     private static int offSatoshis(int scale) {
-        return Coin.SMALLEST_UNIT_EXPONENT - scale;
+        return BitcoinJCoin.SMALLEST_UNIT_EXPONENT - scale;
     }
 
     private static Locale defaultLocale() {
@@ -1220,7 +1220,7 @@ public abstract class BtcFormat extends Format {
     /**
      * Formats a bitcoin value as a number and possibly a units indicator and appends the
      * resulting text to the given string buffer.  The type of monetary value argument can be
-     * any one of any of the following classes: {@link Coin},
+     * any one of any of the following classes: {@link BitcoinJCoin},
      * {@link Integer}, {@link Long}, {@link BigInteger},
      * {@link BigDecimal}.  Numeric types that can represent only an integer are interpreted
      * as that number of satoshis.  The value of a {@link BigDecimal} is interpreted as that
@@ -1236,7 +1236,7 @@ public abstract class BtcFormat extends Format {
     /**
      * Formats a bitcoin value as a number and possibly a units indicator to a
      * {@link String}.The type of monetary value argument can be any one of any of the
-     * following classes: {@link Coin}, {@link Integer}, {@link Long},
+     * following classes: {@link BitcoinJCoin}, {@link Integer}, {@link Long},
      * {@link BigInteger}, {@link BigDecimal}.  Numeric types that can represent only
      * an integer are interpreted as that number of satoshis.  The value of a
      * {@link BigDecimal} is interpreted as that number of bitcoins, rounded to the
@@ -1253,7 +1253,7 @@ public abstract class BtcFormat extends Format {
     /**
      * Formats a bitcoin value as a number and possibly a units indicator and appends the
      * resulting text to the given string buffer.  The type of monetary value argument can be
-     * any one of any of the following classes: {@link Coin},
+     * any one of any of the following classes: {@link BitcoinJCoin},
      * {@link Integer}, {@link Long}, {@link BigInteger},
      * {@link BigDecimal}.  Numeric types that can represent only an integer are interpreted
      * as that number of satoshis.  The value of a {@link BigDecimal} is interpreted as that
@@ -1380,10 +1380,10 @@ public abstract class BtcFormat extends Format {
         else if (qty instanceof BigInteger)
             satoshis = (BigInteger) qty;
         else if (qty instanceof BigDecimal)
-            satoshis = ((BigDecimal) qty).movePointRight(Coin.SMALLEST_UNIT_EXPONENT).
+            satoshis = ((BigDecimal) qty).movePointRight(BitcoinJCoin.SMALLEST_UNIT_EXPONENT).
                     setScale(0, BigDecimal.ROUND_HALF_UP).unscaledValue();
-        else if (qty instanceof Coin)
-            satoshis = BigInteger.valueOf(((Coin) qty).value);
+        else if (qty instanceof BitcoinJCoin)
+            satoshis = BigInteger.valueOf(((BitcoinJCoin) qty).value);
         else
             throw new IllegalArgumentException("Cannot format a " + qty.getClass().getSimpleName() +
                     " as a Bicoin value");
@@ -1394,7 +1394,7 @@ public abstract class BtcFormat extends Format {
 
     /**
      * Parse a {@link String} representation of a Bitcoin monetary value.  Returns a
-     * {@link Coin} object that represents the parsed value.
+     * {@link BitcoinJCoin} object that represents the parsed value.
      *
      * @see NumberFormat
      */
@@ -1516,10 +1516,10 @@ public abstract class BtcFormat extends Format {
      * @return a Coin object representing the parsed value
      * @see java.text.ParsePosition
      */
-    public Coin parse(String source, ParsePosition pos) {
+    public BitcoinJCoin parse(String source, ParsePosition pos) {
         DecimalFormatSymbols anteSigns = null;
         int parseScale = COIN_SCALE; // default
-        Coin coin = null;
+        BitcoinJCoin coin = null;
         synchronized (numberFormat) {
             if (numberFormat.toPattern().contains("¤")) {
                 for (ScaleMatcher d : denomMatchers()) {
@@ -1539,7 +1539,7 @@ public abstract class BtcFormat extends Format {
 
             Number number = numberFormat.parse(source, pos);
             if (number != null) try {
-                coin = Coin.valueOf(
+                coin = BitcoinJCoin.valueOf(
                         ((BigDecimal) number).movePointRight(offSatoshis(parseScale)).setScale(0, HALF_UP).longValue()
                 );
             } catch (IllegalArgumentException e) {
@@ -1567,8 +1567,8 @@ public abstract class BtcFormat extends Format {
      *
      * @return a Coin object representing the parsed value
      */
-    public Coin parse(String source) throws ParseException {
-        return (Coin) parseObject(source);
+    public BitcoinJCoin parse(String source) throws ParseException {
+        return (BitcoinJCoin) parseObject(source);
     }
 
     /****** END OF PARSING STUFF *****/

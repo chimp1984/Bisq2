@@ -14,6 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
-// The classes in that package got copied from the BitcoinJ library as we do not want to include the dependency 
-// to BitcoinJ.
-package network.misq.common.monetary;
+
+package network.misq.offer.options;
+
+public record PriceOption(double marketBasedPrice) implements OfferOption {
+}
