@@ -27,6 +27,7 @@ include 'support'
 include 'tor'
 include 'user'
 include 'wallets'
+include 'web'
 
 import org.gradle.util.GradleVersion
 

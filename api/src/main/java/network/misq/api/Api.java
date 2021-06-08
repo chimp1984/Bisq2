@@ -103,4 +103,12 @@ public class Api {
     public CompletableFuture<Integer> requestPriceUpdate() {
         return networkService.requestPriceUpdate();
     }
+
+    public String getVersion() {
+        return "0.1.0";
+    }
+
+    public String getHelp() {
+        return "help";
+    }
 }
