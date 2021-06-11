@@ -17,18 +17,17 @@
 
 package network.misq.common.monetary;
 
+import com.google.common.math.LongMath;
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
 import network.misq.common.currency.MisqCurrency;
 import network.misq.common.util.MathUtils;
 
 import java.math.BigDecimal;
-import java.util.Locale;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 @EqualsAndHashCode(callSuper = true)
 public class Fiat extends Monetary {
-    @Setter
-    private int precision = 2;
 
     public static Fiat parse(String string, String currencyCode) {
         return Fiat.of(new BigDecimal(string).movePointRight(4).longValue(),
@@ -65,7 +64,7 @@ public class Fiat extends Monetary {
         return new Fiat(value, currencyCode, smallestUnitExponent);
     }
 
-    private Fiat(long value, String currencyCode, int smallestUnitExponent) {
+    Fiat(long value, String currencyCode, int smallestUnitExponent) {
         super(value, currencyCode, smallestUnitExponent);
     }
 
@@ -73,25 +72,32 @@ public class Fiat extends Monetary {
         super(value, currencyCode, smallestUnitExponent);
     }
 
-    @Override
-    public double asDouble() {
-        return MathUtils.roundDouble(BigDecimal.valueOf(value).movePointLeft(smallestUnitExponent).doubleValue(), precision);
+    public Fiat add(Fiat value) {
+        checkArgument(value.currencyCode.equals(this.currencyCode));
+        return new Fiat(LongMath.checkedAdd(this.value, value.value), this.currencyCode, this.smallestUnitExponent);
+    }
+
+    public Fiat subtract(Fiat value) {
+        checkArgument(value.currencyCode.equals(this.currencyCode));
+        return new Fiat(LongMath.checkedSubtract(this.value, value.value), this.currencyCode, this.smallestUnitExponent);
+    }
+
+    public Fiat multiply(long factor) {
+        return new Fiat(LongMath.checkedMultiply(this.value, factor), this.currencyCode, this.smallestUnitExponent);
+    }
+
+    public Fiat divide(long divisor) {
+        return new Fiat(this.value / divisor, this.currencyCode, this.smallestUnitExponent);
     }
 
     @Override
-    public String format(Locale locale) {
-        return format(locale, precision);
-    }
-
-    @Override
-    public String formatWithCode(Locale locale) {
-        return formatWithCode(locale, precision);
+    public double toDouble(long value) {
+        return MathUtils.roundDouble(BigDecimal.valueOf(value).movePointLeft(smallestUnitExponent).doubleValue(), smallestUnitExponent);
     }
 
     @Override
     public String toString() {
         return "Fiat{" +
-                "\n     precision=" + precision +
                 "\n} " + super.toString();
     }
 }

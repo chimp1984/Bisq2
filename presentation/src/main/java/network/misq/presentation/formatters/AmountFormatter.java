@@ -17,11 +17,54 @@
 
 package network.misq.presentation.formatters;
 
+import lombok.extern.slf4j.Slf4j;
+import network.misq.common.locale.LocaleRepository;
+import network.misq.common.monetary.Fiat;
 import network.misq.common.monetary.Monetary;
+import network.misq.common.util.DecimalFormatters;
 
+import java.util.Locale;
+import java.util.Optional;
+
+@Slf4j
 public class AmountFormatter {
+    public static String formatAmountWithMinAmount(Monetary amount, Optional<Long> optionalMinAmount) {
+        return AmountFormatter.formatMinAmount(optionalMinAmount, amount) +
+                AmountFormatter.formatAmountWithCode(amount);
+    }
 
-    public static String formatAmount(long amount, String currencyCode) {
-        return Monetary.from(amount, currencyCode).formatWithCode();
+    public static String formatAmount1(long amount, String currencyCode) {
+        return "TODO";//  Monetary.from(amount, currencyCode).formatWithCode();
+    }
+
+    public static String formatAmountWithCode(Monetary amount) {
+        return formatAmountWithCode(amount, LocaleRepository.getDefaultLocale());
+    }
+
+    public static String formatAmountWithCode(Monetary amount, Locale locale) {
+        return formatAmount(amount, locale) + " " + amount.getCurrencyCode();
+    }
+
+    public static String formatAmount(Monetary amount) {
+        return formatAmount(amount, LocaleRepository.getDefaultLocale());
+    }
+
+    public static String formatAmount(Monetary amount, Locale locale) {
+        return getDecimalFormat(amount, locale).format(amount.asDouble());
+    }
+
+    public static String formatMinAmount(Optional<Long> optionalMinAmount, Monetary amount) {
+        return formatMinAmount(optionalMinAmount, amount, LocaleRepository.getDefaultLocale());
+    }
+
+    public static String formatMinAmount(Optional<Long> optionalMinAmount, Monetary amount, Locale locale) {
+        return optionalMinAmount
+                .map(minAmount -> getDecimalFormat(amount, locale).format(amount.toDouble(minAmount)) + " - ")
+                .orElse("");
+    }
+
+    private static DecimalFormatters.Format getDecimalFormat(Monetary amount, Locale locale) {
+        int precision = amount instanceof Fiat ? 0 : 4;
+        return DecimalFormatters.getDecimalFormat(locale, precision);
     }
 }

@@ -59,7 +59,7 @@ public class RangeFilterModel {
         };
         highPercentageListener = (observable, oldValue, newValue) -> {
             long value = highBaseAmountPercentToValue((double) newValue);
-            Predicate<OfferListItem> predicate = item -> item.getOffer().getMinBaseAmount() <= value;
+            Predicate<OfferListItem> predicate = item -> item.getOffer().getMinBaseAmountOrAmount() <= value;
             setHighBaseAmountPredicate(predicate);
             model.applyListFilterPredicates();
             model.applyBaseCurrency();
@@ -112,13 +112,13 @@ public class RangeFilterModel {
 
     private long lowBaseAmountPercentToValue(double value) {
         long low = min + Math.round((max - min) * value / 100d);
-        lowFormattedAmount.set(AmountFormatter.formatAmount(low, model.baseCurrency));
+        lowFormattedAmount.set(AmountFormatter.formatAmount1(low, model.baseCurrency));
         return low;
     }
 
     private long highBaseAmountPercentToValue(double value) {
         long high = Math.round(max * value / 100d);
-        highFormattedAmount.set(AmountFormatter.formatAmount(high, model.baseCurrency));
+        highFormattedAmount.set(AmountFormatter.formatAmount1(high, model.baseCurrency));
         return high;
     }
 
@@ -142,14 +142,14 @@ public class RangeFilterModel {
 
     private static long getMin(List<OfferListItem> offers) {
         return offers.stream()
-                .mapToLong(e -> e.getOffer().getMinBaseAmount())
+                .mapToLong(e -> e.getOffer().getMinBaseAmountOrAmount())
                 .min()
                 .orElse(0);
     }
 
     private static long getMax(List<OfferListItem> offers) {
         return offers.stream()
-                .mapToLong(e -> e.getOffer().getMinBaseAmount())
+                .mapToLong(e -> e.getOffer().getMinBaseAmountOrAmount())//todo shouldn't it be amount?
                 .max()
                 .orElse(0);
     }

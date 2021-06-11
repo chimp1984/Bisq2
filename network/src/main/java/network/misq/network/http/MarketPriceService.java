@@ -40,6 +40,7 @@ public class MarketPriceService {
         log.error("option.url {}", option.url());
         marketPriceSubject = BehaviorSubject.create();
         marketPrice = 50000 + new Random().nextInt(10000) / 10000d;
+        marketPrice = 50000;
         marketPriceSubject.onNext(marketPrice);
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override

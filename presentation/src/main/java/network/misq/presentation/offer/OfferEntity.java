@@ -20,29 +20,37 @@ package network.misq.presentation.offer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import network.misq.common.data.Couple;
+import network.misq.common.monetary.Monetary;
+import network.misq.common.monetary.Quote;
 import network.misq.offer.Offer;
 import network.misq.offer.options.TransferOption;
+import network.misq.presentation.formatters.AmountFormatter;
+import network.misq.presentation.formatters.QuoteFormatter;
 
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Optional;
 
 public class OfferEntity implements Comparable<OfferEntity> {
-    protected Disposable marketPriceDisposable;
     protected final Offer offer;
-    protected final BehaviorSubject<Double> marketPriceSubject;
-    protected double price;
+    private Quote quote;
+    private Monetary quoteAmount;
+
     protected final String formattedBaseAmountWithMinAmount;
     protected final String formattedTransferOptions;
-    protected String formattedPrice;
+    protected String formattedQuote;
     protected String formattedQuoteAmount;
+    protected String formattedQuoteAmountWithMinAmount;
+
+    protected Disposable marketPriceDisposable;
+    protected final BehaviorSubject<Double> marketPriceSubject;
 
     public OfferEntity(Offer offer, BehaviorSubject<Double> marketPriceSubject) {
         this.offer = offer;
         this.marketPriceSubject = marketPriceSubject;
 
-        formattedBaseAmountWithMinAmount = OfferFormatter.formatAmountWithMinAmount(offer.getBaseAsset().monetary(),
-                offer.getMinAmountAsPercentage());
+        formattedBaseAmountWithMinAmount = AmountFormatter.formatAmountWithMinAmount(offer.getBaseAsset().monetary(),
+                offer.getOptionalMinBaseAmount());
 
         formattedTransferOptions = offer.getOfferOptions().stream()
                 .filter(offerOption -> offerOption instanceof TransferOption)
@@ -66,10 +74,6 @@ public class OfferEntity implements Comparable<OfferEntity> {
         marketPriceDisposable.dispose();
     }
 
-    public double getPrice() {
-        return price;
-    }
-
     public Offer getOffer() {
         return offer;
     }
@@ -86,8 +90,8 @@ public class OfferEntity implements Comparable<OfferEntity> {
         return formattedTransferOptions;
     }
 
-    public String getFormattedPrice() {
-        return formattedPrice;
+    public String getFormattedQuote() {
+        return formattedQuote;
     }
 
     public String getFormattedQuoteAmount() {
@@ -99,16 +103,16 @@ public class OfferEntity implements Comparable<OfferEntity> {
     }
 
     public int compareQuoteAmount(OfferEntity other) {
-        return Long.compare(offer.getQuoteAsset().amount(), other.getOffer().getQuoteAsset().amount());
+        return quoteAmount.compareTo(other.quoteAmount);
     }
 
-    public int comparePrice(OfferEntity other) {
-        return Double.compare(price, other.price);
+    public int compareQuote(OfferEntity other) {
+        return quote.compareTo(other.quote);
     }
 
     @Override
     public int compareTo(OfferEntity other) {
-        return comparePrice(other);
+        return compareQuote(other);
     }
 
 
@@ -117,16 +121,21 @@ public class OfferEntity implements Comparable<OfferEntity> {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     protected void updatedPriceAndAmount(double marketPrice) {
-        Couple<String, Double> priceTuple = getPriceTuple(offer.getFixPrice(),
-                offer.getMarketBasedPrice(),
-                marketPrice);
-        formattedPrice = priceTuple.first();
-        price = priceTuple.second();
-        formattedQuoteAmount = getFormattedQuoteAmount(offer.getBaseAsset().amount(),
-                offer.getMinAmountAsPercentage(),
-                offer.getMarketBasedPrice(),
-                marketPrice,
-                offer.getQuoteAsset().currencyCode());
+        //todo
+        Quote marketQuote = Quote.fromPrice(marketPrice, "BTC", "USD");
+        if (offer.getMarketBasedPrice().isPresent()) {
+            quote = Quote.fromMarketBasedPrice(marketQuote, offer.getMarketBasedPrice().get());
+            quoteAmount = Quote.toQuoteMonetary(offer.getBaseAsset().monetary(), quote);
+
+        } else {
+            quote = offer.getQuote();
+            quoteAmount = offer.getQuoteAsset().monetary();
+        }
+        formattedQuote = QuoteFormatter.formatWithQuoteCode(quote);
+        formattedQuoteAmount = AmountFormatter.formatAmount(quoteAmount);
+
+        formattedQuoteAmountWithMinAmount = AmountFormatter.formatAmountWithMinAmount(quoteAmount,
+                offer.getOptionalMinQuoteAmount(quoteAmount.getValue()));
     }
 
 
@@ -241,7 +250,7 @@ public class OfferEntity implements Comparable<OfferEntity> {
                 .orElse(0);
     }
 
-    private static int comparePrice(Double selfPrice, Double otherPrice, String bidAssetCode, String quoteCurrencyCode) {
+    private static int compareQuote(Double selfPrice, Double otherPrice, String bidAssetCode, String quoteCurrencyCode) {
         if (bidAssetCode.equals(quoteCurrencyCode)) {
             return Double.compare(otherPrice, selfPrice);
         } else {
@@ -249,4 +258,17 @@ public class OfferEntity implements Comparable<OfferEntity> {
         }
     }
 
+    @Override
+    public String toString() {
+        return "OfferEntity{" +
+                ",\n     offer=" + offer +
+                ",\n     formattedBaseAmountWithMinAmount='" + formattedBaseAmountWithMinAmount + '\'' +
+                ",\n     formattedTransferOptions='" + formattedTransferOptions + '\'' +
+                ",\n     formattedQuote='" + formattedQuote + '\'' +
+                ",\n     formattedQuoteAmount='" + formattedQuoteAmount + '\'' +
+                ",\n     formattedQuoteAmountWithMinAmount='" + formattedQuoteAmountWithMinAmount + '\'' +
+                ",\n     quote=" + quote +
+                ",\n     quoteAmount=" + quoteAmount +
+                "\n}";
+    }
 }

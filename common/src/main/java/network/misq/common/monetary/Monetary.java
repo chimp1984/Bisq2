@@ -20,13 +20,8 @@ package network.misq.common.monetary;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.common.currency.MisqCurrency;
-import network.misq.common.locale.LocaleRepository;
 
-import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 @EqualsAndHashCode
 @Getter
@@ -34,8 +29,6 @@ public abstract class Monetary implements Comparable<Monetary> {
     protected final long value;
     protected final String currencyCode;
     protected final int smallestUnitExponent;
-    @Nullable
-    private DecimalFormat decimalFormat;
 
     public static Monetary from(Monetary monetary, long newValue) {
         if (monetary instanceof Fiat) {
@@ -69,36 +62,11 @@ public abstract class Monetary implements Comparable<Monetary> {
         this.currencyCode = currencyCode;
     }
 
-    public String format() {
-        return format(LocaleRepository.getDefaultLocale());
+    abstract public double toDouble(long value);
+
+    public double asDouble() {
+        return toDouble(value);
     }
-
-    public String formatWithCode() {
-        return formatWithCode(LocaleRepository.getDefaultLocale());
-    }
-
-    abstract public String format(Locale locale);
-
-    abstract public String formatWithCode(Locale locale);
-
-    public String format(Locale locale, int precision) {
-        if (decimalFormat == null) {
-            decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(locale);
-            decimalFormat.applyPattern(getPattern(precision));
-        }
-        return decimalFormat.format(asDouble());
-    }
-
-
-    public String formatWithCode(Locale locale, int precision) {
-        return format(locale, precision) + " " + currencyCode;
-    }
-
-    protected String getPattern(int precision) {
-        return "0." + "0".repeat(Math.max(0, precision));
-    }
-
-    abstract public double asDouble();
 
     @Override
     public int compareTo(Monetary o) {
@@ -112,7 +80,6 @@ public abstract class Monetary implements Comparable<Monetary> {
                 "\n     value=" + value +
                 ",\n     currencyCode='" + currencyCode + '\'' +
                 ",\n     smallestUnitExponent=" + smallestUnitExponent +
-                ",\n     decimalFormat=" + decimalFormat +
                 "\n}";
     }
 }

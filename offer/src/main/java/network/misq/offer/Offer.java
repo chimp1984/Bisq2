@@ -20,6 +20,7 @@ package network.misq.offer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.common.monetary.Quote;
 import network.misq.common.util.MathUtils;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.NetworkId;
@@ -31,8 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Offer for an 2 party asset exchange (swap).
@@ -46,9 +45,10 @@ public class Offer extends Listing {
     private final boolean isBaseCurrencyAskSide;
     private final Set<OfferOption> offerOptions;
 
-    private transient final long minBaseAmount;
-    private final double fixPrice;
-
+    //  private transient final long minBaseAmount;
+    private transient final Optional<Long> optionalMinBaseAmount;
+    private transient final long minBaseAmountOrAmount;
+    private transient final Quote quote;
 
     public Offer(List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
@@ -79,46 +79,19 @@ public class Offer extends Listing {
         this.isBaseCurrencyAskSide = isBaseCurrencyAskSide;
         this.offerOptions = offerOptions;
 
-        minBaseAmount = getMinAmountAsPercentage()
+      /*  minBaseAmount = getMinAmountAsPercentage()
                 .map(percentage -> MathUtils.roundDoubleToLong(getBaseAsset().amount() * percentage))
-                .orElse(getBaseAsset().amount());
+                .orElse(getBaseAsset().amount());*/
+        optionalMinBaseAmount = getMinAmountAsPercentage()
+                .map(percentage -> MathUtils.roundDoubleToLong(getBaseAsset().amount() * percentage));
+        minBaseAmountOrAmount = optionalMinBaseAmount.orElse(getBaseAsset().amount());
+        quote = Quote.of(getBaseAsset().monetary(), getQuoteAsset().monetary());
 
-        double baseAssetAmount = (double) getBaseAsset().amount();
-        double quoteAssetAmount = (double) getQuoteAsset().amount();
-        checkArgument(quoteAssetAmount > 0);
-
-  /*      BigDecimal quote = BigDecimal.valueOf(getQuoteAsset().amount());
-        BigDecimal base = BigDecimal.valueOf(getBaseAsset().amount());
-        BigDecimal div = quote.divide(base);
-        int unitExponent = getBaseAsset().smallestUnitExponent() - getQuoteAsset().smallestUnitExponent();
-        div.movePointRight(unitExponent);
-
-
-
-        // Use BigInteger because it's much easier to maintain full precision without overflowing.
-        final BigInteger converted = BigInteger.valueOf(getQuoteAsset().amount()).multiply(BigInteger.valueOf(getBaseAsset().amount()))
-                .divide(BigInteger.valueOf(coin.value));
-        
-        // btc x usd / price  1 x 50k /50k
-        if (converted.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0
-                || converted.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0)
-            throw new ArithmeticException("Overflow");
-                
-                
-                */
-        fixPrice = quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
     }
 
-
-    public long getMinBaseAmount() {
-        return minBaseAmount;
-    }
 
     public double getFixPrice() {
-        double baseAssetAmount = (double) getBaseAsset().amount();
-        double quoteAssetAmount = (double) getQuoteAsset().amount();
-        checkArgument(quoteAssetAmount > 0);
-        return quoteAssetAmount / baseAssetAmount * 10000; // for fiat...
+        return quote.getValue(); //todo
     }
 
     public Asset getBaseAsset() {
@@ -135,6 +108,11 @@ public class Offer extends Listing {
 
     public Optional<Double> getMinAmountAsPercentage() {
         return findAmountOption(offerOptions).map(AmountOption::minAmountAsPercentage);
+    }
+
+    public Optional<Long> getOptionalMinQuoteAmount(long quoteAmount) {
+        return getMinAmountAsPercentage()
+                .map(percentage -> MathUtils.roundDoubleToLong(quoteAmount * percentage));
     }
 
     public Optional<Double> getMarketBasedPrice() {

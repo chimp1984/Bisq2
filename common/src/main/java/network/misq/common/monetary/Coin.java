@@ -23,12 +23,12 @@ import network.misq.common.currency.MisqCurrency;
 import network.misq.common.util.MathUtils;
 
 import java.math.BigDecimal;
-import java.util.Locale;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @EqualsAndHashCode(callSuper = true)
 public class Coin extends Monetary {
+
     public static Coin parse(String string, String currencyCode) {
         return parse(string, currencyCode, deriveExponent(currencyCode));
     }
@@ -95,7 +95,7 @@ public class Coin extends Monetary {
         return new Coin(value, currencyCode, smallestUnitExponent);
     }
 
-    private Coin(long value, String currencyCode, int smallestUnitExponent) {
+    Coin(long value, String currencyCode, int smallestUnitExponent) {
         super(value, currencyCode, smallestUnitExponent);
     }
 
@@ -122,19 +122,10 @@ public class Coin extends Monetary {
     }
 
     @Override
-    public double asDouble() {
+    public double toDouble(long value) {
         return MathUtils.roundDouble(BigDecimal.valueOf(value).movePointLeft(smallestUnitExponent).doubleValue(), smallestUnitExponent);
     }
 
-    @Override
-    public String format(Locale locale) {
-        return format(locale, smallestUnitExponent);
-    }
-
-    @Override
-    public String formatWithCode(Locale locale) {
-        return formatWithCode(locale, smallestUnitExponent);
-    }
 
     private static int deriveExponent(String currencyCode) {
         return currencyCode.equals("XMR") ? 12 : 8;
@@ -142,6 +133,7 @@ public class Coin extends Monetary {
 
     @Override
     public String toString() {
-        return "Coin{} " + super.toString();
+        return "Coin{" +
+                "\n} " + super.toString();
     }
 }

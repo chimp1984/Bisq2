@@ -29,11 +29,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A price quote is using the concept of base currency and quote currency. Base currency is left and quote currency
- * right. Often separated by a'/' or '-'. The intuitive interpretation of division due the usage of '/' is misleading.
+ * right. Often separated by '/' or '-'. The intuitive interpretation of division due the usage of '/' is misleading.
  * The price or quote is the amount of quote currency one gets for 1 unit of the base currency. E.g. a BTC/USD price
  * of 50 000 BTC/USD means you get 50 000 USD for 1 BTC.
  * <p>
- * We use the smallestUnitExponent for the quote the smallestUnitExponent of the quote currency.
+ * For the smallestUnitExponent of the quote we use the smallestUnitExponent of the quote currency.
  */
 @EqualsAndHashCode
 @Getter
@@ -94,16 +94,29 @@ public class Quote implements Comparable<Quote> {
         return new Quote(value, baseMonetary, quoteMonetary);
     }
 
-    /**
-     * Convenient method for getting the rounded double value useful for quote display.
-     * For Fiat we use a precision of 2 as that is the usual representation. If the quote currency is a crypto
-     * currency we use their smallestUnitExponent
-     *
-     * @return The value as double rounded using the smallestUnitExponent
-     */
+    public static Quote fromMarketBasedPrice(Quote marketQuote, double percentage) {
+        double price = marketQuote.asDouble() * (1 + percentage);
+        return Quote.fromPrice(price, marketQuote.baseMonetary.currencyCode, marketQuote.quoteMonetary.currencyCode);
+    }
+
+    public static Monetary toQuoteMonetary(Monetary baseMonetary, Quote quote) {
+        Monetary quoteMonetary = quote.quoteMonetary;
+        long value = BigDecimal.valueOf(baseMonetary.value).multiply(BigDecimal.valueOf(quote.value))
+                .movePointLeft(baseMonetary.smallestUnitExponent)
+                .longValue();
+        if (quoteMonetary instanceof Fiat) {
+            return new Fiat(value,
+                    quoteMonetary.currencyCode,
+                    quoteMonetary.smallestUnitExponent);
+        } else {
+            return new Coin(value,
+                    quoteMonetary.currencyCode,
+                    quoteMonetary.smallestUnitExponent);
+        }
+    }
+
     public double asDouble() {
-        int exponent = quoteMonetary instanceof Fiat ? 2 : smallestUnitExponent;
-        return asDouble(exponent);
+        return asDouble(smallestUnitExponent);
     }
 
     public double asDouble(int precision) {
@@ -117,5 +130,15 @@ public class Quote implements Comparable<Quote> {
     @Override
     public int compareTo(Quote o) {
         return Long.compare(value, o.getValue());
+    }
+
+    @Override
+    public String toString() {
+        return "Quote{" +
+                "\n     value=" + value +
+                ",\n     baseMonetary=" + baseMonetary +
+                ",\n     quoteMonetary=" + quoteMonetary +
+                ",\n     smallestUnitExponent=" + smallestUnitExponent +
+                "\n}";
     }
 }

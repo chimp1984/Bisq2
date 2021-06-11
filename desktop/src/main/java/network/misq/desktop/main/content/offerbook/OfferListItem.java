@@ -19,8 +19,6 @@ package network.misq.desktop.main.content.offerbook;
 
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import javafx.application.Platform;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
@@ -28,9 +26,8 @@ import network.misq.offer.Offer;
 import network.misq.presentation.offer.OfferEntity;
 
 public class OfferListItem extends OfferEntity {
-    private final DoubleProperty priceAsDoubleProperty = new SimpleDoubleProperty(0d);
     @Getter
-    private final StringProperty priceProperty = new SimpleStringProperty("");
+    private final StringProperty quoteProperty = new SimpleStringProperty("");
     @Getter
     private final StringProperty quoteAmountProperty = new SimpleStringProperty("");
 
@@ -38,14 +35,14 @@ public class OfferListItem extends OfferEntity {
         super(offer, marketPriceSubject);
     }
 
+    @Override
     protected void updatedPriceAndAmount(double marketPrice) {
         super.updatedPriceAndAmount(marketPrice);
         // We get called from the constructor of our superclass, so our fields are not initialized at that moment.
         // We delay with Platform.runLater which guards us also in case we get called from a non JavaFxApplication thread.
         Platform.runLater(() -> {
-            priceProperty.set(formattedPrice);
-            priceAsDoubleProperty.set(price);
-            quoteAmountProperty.set(formattedQuoteAmount);
+            quoteProperty.set(formattedQuote);
+            quoteAmountProperty.set(formattedQuoteAmountWithMinAmount);
         });
     }
 }

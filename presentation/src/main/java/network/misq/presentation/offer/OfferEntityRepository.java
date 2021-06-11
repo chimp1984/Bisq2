@@ -54,6 +54,9 @@ public class OfferEntityRepository {
     public CompletableFuture<Boolean> initialize() {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         //todo
+        offerEntities.addAll(offerRepository.getOffers().stream()
+                .map(offer -> new OfferEntity((Offer) offer, networkService.getMarketPriceSubject()))
+                .collect(Collectors.toList()));
         future.complete(true);
         return future;
     }
@@ -76,9 +79,9 @@ public class OfferEntityRepository {
             }
         });
 
-        offerEntities.addAll(offerRepository.getOffers().stream()
+    /*    offerEntities.addAll(offerRepository.getOffers().stream()
                 .map(offer -> new OfferEntity((Offer) offer, networkService.getMarketPriceSubject()))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()));*/
     }
 
     public void deactivate() {

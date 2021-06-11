@@ -111,11 +111,11 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
         VBox.setVgrow(tableView, Priority.ALWAYS);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        addValueColumn("Offered amount", OfferListItem::getFormattedBaseAmountWithMinAmount, Optional.of(OfferListItem::compareBaseAmount));
-        addPropertyColumn("Price", OfferListItem::getPriceProperty, Optional.of(OfferListItem::comparePrice));
-        addPropertyColumn("Amount to pay", OfferListItem::getQuoteAmountProperty, Optional.of(OfferListItem::compareQuoteAmount));
+        addValueColumn("Base amount", OfferListItem::getFormattedBaseAmountWithMinAmount, Optional.of(OfferListItem::compareBaseAmount));
+        addPropertyColumn("Price", OfferListItem::getQuoteProperty, Optional.of(OfferListItem::compareQuote));
+        addPropertyColumn("Quote amount", OfferListItem::getQuoteAmountProperty, Optional.of(OfferListItem::compareQuoteAmount));
         addValueColumn("Details", OfferListItem::getFormattedTransferOptions, Optional.empty());
-        addMakerColumn("Maker");
+        addMakerColumn("");
         addTakeOfferColumn("");
 
         root.getChildren().addAll(currencySelectionBox, showAmountPriceFilterToggle, amountPriceFilterBox, tableView);

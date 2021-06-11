@@ -24,6 +24,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.offer.options.ReputationOption;
 import network.misq.offer.options.TransferOption;
+import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.DateFormatter;
 
 import java.util.Date;
@@ -32,12 +33,9 @@ import java.util.Optional;
 
 @Slf4j
 class OfferFormatter {
-    static String formatAmountWithMinAmount(Monetary amount, Optional<Double> minAmountAsPercentage) {
-        String minAmountString = minAmountAsPercentage
-                .map(percentage -> Math.round(amount.getValue() * percentage))
-                .map(minAmount -> Monetary.from(amount, minAmount).format() + " - ")
-                .orElse("");
-        return minAmountString + amount.formatWithCode();
+    static String formatAmountWithMinAmount(Monetary amount, Optional<Long> optionalMinAmount) {
+        return AmountFormatter.formatMinAmount(optionalMinAmount, amount) +
+                AmountFormatter.formatAmountWithCode(amount);
     }
 
     static String formatDate(long date) {

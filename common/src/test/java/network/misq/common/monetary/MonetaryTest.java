@@ -57,22 +57,7 @@ public class MonetaryTest {
         });
     }
 
-    // @Test
-    void testFormat() {
-        Coin btc = Coin.asBtc(1.0);
-        assertEquals("1.00000000", btc.format(Locale.US));
-        assertEquals("1,00000000", btc.format(Locale.GERMAN));
-
-        btc = Coin.asBtc(20123456.12345678);
-        assertEquals("20123456.12345678", btc.format(Locale.US));
-
-        Fiat usd = Fiat.of(51234.1234, "USD");
-        assertEquals("51234.12", usd.format(Locale.US));
-        usd.setPrecision(4);
-        assertEquals("51234.1234", usd.format(Locale.US));
-    }
-
-    //  @Test
+    @Test
     void testQuotes() {
         Coin btc = Coin.asBtc(1.0);
         Fiat usd = Fiat.of(50000d, "USD");

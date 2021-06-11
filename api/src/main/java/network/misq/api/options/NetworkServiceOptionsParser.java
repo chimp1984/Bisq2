@@ -39,7 +39,7 @@ public class NetworkServiceOptionsParser {
 
     public NetworkServiceOptionsParser(ApplicationOptions applicationOptions, String[] args) {
         //todo NetworkService options structure is preliminary
-        NodeId nodeId = new NodeId("default", 8888, Sets.newHashSet(NetworkType.CLEAR));
+        NodeId nodeId = new NodeId("default", 7777, Sets.newHashSet(NetworkType.CLEAR));
         Set<NetworkConfig> networkConfigs = new HashSet<>();
         networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.CLEAR));
 

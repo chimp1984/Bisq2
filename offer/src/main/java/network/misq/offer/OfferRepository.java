@@ -107,7 +107,7 @@ public class OfferRepository {
         private final static Map<String, Listing> data = new HashMap<>();
 
         public static Map<String, Listing> makeOffers() {
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 10; i++) {
                 Offer offer = getRandomOffer();
                 data.put(offer.getId(), offer);
             }
@@ -150,23 +150,25 @@ public class OfferRepository {
             if (rand == 0) {
                 long usdAmount = new Random().nextInt(1000) + 500000000; // precision 4 / 50k usd
                 long btcAmount = new Random().nextInt(100000000) + 100000000; // precision 8 / 1 btc
-                //  usdAmount = 500000000; // precision 4 / 50k usd
-                //   btcAmount = 100000000; // precision 8 / 1 btc
+                //usdAmount = 500000000; // precision 4 / 50k usd
+                // btcAmount = 100000000; // precision 8 / 1 btc
                 askAsset = getRandomFiatAsset("USD", usdAmount);
                 bidAsset = getRandomCryptoAsset("BTC", btcAmount);
                 baseCurrency = "BTC";
                 marketBasedPrice = Optional.of(0.3d + new Random().nextInt(100) / 100d);
+                //marketBasedPrice = Optional.of(0d);
                 minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.1);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 1) {
                 long usdAmount = new Random().nextInt(1000) + 600000000; // precision 4 / 50k usd
                 long btcAmount = new Random().nextInt(100000000) + 110000000; // precision 8 / 1 btc
                 // usdAmount = 600000000; // precision 4 / 50k usd
-                //  btcAmount = 120000000; // precision 8 / 1 btc
+                // btcAmount = 120000000; // precision 8 / 1 btc
                 askAsset = getRandomCryptoAsset("BTC", btcAmount);
                 bidAsset = getRandomFiatAsset("USD", usdAmount);
                 baseCurrency = "BTC";
                 marketBasedPrice = Optional.of(0.1d + new Random().nextInt(100) / 100d);
+                // marketBasedPrice = Optional.of(0d);
                 minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.3);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 2) {
@@ -208,7 +210,7 @@ public class OfferRepository {
             }
             minAmountAsPercentage.ifPresent(value -> options.add(new AmountOption(value)));
             marketBasedPrice.ifPresent(value -> options.add(new PriceOption(value)));
-            boolean isBaseCurrencyAskSide = baseCurrency.equals(bidAsset.monetary().getCurrencyCode());
+            boolean isBaseCurrencyAskSide = baseCurrency.equals(askAsset.monetary().getCurrencyCode());
             return new Offer(askAsset, bidAsset, isBaseCurrencyAskSide, protocolTypes, makerNetworkId, options);
         }
 

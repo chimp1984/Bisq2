@@ -76,7 +76,7 @@ public class Domain {
     }
 
     /**
-     * Initializes all domain objects.
+     * Initializes all domain objects, services and repositories.
      * We do in parallel as far as possible. If there are dependencies we chain those as sequence.
      */
     public CompletableFuture<Boolean> initialize() {
