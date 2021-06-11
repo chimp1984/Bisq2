@@ -21,13 +21,13 @@ import com.google.common.collect.Sets;
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
-import network.misq.network.http.MarketPriceService;
 import network.misq.network.p2p.NetworkConfig;
 import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.NodeId;
 import network.misq.network.p2p.P2pService;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -44,7 +44,6 @@ public class NetworkServiceOptionsParser {
         networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.CLEAR));
 
         P2pService.Option p2pServiceOption = new P2pService.Option(applicationOptions.appDir(), networkConfigs);
-        MarketPriceService.Option marketPriceServiceOption = new MarketPriceService.Option("todo url");
-        options = new NetworkService.Options(p2pServiceOption, marketPriceServiceOption);
+        options = new NetworkService.Options(p2pServiceOption, Optional.empty());
     }
 }

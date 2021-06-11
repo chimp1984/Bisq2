@@ -26,7 +26,7 @@ import network.misq.desktop.common.Model;
 public class StageModel implements Model {
     final DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);
     final DoubleProperty minHeightProperty = new SimpleDoubleProperty(600);
-    final DoubleProperty prefWidthProperty = new SimpleDoubleProperty(1400);
+    final DoubleProperty prefWidthProperty = new SimpleDoubleProperty(1900);
     final DoubleProperty prefHeightProperty = new SimpleDoubleProperty(1000);
     final StringProperty titleProperty = new SimpleStringProperty("");
 

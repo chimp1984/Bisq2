@@ -20,11 +20,16 @@ package network.misq.desktop.main.content.markets;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import network.misq.desktop.common.Model;
+import network.misq.offer.MarketPrice;
+import network.misq.presentation.formatters.QuoteFormatter;
+
+import java.util.Map;
 
 public class MarketsModel implements Model {
     final StringProperty formattedMarketPrice = new SimpleStringProperty("N/A");
+    final StringProperty selectedCurrencyCode = new SimpleStringProperty("USD");
 
-    public void setMarketPrice(int marketPrice) {
-        formattedMarketPrice.set(marketPrice / 100d + " BTC/USD");
+    public void setMarketPriceMap(Map<String, MarketPrice> marketPriceMap) {
+        formattedMarketPrice.set(QuoteFormatter.format(marketPriceMap.get(selectedCurrencyCode.get()).quote()));
     }
 }

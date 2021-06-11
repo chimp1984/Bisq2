@@ -18,21 +18,24 @@
 package network.misq.network;
 
 
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import network.misq.network.http.MarketPriceService;
+import lombok.Getter;
 import network.misq.network.p2p.Address;
 import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.P2pService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.proxy.TorNetworkProxy;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * High level API for network access to p2p network as well to http services (over Tor). If user has only I2P selected
@@ -41,35 +44,26 @@ import java.util.concurrent.CompletableFuture;
  */
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
+    @Getter
+    private final Optional<String> socks5ProxyAddress;
+    @Getter
+    private final Set<NetworkType> supportedNetworkTypes;
 
-    public static record Options(P2pService.Option p2pServiceOption,
-                                 MarketPriceService.Option marketPriceServiceOption) {
+    public Optional<TorNetworkProxy> getTorNetworkProxy() {
+        return null;
+    }
+
+    public static record Options(P2pService.Option p2pServiceOption, Optional<String> socks5ProxyAddress) {
     }
 
     private P2pService p2pService;
-    private MarketPriceService marketPriceService;
 
     public NetworkService(Options options, KeyPairRepository keyPairRepository) {
-        this.p2pService = new P2pService(options.p2pServiceOption(), keyPairRepository);
-        this.marketPriceService = new MarketPriceService(options.marketPriceServiceOption());
+        socks5ProxyAddress = options.socks5ProxyAddress;
+        p2pService = new P2pService(options.p2pServiceOption(), keyPairRepository);
+        supportedNetworkTypes = options.p2pServiceOption().networkConfigs().stream().map(networkConfig -> networkConfig.getNetworkType()).collect(Collectors.toSet());
     }
 
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // API MarketPriceService
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public BehaviorSubject<Double> getMarketPriceSubject() {
-        return marketPriceService.getMarketPriceSubject();
-    }
-
-    public double getMarketPrice() {
-        return marketPriceService.getMarketPrice();
-    }
-
-    public CompletableFuture<Integer> requestPriceUpdate() {
-        return marketPriceService.requestPriceUpdate();
-    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // API P2pService

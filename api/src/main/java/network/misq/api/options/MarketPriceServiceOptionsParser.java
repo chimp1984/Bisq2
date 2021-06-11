@@ -1,0 +1,43 @@
+/*
+ * This file is part of Bisq.
+ *
+ * Bisq is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * Bisq is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package network.misq.api.options;
+
+import lombok.Getter;
+import network.misq.application.options.ApplicationOptions;
+import network.misq.network.p2p.NetworkType;
+import network.misq.offer.MarketPriceService;
+
+import java.util.Set;
+
+/**
+ * Parses the program arguments which are relevant for that domain and stores it in the options field.
+ */
+public class MarketPriceServiceOptionsParser {
+    @Getter
+    private final MarketPriceService.Options options;
+
+    public MarketPriceServiceOptionsParser(ApplicationOptions applicationOptions, String[] args) {
+        options = new MarketPriceService.Options(Set.of(
+                new MarketPriceService.Provider("https://price.bisq.wiz.biz/", "wiz", NetworkType.CLEAR),
+                new MarketPriceService.Provider("http://wizpriceje6q5tdrxkyiazsgu7irquiqjy2dptezqhrtu7l2qelqktid.onion/", "wiz", NetworkType.TOR),
+                new MarketPriceService.Provider("http://emzypricpidesmyqg2hc6dkwitqzaxrqnpkdg3ae2wef5znncu2ambqd.onion/", "emzy", NetworkType.TOR),
+                new MarketPriceService.Provider("http://aprcndeiwdrkbf4fq7iozxbd27dl72oeo76n7zmjwdi4z34agdrnheyd.onion/", "mrosseel", NetworkType.TOR),
+                new MarketPriceService.Provider("http://devinpndvdwll4wiqcyq5e7itezmarg7rzicrvf6brzkwxdm374kmmyd.onion/", "devinbileck", NetworkType.TOR),
+                new MarketPriceService.Provider("http://ro7nv73awqs3ga2qtqeqawrjpbxwarsazznszvr6whv7tes5ehffopid.onion/", "alexej996", NetworkType.TOR)));
+    }
+}

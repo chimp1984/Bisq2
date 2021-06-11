@@ -22,8 +22,11 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
+import network.misq.offer.MarketPrice;
 import network.misq.offer.Offer;
 import network.misq.presentation.offer.OfferEntity;
+
+import java.util.Map;
 
 public class OfferListItem extends OfferEntity {
     @Getter
@@ -31,13 +34,13 @@ public class OfferListItem extends OfferEntity {
     @Getter
     private final StringProperty quoteAmountProperty = new SimpleStringProperty("");
 
-    public OfferListItem(Offer offer, BehaviorSubject<Double> marketPriceSubject) {
+    public OfferListItem(Offer offer, BehaviorSubject<Map<String, MarketPrice>> marketPriceSubject) {
         super(offer, marketPriceSubject);
     }
 
     @Override
-    protected void updatedPriceAndAmount(double marketPrice) {
-        super.updatedPriceAndAmount(marketPrice);
+    protected void updatedPriceAndAmount(Map<String, MarketPrice> marketPriceMap) {
+        super.updatedPriceAndAmount(marketPriceMap);
         // We get called from the constructor of our superclass, so our fields are not initialized at that moment.
         // We delay with Platform.runLater which guards us also in case we get called from a non JavaFxApplication thread.
         Platform.runLater(() -> {

@@ -21,13 +21,15 @@ import network.misq.common.locale.LocaleRepository;
 import network.misq.common.monetary.Fiat;
 import network.misq.common.monetary.Quote;
 import network.misq.common.util.DecimalFormatters;
+import network.misq.common.util.MathUtils;
 
 import java.util.Locale;
 
 public class QuoteFormatter {
-    public static String formatWithQuoteCode(Quote quote) {
-        return formatWithQuoteCode(quote, LocaleRepository.getDefaultLocale());
+    public static String formatWithQuoteCode(Quote quote, double offset) {
+        return formatWithQuoteCode(quote, LocaleRepository.getDefaultLocale()) + " (" + formatOffsetAsPercent(offset) + ")";
     }
+
 
     public static String formatWithQuoteCode(Quote quote, Locale locale) {
         return format(quote, locale) + " " + quote.getQuoteCode();
@@ -44,5 +46,9 @@ public class QuoteFormatter {
     private static DecimalFormatters.Format getDecimalFormat(Quote quote, Locale locale) {
         int precision = quote.getQuoteMonetary() instanceof Fiat ? 4 : quote.getSmallestUnitExponent();
         return DecimalFormatters.getDecimalFormat(locale, precision);
+    }
+
+    private static String formatOffsetAsPercent(double offset) {
+        return MathUtils.roundDouble(offset * 100, 2) + "%";
     }
 }

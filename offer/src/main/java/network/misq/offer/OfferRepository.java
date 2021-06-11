@@ -150,26 +150,26 @@ public class OfferRepository {
             if (rand == 0) {
                 long usdAmount = new Random().nextInt(1000) + 500000000; // precision 4 / 50k usd
                 long btcAmount = new Random().nextInt(100000000) + 100000000; // precision 8 / 1 btc
-                //usdAmount = 500000000; // precision 4 / 50k usd
-                // btcAmount = 100000000; // precision 8 / 1 btc
+                usdAmount = 370000000; // precision 4 / 50k usd
+                btcAmount = 100000000; // precision 8 / 1 btc
                 askAsset = getRandomFiatAsset("USD", usdAmount);
                 bidAsset = getRandomCryptoAsset("BTC", btcAmount);
                 baseCurrency = "BTC";
-                marketBasedPrice = Optional.of(0.3d + new Random().nextInt(100) / 100d);
-                //marketPriceOffset = Optional.of(0d);
+                marketBasedPrice = Optional.of(new Random().nextInt(100) / 1000d - 0.05d); // +/- 5%
+                // marketBasedPrice = Optional.empty();
                 minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.1);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 1) {
                 long usdAmount = new Random().nextInt(1000) + 600000000; // precision 4 / 50k usd
                 long btcAmount = new Random().nextInt(100000000) + 110000000; // precision 8 / 1 btc
-                // usdAmount = 600000000; // precision 4 / 50k usd
-                // btcAmount = 120000000; // precision 8 / 1 btc
+                usdAmount = 370000000; // precision 4 / 50k usd
+                btcAmount = 100000000; // precision 8 / 1 btc
                 askAsset = getRandomCryptoAsset("BTC", btcAmount);
                 bidAsset = getRandomFiatAsset("USD", usdAmount);
                 baseCurrency = "BTC";
-                marketBasedPrice = Optional.of(0.1d + new Random().nextInt(100) / 100d);
-                // marketPriceOffset = Optional.of(0d);
-                minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.3);
+                marketBasedPrice = Optional.of(new Random().nextInt(100) / 10000d - 0.005d); // +/- 0.5%
+                marketBasedPrice = Optional.empty();
+                minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.1);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 2) {
                 long usdAmount = new Random().nextInt(100000) + 1200000; // precision 4 / 120 usd

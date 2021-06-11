@@ -23,6 +23,8 @@ import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
+import network.misq.offer.MarketPrice;
+import network.misq.offer.MarketPriceService;
 import network.misq.offer.OfferRepository;
 import network.misq.offer.OpenOfferRepository;
 import network.misq.presentation.offer.OfferEntity;
@@ -30,6 +32,8 @@ import network.misq.presentation.offer.OfferEntityRepository;
 import network.misq.security.KeyPairRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -44,6 +48,7 @@ public class Api {
     private final OpenOfferRepository openOfferRepository;
     private final OfferEntityRepository offerEntityRepository;
     private final IdentityRepository identityRepository;
+    private final MarketPriceService marketPriceService;
 
     public Api(Domain domain) {
         applicationOptions = domain.getApplicationOptions();
@@ -53,6 +58,30 @@ public class Api {
         offerRepository = domain.getOfferRepository();
         openOfferRepository = domain.getOpenOfferRepository();
         offerEntityRepository = domain.getOfferEntityRepository();
+        marketPriceService = domain.getMarketPriceService();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // API MarketPriceService
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @return The BehaviorSubject for subscribing on market price updates.
+     */
+    public BehaviorSubject<Map<String, MarketPrice>> getMarketPriceSubject() {
+        return marketPriceService.getMarketPriceSubject();
+    }
+
+    public Optional<MarketPrice> getMarketPrice(String currencyCode) {
+        return marketPriceService.getMarketPrice(currencyCode);
+    }
+
+    public Map<String, MarketPrice> getMarketPriceByCurrencyMap() {
+        return marketPriceService.getMarketPriceByCurrencyMap();
+    }
+
+    public CompletableFuture<Map<String, MarketPrice>> requestMarketPriceUpdate() {
+        return marketPriceService.request();
     }
 
     /**
@@ -96,20 +125,6 @@ public class Api {
         return offerEntityRepository.getOfferEntityRemovedSubject();
     }
 
-    /**
-     * @return The BehaviorSubject for subscribing on market price change events.
-     */
-    public BehaviorSubject<Double> getMarketPriceSubject() {
-        return networkService.getMarketPriceSubject();
-    }
-
-    public double getMarketPrice() {
-        return networkService.getMarketPrice();
-    }
-
-    public CompletableFuture<Integer> requestPriceUpdate() {
-        return networkService.requestPriceUpdate();
-    }
 
     public String getVersion() {
         return "0.1.0";

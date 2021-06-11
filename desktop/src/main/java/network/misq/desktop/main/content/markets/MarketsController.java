@@ -49,7 +49,7 @@ public class MarketsController implements Controller {
     }
 
     void onRefresh() {
-        api.requestPriceUpdate()
-                .whenComplete((marketPrice, t) -> Platform.runLater(() -> model.setMarketPrice(marketPrice)));
+        api.requestMarketPriceUpdate()
+                .whenComplete((marketPriceMap, t) -> Platform.runLater(() -> model.setMarketPriceMap(marketPriceMap)));
     }
 }

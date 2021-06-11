@@ -19,7 +19,9 @@ package network.misq.api;
 
 import lombok.Getter;
 import network.misq.api.options.KeyPairRepositoryOptionsParser;
+import network.misq.api.options.MarketPriceServiceOptionsParser;
 import network.misq.api.options.NetworkServiceOptionsParser;
+import network.misq.application.Version;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.common.currency.FiatCurrencyRepository;
 import network.misq.common.locale.LocaleRepository;
@@ -27,6 +29,7 @@ import network.misq.common.util.CollectionUtil;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.MockNetworkService;
+import network.misq.offer.MarketPriceService;
 import network.misq.offer.OfferRepository;
 import network.misq.offer.OpenOfferRepository;
 import network.misq.presentation.offer.OfferEntityRepository;
@@ -54,13 +57,14 @@ public class Domain {
     private final OfferEntityRepository offerEntityRepository;
     private final IdentityRepository identityRepository;
     private final ApplicationOptions applicationOptions;
+    private final MarketPriceService marketPriceService;
 
     public Domain(ApplicationOptions applicationOptions, String[] args) {
         this.applicationOptions = applicationOptions;
         Locale locale = applicationOptions.getLocale();
         LocaleRepository.setDefaultLocale(locale);
         FiatCurrencyRepository.applyLocale(locale);
-        
+
         KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
 
@@ -74,7 +78,10 @@ public class Domain {
         offerRepository = new OfferRepository(mockNetworkService);
         openOfferRepository = new OpenOfferRepository(mockNetworkService);
 
-        offerEntityRepository = new OfferEntityRepository(offerRepository, networkService);
+
+        MarketPriceService.Options marketPriceServiceOptions = new MarketPriceServiceOptionsParser(applicationOptions, args).getOptions();
+        marketPriceService = new MarketPriceService(marketPriceServiceOptions, networkService, Version.VERSION);
+        offerEntityRepository = new OfferEntityRepository(offerRepository, marketPriceService);
     }
 
     /**
@@ -85,7 +92,7 @@ public class Domain {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         // Assuming identityRepository depends on keyPairRepository being initialized... 
         allFutures.add(keyPairRepository.initialize().thenCompose(success -> identityRepository.initialize()));
-        allFutures.add(networkService.initialize());
+        allFutures.add(networkService.initialize().thenCompose(success -> marketPriceService.initialize()));
         allFutures.add(offerRepository.initialize());
         allFutures.add(openOfferRepository.initialize());
         allFutures.add(offerEntityRepository.initialize());

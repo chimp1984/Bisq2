@@ -15,7 +15,16 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.offer;
+package network.misq.network.http.common;
 
-public class MarketPriceUtil {
+import lombok.Getter;
+
+public class HttpException extends Exception {
+    @Getter
+    private final int responseCode;
+
+    public HttpException(String message, int responseCode) {
+        super(message);
+        this.responseCode = responseCode;
+    }
 }

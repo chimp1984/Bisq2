@@ -84,4 +84,8 @@ public class MathUtils {
     public static double exactMultiply(double value1, double value2) {
         return BigDecimal.valueOf(value1).multiply(BigDecimal.valueOf(value2)).doubleValue();
     }
+
+    public static long doubleToLong(double value) {
+        return Double.valueOf(value).longValue();
+    }
 }

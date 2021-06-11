@@ -133,7 +133,7 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
         showAmountPriceFilterToggle.selectedProperty().bind(model.getAmountFilterModel().getVisible());
 
         model.getSortedItems().comparatorProperty().bind(tableView.comparatorProperty());
-        model.getMarketPriceProperty().addListener(observable -> tableView.sort());
+        model.getMarketPriceByCurrencyMapProperty().addListener(observable -> tableView.sort());
         tableView.setItems(model.getSortedItems());
         tableView.sort();
     }

@@ -18,8 +18,8 @@
 package network.misq.desktop.main.content.offerbook;
 
 import io.reactivex.rxjava3.disposables.Disposable;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -29,7 +29,9 @@ import javafx.collections.transformation.SortedList;
 import lombok.Getter;
 import network.misq.api.Api;
 import network.misq.desktop.common.Model;
+import network.misq.offer.MarketPrice;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Predicate;
@@ -55,7 +57,7 @@ public class OfferbookModel implements Model {
     @Getter
     private final StringProperty selectedBidCurrencyProperty = new SimpleStringProperty();
     @Getter
-    private final DoubleProperty marketPriceProperty = new SimpleDoubleProperty();
+    private final ObjectProperty<Map<String, MarketPrice>> marketPriceByCurrencyMapProperty = new SimpleObjectProperty<>();
     @Getter
     private final ObservableList<String> currenciesProperty = FXCollections.observableArrayList("BTC", "USD", "EUR", "XMR", "USDT");
     @Getter
@@ -101,8 +103,8 @@ public class OfferbookModel implements Model {
                     .ifPresent(offerItems::remove);
         }, Throwable::printStackTrace);
 
-        marketPriceDisposable = api.getMarketPriceSubject().subscribe(marketPriceProperty::set, Throwable::printStackTrace);
-        marketPriceProperty.set(api.getMarketPrice());
+        marketPriceDisposable = api.getMarketPriceSubject().subscribe(marketPriceByCurrencyMapProperty::set, Throwable::printStackTrace);
+        marketPriceByCurrencyMapProperty.set(api.getMarketPriceByCurrencyMap());
     }
 
     public void deactivate() {

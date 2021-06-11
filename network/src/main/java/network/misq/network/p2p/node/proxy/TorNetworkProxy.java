@@ -1,5 +1,6 @@
 package network.misq.network.p2p.node.proxy;
 
+import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.FileUtils;
 import network.misq.network.p2p.Address;
@@ -72,8 +73,9 @@ public class TorNetworkProxy implements NetworkProxy {
         return socket;
     }
 
-    // todo
-    //  public Socks5Proxy getSocksProxy() {
+    public Socks5Proxy getSocksProxy() throws IOException {
+        return tor.getSocks5Proxy(null);
+    }
 
     @Override
     public void shutdown() {

@@ -104,6 +104,18 @@ public class Quote implements Comparable<Quote> {
         return Quote.fromPrice(price, marketPrice.baseMonetary.currencyCode, marketPrice.quoteMonetary.currencyCode);
     }
 
+    /**
+     * @param marketQuote The quote representing the market price
+     * @param offerQuote  The quote we want to compare to the market price
+     * @return The percentage offset from the market price. Positive value means that offerQuote is above market price.
+     */
+    public static double offsetOf(Quote marketQuote, Quote offerQuote) {
+        double value = offerQuote.value;
+        double value1 = marketQuote.value;
+        double l = value / value1;
+        return l - 1;
+    }
+
     public static Monetary toQuoteMonetary(Monetary baseMonetary, Quote quote) {
         Monetary quoteMonetary = quote.quoteMonetary;
         long value = BigDecimal.valueOf(baseMonetary.value).multiply(BigDecimal.valueOf(quote.value))

@@ -19,12 +19,14 @@ package network.misq.common.monetary;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.common.currency.MisqCurrency;
 
 import java.math.BigDecimal;
 
 @EqualsAndHashCode
 @Getter
+@Slf4j
 public abstract class Monetary implements Comparable<Monetary> {
     protected final long value;
     protected final String currencyCode;
