@@ -19,7 +19,6 @@ package network.misq.presentation.offer;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import network.misq.common.data.Couple;
 import network.misq.common.monetary.Monetary;
 import network.misq.common.monetary.Quote;
 import network.misq.offer.Offer;
@@ -27,10 +26,9 @@ import network.misq.offer.options.TransferOption;
 import network.misq.presentation.formatters.AmountFormatter;
 import network.misq.presentation.formatters.QuoteFormatter;
 
-import java.text.DecimalFormat;
-import java.util.List;
-import java.util.Optional;
-
+/**
+ * Enriched offer object which carries the dynamic data as well as formatted strings for presentation.
+ */
 public class OfferEntity implements Comparable<OfferEntity> {
     protected final Offer offer;
     private Quote quote;
@@ -123,8 +121,8 @@ public class OfferEntity implements Comparable<OfferEntity> {
     protected void updatedPriceAndAmount(double marketPrice) {
         //todo
         Quote marketQuote = Quote.fromPrice(marketPrice, "BTC", "USD");
-        if (offer.getMarketBasedPrice().isPresent()) {
-            quote = Quote.fromMarketBasedPrice(marketQuote, offer.getMarketBasedPrice().get());
+        if (offer.getMarketPriceOffset().isPresent()) {
+            quote = Quote.fromMarketPriceOffset(marketQuote, offer.getMarketPriceOffset().get());
             quoteAmount = Quote.toQuoteMonetary(offer.getBaseAsset().monetary(), quote);
 
         } else {
@@ -136,126 +134,6 @@ public class OfferEntity implements Comparable<OfferEntity> {
 
         formattedQuoteAmountWithMinAmount = AmountFormatter.formatAmountWithMinAmount(quoteAmount,
                 offer.getOptionalMinQuoteAmount(quoteAmount.getValue()));
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Static Internal
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Todo: Just preliminary, might get moved out to a util class in that package
-    private static Couple<String, Double> getPriceTuple(double fixPrice, Optional<Double> marketBasedPrice, double marketPrice) {
-        double percentage;
-        double price;
-        DecimalFormat df = new DecimalFormat("#.##");
-        df.setMinimumFractionDigits(2);
-        if (marketBasedPrice.isPresent()) {
-            percentage = marketBasedPrice.get();
-            price = marketPrice * (1 + percentage);
-        } else {
-            percentage = marketPrice / fixPrice;
-            price = fixPrice;
-        }
-        String displayString = df.format(price) + " (" + df.format(percentage * 100) + "%)";
-        return new Couple<>(displayString, price);
-    }
-
-    private static String getFormattedQuoteAmount(long baseAmount, Optional<Double> minAmountAsPercentage,
-                                                  Optional<Double> marketBasedPrice, double marketPrice, String currencyCode) {
-        double amount = getQuoteAmount(baseAmount, marketBasedPrice, marketPrice) / 10000d;
-        String minAmountString;
-        DecimalFormat df = new DecimalFormat("#.##");
-        df.setMinimumFractionDigits(2);
-        if (minAmountAsPercentage.isPresent()) {
-            long minAmount = Math.round(amount * minAmountAsPercentage.get());
-            minAmountString = df.format(minAmount) + " - ";
-        } else {
-            minAmountString = "";
-        }
-        return minAmountString + df.format(amount) + " " + currencyCode;
-    }
-
-    private static long getMinQuoteAmount(long baseAmount, Optional<Double> minAmountAsPercentage, Optional<Double> marketBasedPrice, double marketPrice) {
-        double amount;
-        double percentage;
-        double price;
-
-        if (marketBasedPrice.isPresent()) {
-            percentage = marketBasedPrice.get();
-            price = marketPrice * (1 + percentage);
-            amount = baseAmount / 100000000d * price;
-        } else {
-            amount = baseAmount / 100000000d;
-        }
-
-        if (minAmountAsPercentage.isPresent()) {
-            long minAmount = Math.round(amount * minAmountAsPercentage.get());
-            return Math.round(minAmount * 10000);
-        } else {
-            return Math.round(amount * 10000);
-        }
-    }
-
-    private static long getQuoteAmount(long baseAmount, Optional<Double> marketBasedPrice, double marketPrice) {
-        double amount;
-        double percentage;
-        double price;
-
-        if (marketBasedPrice.isPresent()) {
-            percentage = marketBasedPrice.get();
-            price = marketPrice * (1 + percentage);
-            amount = baseAmount / 100000000d * price;
-        } else {
-            amount = baseAmount / 100000000d;
-        }
-        return Math.round(amount * 10000);
-    }
-
-    private static double getPrice(double fixPrice, Optional<Double> marketBasedPrice, Optional<Double> marketPrice) {
-        return marketBasedPrice.map(percentage -> marketPrice
-                .map(marketPrice1 -> marketPrice1 * (1 + percentage)).orElse(fixPrice))
-                .orElse(fixPrice);
-    }
-
-    private static long getMinQuoteAmountValue(List<OfferEntity> offers, Double marketPrice) {
-        return offers.stream()
-                .mapToLong(o -> getMinQuoteAmount(o.getOffer().getBaseAsset().amount(),
-                        o.getOffer().getMinAmountAsPercentage(),
-                        o.getOffer().getMarketBasedPrice(),
-                        marketPrice))
-                .min()
-                .orElse(0);
-    }
-
-    private static long getMaxQuoteAmountValue(List<OfferEntity> offers, Double marketPrice) {
-        return offers.stream()
-                .mapToLong(o -> getQuoteAmount(o.getOffer().getBaseAsset().amount(),
-                        o.getOffer().getMarketBasedPrice(),
-                        marketPrice))
-                .max()
-                .orElse(0);
-    }
-
-    private static double getLowestPrice(List<Offer> offers, Optional<Double> marketPrice) {
-        return offers.stream()
-                .mapToDouble(offer -> getPrice(offer.getFixPrice(), offer.getMarketBasedPrice(), marketPrice))
-                .min()
-                .orElse(0);
-    }
-
-    private static double getHighestPrice(List<Offer> offers, Optional<Double> marketPrice) {
-        return offers.stream()
-                .mapToDouble(offer -> getPrice(offer.getFixPrice(), offer.getMarketBasedPrice(), marketPrice))
-                .max()
-                .orElse(0);
-    }
-
-    private static int compareQuote(Double selfPrice, Double otherPrice, String bidAssetCode, String quoteCurrencyCode) {
-        if (bidAssetCode.equals(quoteCurrencyCode)) {
-            return Double.compare(otherPrice, selfPrice);
-        } else {
-            return Double.compare(selfPrice, otherPrice);
-        }
     }
 
     @Override

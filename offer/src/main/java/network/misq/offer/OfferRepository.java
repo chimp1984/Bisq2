@@ -156,7 +156,7 @@ public class OfferRepository {
                 bidAsset = getRandomCryptoAsset("BTC", btcAmount);
                 baseCurrency = "BTC";
                 marketBasedPrice = Optional.of(0.3d + new Random().nextInt(100) / 100d);
-                //marketBasedPrice = Optional.of(0d);
+                //marketPriceOffset = Optional.of(0d);
                 minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.1);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 1) {
@@ -168,7 +168,7 @@ public class OfferRepository {
                 bidAsset = getRandomFiatAsset("USD", usdAmount);
                 baseCurrency = "BTC";
                 marketBasedPrice = Optional.of(0.1d + new Random().nextInt(100) / 100d);
-                // marketBasedPrice = Optional.of(0d);
+                // marketPriceOffset = Optional.of(0d);
                 minAmountAsPercentage = new Random().nextBoolean() ? Optional.empty() : Optional.of(0.3);
                 // minAmountAsPercentage = Optional.empty();
             } else if (rand == 2) {

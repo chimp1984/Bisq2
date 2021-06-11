@@ -45,10 +45,9 @@ public class Offer extends Listing {
     private final boolean isBaseCurrencyAskSide;
     private final Set<OfferOption> offerOptions;
 
-    //  private transient final long minBaseAmount;
-    private transient final Optional<Long> optionalMinBaseAmount;
-    private transient final long minBaseAmountOrAmount;
     private transient final Quote quote;
+    private transient final Optional<Long> optionalMinBaseAmount;
+    private transient final long minBaseAmountOrAmount; //todo remove
 
     public Offer(List<SwapProtocolType> protocolTypes,
                  NetworkId makerNetworkId,
@@ -79,19 +78,9 @@ public class Offer extends Listing {
         this.isBaseCurrencyAskSide = isBaseCurrencyAskSide;
         this.offerOptions = offerOptions;
 
-      /*  minBaseAmount = getMinAmountAsPercentage()
-                .map(percentage -> MathUtils.roundDoubleToLong(getBaseAsset().amount() * percentage))
-                .orElse(getBaseAsset().amount());*/
-        optionalMinBaseAmount = getMinAmountAsPercentage()
-                .map(percentage -> MathUtils.roundDoubleToLong(getBaseAsset().amount() * percentage));
-        minBaseAmountOrAmount = optionalMinBaseAmount.orElse(getBaseAsset().amount());
         quote = Quote.of(getBaseAsset().monetary(), getQuoteAsset().monetary());
-
-    }
-
-
-    public double getFixPrice() {
-        return quote.getValue(); //todo
+        optionalMinBaseAmount = getOptionalMinAmount(getBaseAsset().amount());
+        minBaseAmountOrAmount = optionalMinBaseAmount.orElse(getBaseAsset().amount());
     }
 
     public Asset getBaseAsset() {
@@ -103,7 +92,7 @@ public class Offer extends Listing {
     }
 
     public String getBaseCurrency() {
-        return isBaseCurrencyAskSide ? askAsset.currencyCode() : bidAsset.currencyCode();
+        return getBaseAsset().currencyCode();
     }
 
     public Optional<Double> getMinAmountAsPercentage() {
@@ -111,12 +100,17 @@ public class Offer extends Listing {
     }
 
     public Optional<Long> getOptionalMinQuoteAmount(long quoteAmount) {
-        return getMinAmountAsPercentage()
-                .map(percentage -> MathUtils.roundDoubleToLong(quoteAmount * percentage));
+        return getOptionalMinAmount(quoteAmount);
     }
 
-    public Optional<Double> getMarketBasedPrice() {
-        return findPriceOption(offerOptions).map(PriceOption::marketBasedPrice);
+    public Optional<Double> getMarketPriceOffset() {
+        return findPriceOption(offerOptions).map(PriceOption::marketPriceOffset);
+    }
+
+
+    private Optional<Long> getOptionalMinAmount(long amount) {
+        return getMinAmountAsPercentage()
+                .map(percentage -> MathUtils.roundDoubleToLong(amount * percentage));
     }
 
     private Optional<AmountOption> findAmountOption(Set<OfferOption> offerOptions) {

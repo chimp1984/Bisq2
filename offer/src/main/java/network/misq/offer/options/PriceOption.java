@@ -17,5 +17,5 @@
 
 package network.misq.offer.options;
 
-public record PriceOption(double marketBasedPrice) implements OfferOption {
+public record PriceOption(double marketPriceOffset) implements OfferOption {
 }

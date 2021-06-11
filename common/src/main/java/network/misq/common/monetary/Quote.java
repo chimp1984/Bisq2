@@ -94,9 +94,14 @@ public class Quote implements Comparable<Quote> {
         return new Quote(value, baseMonetary, quoteMonetary);
     }
 
-    public static Quote fromMarketBasedPrice(Quote marketQuote, double percentage) {
-        double price = marketQuote.asDouble() * (1 + percentage);
-        return Quote.fromPrice(price, marketQuote.baseMonetary.currencyCode, marketQuote.quoteMonetary.currencyCode);
+    /**
+     * @param marketPrice Current market price
+     * @param offset      Offset from market price in percent.
+     * @return The quote representing the offset from market price
+     */
+    public static Quote fromMarketPriceOffset(Quote marketPrice, double offset) {
+        double price = marketPrice.asDouble() * (1 + offset);
+        return Quote.fromPrice(price, marketPrice.baseMonetary.currencyCode, marketPrice.quoteMonetary.currencyCode);
     }
 
     public static Monetary toQuoteMonetary(Monetary baseMonetary, Quote quote) {
