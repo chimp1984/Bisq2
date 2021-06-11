@@ -22,5 +22,9 @@ public abstract class Executable {
 
     abstract protected void launchApplication();
 
+    abstract protected void setupUserThread();
+
     abstract protected void initializeDomain();
+
+    abstract protected void initializeApplication();
 }

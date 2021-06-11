@@ -21,6 +21,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -39,6 +41,7 @@ public class StageView extends Application {
     private Stage stage;
     @Getter
     private Scene scene;
+    private Pane root;
 
     public StageView() {
     }
@@ -49,11 +52,20 @@ public class StageView extends Application {
         LAUNCH_APP_FUTURE.complete(this);
     }
 
-    public void initialize(StageModel model, StageController controller, MainView mainView) {
-        // this.controller = controller;
+    public void initialize(StageModel model, StageController controller) {
+        this.controller = controller;
         this.model = model;
         try {
-            StackPane root = mainView.getRoot();
+            root = new AnchorPane();
+            root.prefWidthProperty().bind(model.prefWidthProperty);
+            root.prefHeightProperty().bind(model.prefHeightProperty);
+
+            Preloader preloader = new Preloader();
+            AnchorPane.setLeftAnchor(preloader, 0d);
+            AnchorPane.setRightAnchor(preloader, 0d);
+            AnchorPane.setTopAnchor(preloader, 0d);
+            AnchorPane.setBottomAnchor(preloader, 0d);
+            root.getChildren().add(preloader);
             scene = new Scene(root);
             scene.getStylesheets().setAll(getClass().getResource("/misq.css").toExternalForm(),
                     getClass().getResource("/bisq.css").toExternalForm(),
@@ -78,5 +90,14 @@ public class StageView extends Application {
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+    }
+
+    public void activate(MainView mainView) {
+        StackPane mainViewRoot = mainView.getRoot();
+        root.getChildren().setAll(mainViewRoot);
+        AnchorPane.setLeftAnchor(mainViewRoot, 0d);
+        AnchorPane.setRightAnchor(mainViewRoot, 0d);
+        AnchorPane.setTopAnchor(mainViewRoot, 0d);
+        AnchorPane.setBottomAnchor(mainViewRoot, 0d);
     }
 }

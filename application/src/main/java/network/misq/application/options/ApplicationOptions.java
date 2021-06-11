@@ -23,8 +23,6 @@ import java.util.Locale;
 import java.util.Properties;
 
 public record ApplicationOptions(String appDir, String appName) {
-
-
     // To ensure the locale is set initially we should write it to property file instead of persisting it in 
     // preferences which might be read out to a later moment.
     public Locale getLocale() {

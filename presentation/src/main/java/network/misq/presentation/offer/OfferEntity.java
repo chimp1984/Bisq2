@@ -139,14 +139,14 @@ public class OfferEntity implements Comparable<OfferEntity> {
     @Override
     public String toString() {
         return "OfferEntity{" +
-                ",\n     offer=" + offer +
-                ",\n     formattedBaseAmountWithMinAmount='" + formattedBaseAmountWithMinAmount + '\'' +
-                ",\n     formattedTransferOptions='" + formattedTransferOptions + '\'' +
-                ",\n     formattedQuote='" + formattedQuote + '\'' +
-                ",\n     formattedQuoteAmount='" + formattedQuoteAmount + '\'' +
-                ",\n     formattedQuoteAmountWithMinAmount='" + formattedQuoteAmountWithMinAmount + '\'' +
-                ",\n     quote=" + quote +
-                ",\n     quoteAmount=" + quoteAmount +
-                "\n}";
+                "\r\n     offer=" + offer +
+                ",\r\n     quote=" + quote +
+                ",\r\n     quoteAmount=" + quoteAmount +
+                ",\r\n     formattedBaseAmountWithMinAmount='" + formattedBaseAmountWithMinAmount + '\'' +
+                ",\r\n     formattedTransferOptions='" + formattedTransferOptions + '\'' +
+                ",\r\n     formattedQuote='" + formattedQuote + '\'' +
+                ",\r\n     formattedQuoteAmount='" + formattedQuoteAmount + '\'' +
+                ",\r\n     formattedQuoteAmountWithMinAmount='" + formattedQuoteAmountWithMinAmount + '\'' +
+                "\r\n}";
     }
 }

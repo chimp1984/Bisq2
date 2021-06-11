@@ -90,18 +90,19 @@ public class OfferbookModel implements Model {
         setCurrencyPredicate(predicate);
         amountFilterModel.activate();
 
-        offerEntityAddedDisposable = api.getOfferEntityAddedSubject().subscribe(OfferListItem -> {
-            offerItems.add(new OfferListItem(OfferListItem.getOffer(), OfferListItem.getMarketPriceSubject()));
+        offerEntityAddedDisposable = api.getOfferEntityAddedSubject().subscribe(offerEntity -> {
+            offerItems.add(new OfferListItem(offerEntity.getOffer(), offerEntity.getMarketPriceSubject()));
         }, Throwable::printStackTrace);
 
-        offerEntityRemovedDisposable = api.getOfferEntityRemovedSubject().subscribe(OfferListItem -> {
+        offerEntityRemovedDisposable = api.getOfferEntityRemovedSubject().subscribe(offerEntity -> {
             offerItems.stream()
-                    .filter(e -> e.getOffer().equals(OfferListItem.getOffer()))
+                    .filter(e -> e.getOffer().equals(offerEntity.getOffer()))
                     .findAny()
                     .ifPresent(offerItems::remove);
         }, Throwable::printStackTrace);
 
         marketPriceDisposable = api.getMarketPriceSubject().subscribe(marketPriceProperty::set, Throwable::printStackTrace);
+        marketPriceProperty.set(api.getMarketPrice());
     }
 
     public void deactivate() {

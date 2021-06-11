@@ -20,6 +20,7 @@ package network.misq.api;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Getter;
+import network.misq.application.options.ApplicationOptions;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
 import network.misq.offer.OfferRepository;
@@ -36,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Getter
 public class Api {
+    private final ApplicationOptions applicationOptions;
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
     private final OfferRepository offerRepository;
@@ -44,6 +46,7 @@ public class Api {
     private final IdentityRepository identityRepository;
 
     public Api(Domain domain) {
+        applicationOptions = domain.getApplicationOptions();
         keyPairRepository = domain.getKeyPairRepository();
         networkService = domain.getNetworkService();
         identityRepository = domain.getIdentityRepository();
@@ -100,6 +103,10 @@ public class Api {
         return networkService.getMarketPriceSubject();
     }
 
+    public double getMarketPrice() {
+        return networkService.getMarketPrice();
+    }
+
     public CompletableFuture<Integer> requestPriceUpdate() {
         return networkService.requestPriceUpdate();
     }
@@ -110,5 +117,9 @@ public class Api {
 
     public String getHelp() {
         return "help";
+    }
+
+    public String getAppName() {
+        return applicationOptions.appName();
     }
 }

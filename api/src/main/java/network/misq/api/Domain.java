@@ -53,8 +53,10 @@ public class Domain {
     private final OpenOfferRepository openOfferRepository;
     private final OfferEntityRepository offerEntityRepository;
     private final IdentityRepository identityRepository;
+    private final ApplicationOptions applicationOptions;
 
     public Domain(ApplicationOptions applicationOptions, String[] args) {
+        this.applicationOptions = applicationOptions;
         Locale locale = applicationOptions.getLocale();
         LocaleRepository.setDefaultLocale(locale);
         FiatCurrencyRepository.applyLocale(locale);

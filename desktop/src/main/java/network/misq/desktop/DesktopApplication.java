@@ -17,11 +17,14 @@
 
 package network.misq.desktop;
 
+import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.api.Api;
 import network.misq.api.Domain;
 import network.misq.application.Executable;
 import network.misq.application.options.ApplicationOptions;
+import network.misq.common.timer.UserThread;
+import network.misq.desktop.utils.UITimer;
 
 @Slf4j
 public class DesktopApplication extends Executable {
@@ -48,17 +51,31 @@ public class DesktopApplication extends Executable {
         stageController = new StageController(api);
         stageController.launchApplication().whenComplete((success, throwable) -> {
             log.info("Java FX Application initialized");
+            setupUserThread();
             initializeDomain();
         });
     }
 
     @Override
+    protected void setupUserThread() {
+        UserThread.setExecutor(Platform::runLater);
+        UserThread.setTimerClass(UITimer.class);
+    }
+
+    @Override
     protected void initializeDomain() {
         domain.initialize().whenComplete((success, throwable) -> {
-            if (!success) {
+            if (success) {
+                Platform.runLater(this::initializeApplication);
+            } else {
                 log.error("API Initialisation failed", throwable);
                 //todo handle error
             }
         });
+    }
+
+    @Override
+    protected void initializeApplication() {
+        stageController.activate();
     }
 }

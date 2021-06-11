@@ -63,6 +63,10 @@ public class NetworkService {
         return marketPriceService.getMarketPriceSubject();
     }
 
+    public double getMarketPrice() {
+        return marketPriceService.getMarketPrice();
+    }
+
     public CompletableFuture<Integer> requestPriceUpdate() {
         return marketPriceService.requestPriceUpdate();
     }
@@ -72,9 +76,11 @@ public class NetworkService {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public CompletableFuture<Boolean> initialize() {
-        return p2pService.bootstrap();
+        CompletableFuture<Boolean> bootstrap = p2pService.bootstrap();
+        // For now we dont want to wait for bootstrap done at startup
+        return CompletableFuture.completedFuture(true);
     }
-   
+
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         p2pService.confidentialSend(message, peerNetworkId, myKeyPair);

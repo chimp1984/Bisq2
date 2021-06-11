@@ -64,13 +64,17 @@ public class StageController implements Controller {
     public void initialize() {
         try {
             overlayController = new OverlayController();
-            mainViewController = new MainViewController(api, overlayController);
-            mainViewController.initialize();
-            stageView.initialize(model, this, mainViewController.getView());
+            stageView.initialize(model, this);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public void activate() {
+        model.setTitle(api.getAppName());
+        mainViewController = new MainViewController(api, overlayController);
+        mainViewController.initialize();
+        stageView.activate(mainViewController.getView());
     }
 
     @Override
