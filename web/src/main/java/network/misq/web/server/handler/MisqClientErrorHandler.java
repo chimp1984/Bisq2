@@ -15,7 +15,7 @@ public class MisqClientErrorHandler extends AbstractHandler implements ClientErr
     @Override
     public void error(Context context, int statusCode) {
         String whatNotFound = context.getRequest().getPath();
-        Map<String, String> error = toMap("error", Integer.toString(statusCode));
+        Map<String, Object> error = toMap("error", Integer.toString(statusCode));
         error.put("message", whatNotFound + " not found");
         context.getResponse().status(statusCode).send(toJson(error));
     }

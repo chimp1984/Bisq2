@@ -14,13 +14,13 @@ public abstract class AbstractHandler implements Handler {
         this.jsonTransform = jsonTransform;
     }
 
-    protected Map<String, String> toMap(String key, Object value) {
-        Map<String, String> map = new HashMap<>();
-        map.put(key, String.valueOf(value));
+    protected Map<String, Object> toMap(String key, Object value) {
+        Map<String, Object> map = new HashMap<>();
+        map.put(key, value);
         return map;
     }
 
-    protected String toJson(Map<String, String> map) {
+    protected String toJson(Map<String, Object> map) {
         return jsonTransform.toJson(map);
     }
 
@@ -29,7 +29,7 @@ public abstract class AbstractHandler implements Handler {
     }
 
     protected String toJson(Throwable throwable) {
-        Map<String, String> map = toMap("error", throwable.getClass().getCanonicalName());
+        Map<String, Object> map = toMap("error", throwable.getClass().getCanonicalName());
         map.put("message", throwable.getMessage());
         return jsonTransform.toJson(map);
     }
