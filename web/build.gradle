@@ -20,6 +20,7 @@ dependencies {
 
     implementation project(':common')
     implementation project(':api')
+    implementation project(':presentation')
     implementation project(':application')
 
 

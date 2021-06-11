@@ -2,6 +2,7 @@ package network.misq.web.server;
 
 import io.reactivex.Observable;
 import network.misq.api.Api;
+import network.misq.web.server.handler.GetOffersHandler;
 import network.misq.web.server.handler.GetVersionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ public class WebServer {
                                         });
                             })
                             .get("version", ctx -> ctx.get(GetVersionHandler.class).handle(ctx))
+                            .get("getoffers", ctx -> ctx.get(GetOffersHandler.class).handle(ctx))
                             .get(ctx -> ctx.render("Welcome to Misq Web"))
                     )
             );
