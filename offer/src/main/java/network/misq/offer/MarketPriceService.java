@@ -19,6 +19,7 @@ package network.misq.offer;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -181,14 +182,17 @@ public class MarketPriceService {
                 // If we have a socks5ProxyAddress defined in options we use that as proxy
                 Socks5ProxyProvider socks5ProxyProvider = networkService.getSocks5ProxyAddress()
                         .map(Socks5ProxyProvider::new)
-                        .orElse(networkService.getNetworkProxy(NetworkType.TOR).map(networkProxy -> {
-                            try {
-                                return new Socks5ProxyProvider((TorNetworkProxy) networkProxy);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                return null;
-                            }
-                        }).orElse(null));
+                        .orElse(networkService.getNetworkProxy(NetworkType.TOR)
+                                .map(networkProxy -> {
+                                    try {
+                                        Socks5Proxy socksProxy = ((TorNetworkProxy) networkProxy).getSocksProxy();
+                                        return new Socks5ProxyProvider(socksProxy);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return null;
+                                    }
+                                })
+                                .orElse(null));
                 checkNotNull(socks5ProxyProvider, "No socks5ProxyAddress provided and no torNetworkProxy available.");
                 return new TorHttpClient(provider.url, userAgent, socks5ProxyProvider);
             case I2P:

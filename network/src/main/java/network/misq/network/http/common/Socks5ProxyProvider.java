@@ -20,21 +20,18 @@ package network.misq.network.http.common;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.proxy.TorNetworkProxy;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Optional;
 
 @Slf4j
 public class Socks5ProxyProvider {
-    private Optional<TorNetworkProxy> torNetworkProxy;
     @Getter
     private final Socks5Proxy socks5Proxy;
 
-    public Socks5ProxyProvider(TorNetworkProxy torNetworkProxy) throws IOException {
-        socks5Proxy = torNetworkProxy.getSocksProxy();
+    public Socks5ProxyProvider(Socks5Proxy socks5Proxy) throws IOException {
+        this.socks5Proxy = socks5Proxy;
     }
 
     public Socks5ProxyProvider(String socks5ProxyAddress) {
