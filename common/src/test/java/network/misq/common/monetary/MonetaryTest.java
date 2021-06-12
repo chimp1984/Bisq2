@@ -69,22 +69,20 @@ public class MonetaryTest {
         assertEquals("BTC", quote.getBaseMonetary().getCurrencyCode());
         assertEquals("BTC/USD", quote.getQuoteCode());
 
-        // rounded down
         usd = Fiat.of(50000.1249d, "USD");
         quote = Quote.of(btc, usd);
         assertEquals(500001249, quote.getValue());
-        assertEquals(50000.12, quote.asDouble());
+        assertEquals(50000.1249, quote.asDouble());
 
-        // rounded up
         usd = Fiat.of(50000.1250d, "USD");
         quote = Quote.of(btc, usd);
-        assertEquals(50000.13, quote.asDouble());
+        assertEquals(50000.1250, quote.asDouble());
 
         btc = Coin.asBtc(100000000);
         usd = Fiat.of(500001250, "USD");
         quote = Quote.of(btc, usd);
         assertEquals(500001250, quote.getValue());
-        assertEquals(50000.13, quote.asDouble());
+        assertEquals(50000.1250, quote.asDouble());
 
         // btc - alt
         Coin xmr = Coin.asXmr(150d);
