@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * Defines which thread is used as user thread. The user thread is the main thread in the single threaded context.
+ * Defines which thread is used as user thread. The user thread is the main thread in a single threaded context.
  * For JavaFX it is the Platform::RunLater executor, for a headless application it is any single thread executor.
  * Additionally sets a timer class so JavaFX and headless applications can set different timers (UITimer for JavaFX
  * otherwise we use the default FrameRateTimer).

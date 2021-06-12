@@ -64,8 +64,8 @@ public class MailboxPayload implements AuthenticatedPayload {
     @Override
     public String toString() {
         return "MailboxPayload{" +
-                "\n     confidentialData=" + confidentialData +
-                ",\n     metaData='" + metaData + '\'' +
-                "\n}";
+                "\r\n     confidentialData=" + confidentialData +
+                ",\r\n     metaData='" + metaData + '\'' +
+                "\r\n}";
     }
 }

@@ -106,10 +106,10 @@ public class AddAuthenticatedDataRequest implements AuthenticatedDataRequest, Se
     @Override
     public String toString() {
         return "AddProtectedDataRequest{" +
-                "\n     entry=" + authenticatedData +
-                ",\n     signature=" + Hex.encode(signature) +
-                ",\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
-                "\n}";
+                "\r\n     entry=" + authenticatedData +
+                ",\r\n     signature=" + Hex.encode(signature) +
+                ",\r\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
+                "\r\n}";
     }
 
 }

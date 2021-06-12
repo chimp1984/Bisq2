@@ -76,5 +76,4 @@ public class OsUtils {
     public static String getOSName() {
         return System.getProperty("os.name").toLowerCase(Locale.US);
     }
-
 }

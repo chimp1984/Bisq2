@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public class LocaleRepository {
+    // To be set early at application setup
     @Setter
     @Getter
     private static Locale defaultLocale;

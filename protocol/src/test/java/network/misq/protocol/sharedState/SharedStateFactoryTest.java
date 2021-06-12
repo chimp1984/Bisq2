@@ -114,6 +114,6 @@ public class SharedStateFactoryTest {
         message.forEach((name, value) ->
                 sb.append(len == sb.length() ? "" : ",").append("\n  ").append(name).append(" = ").append(value)
         );
-        return sb.append("\n}").toString();
+        return sb.append("\r\n}").toString();
     }
 }

@@ -40,8 +40,8 @@ class PeerExchangeRequest implements Message {
     @Override
     public String toString() {
         return "PeerExchangeRequest{" +
-                "\n     peers=" + peers +
-                ",\n     uid='" + uid + '\'' +
-                "\n}";
+                "\r\n     peers=" + peers +
+                ",\r\n     uid='" + uid + '\'' +
+                "\r\n}";
     }
 }

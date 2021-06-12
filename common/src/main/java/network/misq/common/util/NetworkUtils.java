@@ -40,7 +40,6 @@ public class NetworkUtils {
     }
 
     public static boolean isTorAddress(String host) {
-        //todo
         return host.endsWith(".onion");
     }
 

@@ -34,9 +34,9 @@ public class GossipResult {
     @Override
     public String toString() {
         return "GossipResult{" +
-                "\n     numSuccess=" + numSuccess +
-                ",\n     numFaults=" + numFaults +
-                ",\n     duration=" + duration +
-                "\n}";
+                "\r\n     numSuccess=" + numSuccess +
+                ",\r\n     numFaults=" + numFaults +
+                ",\r\n     duration=" + duration +
+                "\r\n}";
     }
 }

@@ -286,10 +286,7 @@ public record Region(String code, String name) {
         return NAME_BY_CODE.get(regionCode);
     }
 
-
     public static String getRegionCode(String countryCode) {
         return REGION_CODE_BY_COUNTRY_CODE.getOrDefault(countryCode, "Undefined");
     }
-
-
 }

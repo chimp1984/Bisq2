@@ -22,7 +22,7 @@ import network.misq.api.options.KeyPairRepositoryOptionsParser;
 import network.misq.api.options.NetworkServiceOptionsParser;
 import network.misq.application.ApplicationFactory;
 import network.misq.application.options.ApplicationOptions;
-import network.misq.common.util.CollectionUtil;
+import network.misq.common.util.CompletableFutureUtils;
 import network.misq.network.NetworkService;
 import network.misq.security.KeyPairRepository;
 
@@ -61,7 +61,7 @@ public class SeedNodeApplicationFactory implements ApplicationFactory {
         allFutures.add(keyPairRepository.initialize());
         allFutures.add(networkService.initialize());
         // Once all have successfully completed our initialize is complete as well
-        return CollectionUtil.allOf(allFutures)
+        return CompletableFutureUtils.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))
                 .orTimeout(10, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);

@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class MasterTimer {
     private static final java.util.Timer timer = new java.util.Timer();
-    // frame rate of 60 fps is about 16 ms
+    // A frame rate of 60 fps is about 16 ms
     public static final long FRAME_INTERVAL_MS = 16;
 
     static {

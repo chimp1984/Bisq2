@@ -44,11 +44,6 @@ public abstract class MisqCurrency implements Comparable<MisqCurrency> {
         this.name = name;
     }
 
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // API
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
     public String getDisplayPrefix() {
         return "";
     }
@@ -65,5 +60,4 @@ public abstract class MisqCurrency implements Comparable<MisqCurrency> {
     public int compareTo(MisqCurrency other) {
         return this.name.compareTo(other.name);
     }
-
 }

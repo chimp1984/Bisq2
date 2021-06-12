@@ -106,5 +106,4 @@ public class LanguageRepository {
     public static String getEnglishCode() {
         return new Locale(Locale.ENGLISH.getLanguage()).getLanguage();
     }
-
 }

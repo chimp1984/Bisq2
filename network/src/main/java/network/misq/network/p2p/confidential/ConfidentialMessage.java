@@ -36,8 +36,8 @@ public class ConfidentialMessage implements Message {
     @Override
     public String toString() {
         return "ConfidentialMessage{" +
-                "\n     sealed=" + confidentialData +
-                "\n     tag=" + tag +
-                "\n}";
+                "\r\n     sealed=" + confidentialData +
+                "\r\n     tag=" + tag +
+                "\r\n}";
     }
 }

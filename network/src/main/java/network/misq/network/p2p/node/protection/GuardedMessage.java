@@ -35,8 +35,8 @@ public class GuardedMessage implements Message {
     @Override
     public String toString() {
         return "GuardedMessage{" +
-                "\n     payload=" + payload +
-                ",\n     accessToken=" + accessToken +
-                "\n}";
+                "\r\n     payload=" + payload +
+                ",\r\n     accessToken=" + accessToken +
+                "\r\n}";
     }
 }

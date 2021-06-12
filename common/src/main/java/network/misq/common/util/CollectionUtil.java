@@ -20,10 +20,7 @@ package network.misq.common.util;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class CollectionUtil {
     @Nullable
@@ -34,12 +31,4 @@ public class CollectionUtil {
     }
 
 
-    public static <T> CompletableFuture<List<T>> allOf(List<CompletableFuture<T>> list) {
-        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(list.toArray(new CompletableFuture[list.size()]));
-        return allFuturesResult.thenApply(v ->
-                list.stream().
-                        map(CompletableFuture::join).
-                        collect(Collectors.<T>toList())
-        );
-    }
 }

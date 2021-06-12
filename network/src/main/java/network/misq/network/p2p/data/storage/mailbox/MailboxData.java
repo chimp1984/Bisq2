@@ -60,9 +60,9 @@ public class MailboxData extends AuthenticatedData {
     @Override
     public String toString() {
         return "MailboxData{" +
-                "\n     receiversPubKeyBytes=" + Hex.encode(receiversPubKeyBytes) +
-                ",\n     hashOfReceiversPublicKey=" + Hex.encode(hashOfReceiversPublicKey) +
-                "\n} " + super.toString();
+                "\r\n     receiversPubKeyBytes=" + Hex.encode(receiversPubKeyBytes) +
+                ",\r\n     hashOfReceiversPublicKey=" + Hex.encode(hashOfReceiversPublicKey) +
+                "\r\n} " + super.toString();
     }
 
     public MailboxPayload getMailboxPayload() {

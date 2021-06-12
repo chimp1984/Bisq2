@@ -19,6 +19,8 @@ package network.misq.common.monetary;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.common.currency.MisqCurrency;
 import network.misq.common.util.MathUtils;
 
@@ -37,7 +39,10 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 @EqualsAndHashCode
 @Getter
+@Slf4j
 public class Quote implements Comparable<Quote> {
+    @Setter
+    private String QUOTE_SEPARATOR = "/";
     private final long value;
     private final Monetary baseMonetary;
     private final Monetary quoteMonetary;
@@ -85,6 +90,13 @@ public class Quote implements Comparable<Quote> {
         return Quote.of(baseMonetary, quoteMonetary);
     }
 
+    /**
+     * Calculates the quote from the given monetary objects
+     *
+     * @param baseMonetary  The base monetary
+     * @param quoteMonetary The quote monetary
+     * @return The quote
+     */
     public static Quote of(Monetary baseMonetary, Monetary quoteMonetary) {
         checkArgument(baseMonetary.value != 0, "baseMonetary.value must not be 0");
         long value = BigDecimal.valueOf(quoteMonetary.value)
@@ -95,11 +107,14 @@ public class Quote implements Comparable<Quote> {
     }
 
     /**
+     * A quote created from a market price quote and a percentage offset
+     *
      * @param marketPrice Current market price
-     * @param offset      Offset from market price in percent.
+     * @param offset      Offset from market price in percent (values: -1 to +1).
      * @return The quote representing the offset from market price
      */
     public static Quote fromMarketPriceOffset(Quote marketPrice, double offset) {
+        checkArgument(offset >= -1 && offset <= 1, "Offset must be in range -1 to +1");
         double price = marketPrice.asDouble() * (1 + offset);
         return Quote.fromPrice(price, marketPrice.baseMonetary.currencyCode, marketPrice.quoteMonetary.currencyCode);
     }
@@ -108,15 +123,23 @@ public class Quote implements Comparable<Quote> {
      * @param marketQuote The quote representing the market price
      * @param offerQuote  The quote we want to compare to the market price
      * @return The percentage offset from the market price. Positive value means that offerQuote is above market price.
+     * Result is rounded to precision 4 (2 decimal places at percentage representation)
      */
     public static double offsetOf(Quote marketQuote, Quote offerQuote) {
-        double value = offerQuote.value;
-        double value1 = marketQuote.value;
-        double l = value / value1;
-        return l - 1;
+        checkArgument(marketQuote.value > 0, "marketQuote must be positive");
+        return MathUtils.roundDouble(offerQuote.value / (double) marketQuote.value - 1, 4);
     }
 
+    /**
+     * Create a quote monetary from a given base monetary and a quote
+     *
+     * @param baseMonetary The base monetary
+     * @param quote        The quote
+     * @return The quote monetary
+     */
     public static Monetary toQuoteMonetary(Monetary baseMonetary, Quote quote) {
+        checkArgument(baseMonetary.getClass() == quote.baseMonetary.getClass(),
+                "baseMonetary must be the same type as the quote.baseMonetary");
         Monetary quoteMonetary = quote.quoteMonetary;
         long value = BigDecimal.valueOf(baseMonetary.value).multiply(BigDecimal.valueOf(quote.value))
                 .movePointLeft(baseMonetary.smallestUnitExponent)
@@ -141,7 +164,7 @@ public class Quote implements Comparable<Quote> {
     }
 
     public String getQuoteCode() {
-        return baseMonetary.currencyCode + "/" + quoteMonetary.currencyCode;
+        return baseMonetary.currencyCode + QUOTE_SEPARATOR + quoteMonetary.currencyCode;
     }
 
     @Override
@@ -152,10 +175,10 @@ public class Quote implements Comparable<Quote> {
     @Override
     public String toString() {
         return "Quote{" +
-                "\n     value=" + value +
-                ",\n     baseMonetary=" + baseMonetary +
-                ",\n     quoteMonetary=" + quoteMonetary +
-                ",\n     smallestUnitExponent=" + smallestUnitExponent +
-                "\n}";
+                "\r\n     value=" + value +
+                ",\r\n     baseMonetary=" + baseMonetary +
+                ",\r\n     quoteMonetary=" + quoteMonetary +
+                ",\r\n     smallestUnitExponent=" + smallestUnitExponent +
+                "\r\n}";
     }
 }

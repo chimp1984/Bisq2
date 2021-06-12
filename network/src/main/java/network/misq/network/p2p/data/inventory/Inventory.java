@@ -38,8 +38,8 @@ public class Inventory implements Message {
     @Override
     public String toString() {
         return "Inventory{" +
-                "\n     entries=" + entries +
-                ",\n     numDropped=" + numDropped +
-                "\n}";
+                "\r\n     entries=" + entries +
+                ",\r\n     numDropped=" + numDropped +
+                "\r\n}";
     }
 }

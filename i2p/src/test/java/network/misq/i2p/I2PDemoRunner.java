@@ -19,8 +19,8 @@ package network.misq.i2p;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.FileUtils;
+import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.OsUtils;
-import network.misq.common.util.SystemUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +57,7 @@ public class I2PDemoRunner {
             Thread.currentThread().setName("Alice");
             try {
                 destinationAlice.set(samClient.getMyDestination(sessionIdAlice));
-                ServerSocket serverSocket = samClient.getServerSocket(sessionIdAlice, SystemUtils.findFreeSystemPort());
+                ServerSocket serverSocket = samClient.getServerSocket(sessionIdAlice, NetworkUtils.findFreeSystemPort());
                 startServer(serverSocket, aliceServerReady);
             } catch (IOException e) {
                 if (!(e instanceof SocketException)) {

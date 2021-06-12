@@ -26,7 +26,7 @@ import network.misq.application.Version;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.common.currency.FiatCurrencyRepository;
 import network.misq.common.locale.LocaleRepository;
-import network.misq.common.util.CollectionUtil;
+import network.misq.common.util.CompletableFutureUtils;
 import network.misq.id.IdentityRepository;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.MockNetworkService;
@@ -98,7 +98,7 @@ public class DefaultApplicationFactory implements ApplicationFactory {
         allFutures.add(openOfferRepository.initialize());
         allFutures.add(offerEntityRepository.initialize());
         // Once all have successfully completed our initialize is complete as well
-        return CollectionUtil.allOf(allFutures)
+        return CompletableFutureUtils.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))
                 .orTimeout(120, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);

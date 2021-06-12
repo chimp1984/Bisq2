@@ -18,7 +18,7 @@
 package network.misq.network.p2p.peers.exchange;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.CollectionUtil;
+import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.MapUtils;
 import network.misq.network.p2p.Address;
 import network.misq.network.p2p.node.Connection;
@@ -106,9 +106,9 @@ public class PeerExchangeManager implements ConnectionListener {
             //  maybeRepeatBootstrap(myAddress, 0, 0);
             return CompletableFuture.completedFuture(true);
         } else {
-            return CollectionUtil.allOf(allFutures)
+            return CompletableFutureUtils.allOf(allFutures)
                     .whenComplete((s, e) -> {
-                      //  log.error("");
+                        //  log.error("");
                     })                            // We require all futures the be completed
                     .thenApply(resultList -> {
                         return resultList.stream().filter(e -> e).count();

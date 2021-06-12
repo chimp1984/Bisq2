@@ -126,7 +126,6 @@ public class Coin extends Monetary {
         return MathUtils.roundDouble(BigDecimal.valueOf(value).movePointLeft(smallestUnitExponent).doubleValue(), smallestUnitExponent);
     }
 
-
     private static int deriveExponent(String currencyCode) {
         return currencyCode.equals("XMR") ? 12 : 8;
     }
@@ -134,6 +133,6 @@ public class Coin extends Monetary {
     @Override
     public String toString() {
         return "Coin{" +
-                "\n} " + super.toString();
+                "\r\n} " + super.toString();
     }
 }

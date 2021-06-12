@@ -35,8 +35,8 @@ class CapabilityResponse implements Message {
     @Override
     public String toString() {
         return "CapabilityResponse{" +
-                "\n     capability=" + capability +
-                ",\n     requestNonce=" + requestNonce +
-                "\n}";
+                "\r\n     capability=" + capability +
+                ",\r\n     requestNonce=" + requestNonce +
+                "\r\n}";
     }
 }

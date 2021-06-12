@@ -98,6 +98,6 @@ public class Fiat extends Monetary {
     @Override
     public String toString() {
         return "Fiat{" +
-                "\n} " + super.toString();
+                "\r\n} " + super.toString();
     }
 }

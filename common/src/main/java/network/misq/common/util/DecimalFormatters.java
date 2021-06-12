@@ -22,11 +22,12 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import network.misq.common.data.Couple;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 public class DecimalFormatters {
-    // Wrapper to make DecimalFormat immutable
+    // Wrapper to make DecimalFormat immutable and expose only what we use.
     public record Format(java.text.DecimalFormat decimalFormat) {
 
         public final String format(long number) {
@@ -38,10 +39,11 @@ public class DecimalFormatters {
         }
     }
 
+    // Caches formatters which have the same parameters. We use formatters as stateless immutable objects.
     private static final LoadingCache<Couple<Locale, Integer>, Format> decimalFormatCache = CacheBuilder.newBuilder()
             .build(CacheLoader.from(DecimalFormatters::getDecimalFormat));
 
-    // Returns cached DecimalFormat object. As the formatter might be used by multiple client no further ch
+    // Returns cached DecimalFormat object.
     public static Format getDecimalFormat(Locale locale, int precision) {
         return decimalFormatCache.getUnchecked(new Couple<>(locale, precision));
     }
@@ -49,7 +51,7 @@ public class DecimalFormatters {
     private static Format getDecimalFormat(Couple<Locale, Integer> couple) {
         Locale locale = couple.first();
         int precision = couple.second();
-        java.text.DecimalFormat decimalFormat = (java.text.DecimalFormat) NumberFormat.getNumberInstance(locale);
+        DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(locale);
         if (precision > 0) {
             decimalFormat.applyPattern(getPattern(precision));
         } else {

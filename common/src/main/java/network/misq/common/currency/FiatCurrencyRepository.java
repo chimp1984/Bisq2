@@ -18,6 +18,7 @@
 package network.misq.common.currency;
 
 import network.misq.common.locale.CountryRepository;
+import network.misq.common.locale.LocaleRepository;
 
 import java.util.Currency;
 import java.util.HashMap;
@@ -31,6 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FiatCurrencyRepository {
     private static Map<String, FiatCurrency> fiatCurrencyByCode;
 
+    static {
+        applyLocale(LocaleRepository.getDefaultLocale());
+    }
+
+    // Need to be called at application setup with user locale
     public static void applyLocale(Locale locale) {
         fiatCurrencyByCode = CountryRepository.COUNTRIES.stream()
                 .map(country -> getFiatCurrencyByCountryCode(country.code(), locale))

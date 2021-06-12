@@ -18,7 +18,7 @@
 package network.misq.network.p2p;
 
 
-import network.misq.common.util.CollectionUtil;
+import network.misq.common.util.CompletableFutureUtils;
 import network.misq.network.p2p.data.filter.DataFilter;
 import network.misq.network.p2p.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.data.storage.Storage;
@@ -118,7 +118,7 @@ public class P2pService {
                         }
                     });
         });
-        return CollectionUtil.allOf(allFutures)                                 // We require all futures the be completed
+        return CompletableFutureUtils.allOf(allFutures)                                 // We require all futures the be completed
                 .thenApply(resultList -> resultList.stream().anyMatch(e -> e))  // If at least one network succeeded
                 .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
     }

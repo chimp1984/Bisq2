@@ -106,13 +106,13 @@ public class RemoveRequest implements AuthenticatedDataRequest, Serializable {
     @Override
     public String toString() {
         return "RemoveProtectedDataRequest{" +
-              /*  "\n     metaData=" + metaData +
-                ",\n     hash=" + Hex.encode(hash) +*/
-                ",\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
-             /*   ",\n     ownerPublicKey=" + ownerPublicKey +
-                ",\n     sequenceNumber=" + sequenceNumber +
-                ",\n     signature=" + Hex.encode(signature) +
-                ",\n     created=" + created +*/
-                "\n}";
+              /*  "\r\n     metaData=" + metaData +
+                ",\r\n     hash=" + Hex.encode(hash) +*/
+                ",\r\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
+             /*   ",\r\n     ownerPublicKey=" + ownerPublicKey +
+                ",\r\n     sequenceNumber=" + sequenceNumber +
+                ",\r\n     signature=" + Hex.encode(signature) +
+                ",\r\n     created=" + created +*/
+                "\r\n}";
     }
 }

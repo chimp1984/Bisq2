@@ -35,8 +35,8 @@ class CapabilityRequest implements Message {
     @Override
     public String toString() {
         return "CapabilityRequest{" +
-                "\n     Capability=" + capability +
-                ",\n     nonce=" + nonce +
-                "\n}";
+                "\r\n     Capability=" + capability +
+                ",\r\n     nonce=" + nonce +
+                "\r\n}";
     }
 }

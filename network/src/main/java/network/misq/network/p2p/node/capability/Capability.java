@@ -39,8 +39,8 @@ public class Capability implements Serializable {
     @Override
     public String toString() {
         return "Capability{" +
-                "\n     address=" + address +
-                ",\n     supportedNetworkTypes=" + supportedNetworkTypes +
-                "\n}";
+                "\r\n     address=" + address +
+                ",\r\n     supportedNetworkTypes=" + supportedNetworkTypes +
+                "\r\n}";
     }
 }

@@ -56,11 +56,11 @@ public class Connection {
     @Override
     public String toString() {
         return "Connection{" +
-                "\n     id='" + id + '\'' +
-                ",\n     peerAddress=" + getPeerAddress() +
-                ",\n     networkType=" + networkType +
-                ",\n     nodeId=" + nodeId +
-                ",\n     capability=" + capability +
-                "\n}";
+                "\r\n     id='" + id + '\'' +
+                ",\r\n     peerAddress=" + getPeerAddress() +
+                ",\r\n     networkType=" + networkType +
+                ",\r\n     nodeId=" + nodeId +
+                ",\r\n     capability=" + capability +
+                "\r\n}";
     }
 }

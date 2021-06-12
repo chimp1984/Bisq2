@@ -57,10 +57,10 @@ public class AuthenticatedData implements Serializable {
     @Override
     public String toString() {
         return "ProtectedEntry{" +
-                "\n     protectedData=" + payload +
-                ",\n     sequenceNumber=" + sequenceNumber +
-                ",\n     created=" + created +
-                ",\n     hashOfPublicKey=" + Hex.encode(hashOfPublicKey) +
-                "\n}";
+                "\r\n     protectedData=" + payload +
+                ",\r\n     sequenceNumber=" + sequenceNumber +
+                ",\r\n     created=" + created +
+                ",\r\n     hashOfPublicKey=" + Hex.encode(hashOfPublicKey) +
+                "\r\n}";
     }
 }

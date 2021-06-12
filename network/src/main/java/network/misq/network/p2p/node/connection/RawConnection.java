@@ -61,8 +61,8 @@ public abstract class RawConnection {
         @Override
         public String toString() {
             return "MisqMessage{" +
-                    ",\n     payload=" + payload +
-                    "\n}";
+                    ",\r\n     payload=" + payload +
+                    "\r\n}";
         }
     }
 

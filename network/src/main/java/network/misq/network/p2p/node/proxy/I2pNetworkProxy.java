@@ -1,7 +1,7 @@
 package network.misq.network.p2p.node.proxy;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.SystemUtils;
+import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.i2p.SamClient;
 import network.misq.network.p2p.Address;
@@ -47,7 +47,7 @@ public class I2pNetworkProxy implements NetworkProxy {
         log.debug("Create serverSocket");
         getServerSocketExecutor.execute(() -> {
             try {
-                ServerSocket serverSocket = samClient.getServerSocket(serverId, SystemUtils.findFreeSystemPort());
+                ServerSocket serverSocket = samClient.getServerSocket(serverId, NetworkUtils.findFreeSystemPort());
                 String destination = samClient.getMyDestination(serverId);
                 Address address = new Address(destination, -1);
                 log.debug("Create new Socket to {}", address);

@@ -75,13 +75,12 @@ public abstract class Monetary implements Comparable<Monetary> {
         return Long.compare(value, o.getValue());
     }
 
-
     @Override
     public String toString() {
         return "Monetary{" +
-                "\n     value=" + value +
-                ",\n     currencyCode='" + currencyCode + '\'' +
-                ",\n     smallestUnitExponent=" + smallestUnitExponent +
-                "\n}";
+                "\r\n     value=" + value +
+                ",\r\n     currencyCode='" + currencyCode + '\'' +
+                ",\r\n     smallestUnitExponent=" + smallestUnitExponent +
+                "\r\n}";
     }
 }

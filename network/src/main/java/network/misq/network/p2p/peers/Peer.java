@@ -60,8 +60,8 @@ public class Peer implements Serializable {
     @Override
     public String toString() {
         return "Peer{" +
-                "\n     capability=" + capability +
-                ",\n     created=" + created +
-                "\n}";
+                "\r\n     capability=" + capability +
+                ",\r\n     created=" + created +
+                "\r\n}";
     }
 }

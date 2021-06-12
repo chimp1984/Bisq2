@@ -33,7 +33,7 @@ public class MockMessage implements Message {
     @Override
     public String toString() {
         return "MockMessage{" +
-                "\n     msg='" + msg + '\'' +
-                "\n}";
+                "\r\n     msg='" + msg + '\'' +
+                "\r\n}";
     }
 }

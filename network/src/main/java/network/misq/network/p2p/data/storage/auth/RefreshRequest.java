@@ -103,11 +103,11 @@ public class RefreshRequest implements Serializable {
     @Override
     public String toString() {
         return "RefreshProtectedDataRequest{" +
-                "\n     metaData=" + metaData +
-                ",\n     hash=" + Hex.encode(hash) +
-                ",\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
-                ",\n     sequenceNumber=" + sequenceNumber +
-                ",\n     signature=" + Hex.encode(signature) +
-                "\n}";
+                "\r\n     metaData=" + metaData +
+                ",\r\n     hash=" + Hex.encode(hash) +
+                ",\r\n     ownerPublicKeyBytes=" + Hex.encode(ownerPublicKeyBytes) +
+                ",\r\n     sequenceNumber=" + sequenceNumber +
+                ",\r\n     signature=" + Hex.encode(signature) +
+                "\r\n}";
     }
 }

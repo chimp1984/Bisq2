@@ -68,14 +68,14 @@ public class Result {
     @Override
     public String toString() {
         return "Result{" +
-                "\n     success=" + success +
-                ",\n     publicKeyInvalid=" + publicKeyInvalid +
-                ",\n     sequenceNrInvalid=" + sequenceNrInvalid +
-                ",\n     signatureInvalid=" + signatureInvalid +
-                ",\n     dataInvalid=" + dataInvalid +
-                ",\n     expired=" + expired +
-                ",\n     noEntry=" + noEntry +
-                ",\n     alreadyRemoved=" + alreadyRemoved +
-                "\n}";
+                "\r\n     success=" + success +
+                ",\r\n     publicKeyInvalid=" + publicKeyInvalid +
+                ",\r\n     sequenceNrInvalid=" + sequenceNrInvalid +
+                ",\r\n     signatureInvalid=" + signatureInvalid +
+                ",\r\n     dataInvalid=" + dataInvalid +
+                ",\r\n     expired=" + expired +
+                ",\r\n     noEntry=" + noEntry +
+                ",\r\n     alreadyRemoved=" + alreadyRemoved +
+                "\r\n}";
     }
 }

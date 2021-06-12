@@ -55,9 +55,9 @@ public class NetworkId {
     @Override
     public String toString() {
         return "NetworkPeer{" +
-                "\n     addressByNetworkType=" + addressByNetworkType +
-                ",\n     publicKey=" + publicKey +
-                ",\n     tag='" + tag + '\'' +
-                "\n}";
+                "\r\n     addressByNetworkType=" + addressByNetworkType +
+                ",\r\n     publicKey=" + publicKey +
+                ",\r\n     tag='" + tag + '\'' +
+                "\r\n}";
     }
 }
