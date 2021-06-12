@@ -56,7 +56,7 @@ public class TorHttpClient extends BaseHttpClient {
     }
 
     @Override
-    public void shutDown() {
+    public void shutdown() {
         try {
             if (closeableHttpClient != null) {
                 closeableHttpClient.close();

@@ -29,6 +29,7 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.proxy.NetworkProxy;
 import network.misq.network.p2p.peers.PeerConfig;
 import network.misq.network.p2p.peers.PeerGroup;
 import network.misq.network.p2p.peers.PeerManager;
@@ -136,5 +137,9 @@ public class NetworkNode {
 
     public NetworkType getNetworkType() {
         return networkConfig.getNetworkType();
+    }
+
+    public NetworkProxy getNetworkProxy() {
+        return node.getNetworkProxy();
     }
 }

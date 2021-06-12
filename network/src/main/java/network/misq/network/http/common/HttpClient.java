@@ -27,15 +27,9 @@ public interface HttpClient {
 
     String post(String param, Optional<Couple<String, String>> optionalHeader) throws IOException;
 
-    void shutDown();
- /*   String getUid();
-
     String getBaseUrl();
 
     boolean hasPendingRequest();
-    void setBaseUrl(String baseUrl);
 
-    void setIgnoreSocks5Proxy(boolean ignoreSocks5Proxy);*/
-
-
+    void shutdown();
 }

@@ -26,6 +26,7 @@ import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.proxy.NetworkProxy;
 import network.misq.network.p2p.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
@@ -46,6 +47,10 @@ import java.util.stream.Collectors;
  */
 public class P2pService {
     private static final Logger log = LoggerFactory.getLogger(P2pService.class);
+
+    public Optional<NetworkProxy> getNetworkProxy(NetworkType networkType) {
+        return Optional.ofNullable(p2pNodes.get(networkType).getNetworkProxy());
+    }
 
     public static record Option(String appDirPath, Set<NetworkConfig> networkConfigs) {
     }

@@ -121,7 +121,6 @@ public class OfferEntity implements Comparable<OfferEntity> {
             type = "Fix";
         }
         formattedQuote = QuoteFormatter.formatWithQuoteCode(quote, offset) + " [" + type + "]";
-        log.error("updatedPriceAndAmount {} {}", formattedQuote, offer.getQuoteAsset().currencyCode());
 
         formattedQuoteAmount = AmountFormatter.formatAmount(quoteAmount);
 

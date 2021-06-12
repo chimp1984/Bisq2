@@ -43,6 +43,9 @@ public class NetworkServiceOptionsParser {
         Set<NetworkConfig> networkConfigs = new HashSet<>();
         networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.CLEAR));
 
+        // nodeId = new NodeId("default", 8888, Sets.newHashSet(NetworkType.TOR));
+        // networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.TOR));
+
         P2pService.Option p2pServiceOption = new P2pService.Option(applicationOptions.appDir(), networkConfigs);
         options = new NetworkService.Options(p2pServiceOption, Optional.empty());
     }

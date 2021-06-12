@@ -19,5 +19,5 @@ package network.misq.offer;
 
 import network.misq.common.monetary.Quote;
 
-public record MarketPrice(Quote quote, long timestampSec, String provider) {
+public record MarketPrice(Quote quote, long timestamp, String provider) {
 }

@@ -30,6 +30,7 @@ import network.misq.network.p2p.node.connection.InboundConnection;
 import network.misq.network.p2p.node.connection.OutboundConnection;
 import network.misq.network.p2p.node.connection.RawConnection;
 import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.proxy.NetworkProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,6 +223,9 @@ public class BaseNode implements RawNode.ConnectionListener, MessageListener {
         return rawNode.findMyAddress();
     }
 
+    NetworkProxy getNetworkProxy() {
+        return rawNode.getNetworkProxy();
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private

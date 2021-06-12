@@ -78,7 +78,7 @@ public class I2pNetworkProxy implements NetworkProxy {
     @Override
     public void shutdown() {
         if (samClient != null) {
-            samClient.shutDown();
+            samClient.shutdown();
         }
     }
 

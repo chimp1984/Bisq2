@@ -166,7 +166,7 @@ public class I2PDemoRunner {
                                 clientSocket.getRemoteSocketAddress(),
                                 msg);
                         if (msg.equals("stop")) {
-                            samClient.shutDown();
+                            samClient.shutdown();
                         }
                     }
                 } catch (IOException e) {

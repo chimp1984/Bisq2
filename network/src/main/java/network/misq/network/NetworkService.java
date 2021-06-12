@@ -26,7 +26,7 @@ import network.misq.network.p2p.P2pService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.proxy.TorNetworkProxy;
+import network.misq.network.p2p.node.proxy.NetworkProxy;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,19 +44,16 @@ import java.util.stream.Collectors;
  */
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
+
+    public static record Options(P2pService.Option p2pServiceOption, Optional<String> socks5ProxyAddress) {
+    }
+
     @Getter
     private final Optional<String> socks5ProxyAddress;
     @Getter
     private final Set<NetworkType> supportedNetworkTypes;
 
-    public Optional<TorNetworkProxy> getTorNetworkProxy() {
-        return null;
-    }
-
-    public static record Options(P2pService.Option p2pServiceOption, Optional<String> socks5ProxyAddress) {
-    }
-
-    private P2pService p2pService;
+    private final P2pService p2pService;
 
     public NetworkService(Options options, KeyPairRepository keyPairRepository) {
         socks5ProxyAddress = options.socks5ProxyAddress;
@@ -72,7 +69,8 @@ public class NetworkService {
     public CompletableFuture<Boolean> initialize() {
         CompletableFuture<Boolean> bootstrap = p2pService.bootstrap();
         // For now we dont want to wait for bootstrap done at startup
-        return CompletableFuture.completedFuture(true);
+        // return CompletableFuture.completedFuture(true);
+        return bootstrap;
     }
 
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
@@ -91,6 +89,10 @@ public class NetworkService {
 
     public void removeMessageListener(MessageListener messageListener) {
         p2pService.removeMessageListener(messageListener);
+    }
+
+    public Optional<NetworkProxy> getNetworkProxy(NetworkType networkType) {
+        return p2pService.getNetworkProxy(networkType);
     }
 
     public void shutdown() {

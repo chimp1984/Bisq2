@@ -99,7 +99,7 @@ public class Domain {
         // Once all have successfully completed our initialize is complete as well
         return CollectionUtil.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))
-                .orTimeout(10, TimeUnit.SECONDS)
+                .orTimeout(120, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);
     }
 }

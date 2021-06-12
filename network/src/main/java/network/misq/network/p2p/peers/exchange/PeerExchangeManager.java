@@ -108,7 +108,7 @@ public class PeerExchangeManager implements ConnectionListener {
         } else {
             return CollectionUtil.allOf(allFutures)
                     .whenComplete((s, e) -> {
-                        log.error("");
+                      //  log.error("");
                     })                            // We require all futures the be completed
                     .thenApply(resultList -> {
                         return resultList.stream().filter(e -> e).count();
@@ -119,7 +119,7 @@ public class PeerExchangeManager implements ConnectionListener {
                         // Even we don't have any connection (first peer in network case) we return true.
                         return CompletableFuture.completedFuture(true);
                     }).whenComplete((s, e) -> {
-                        log.error("");
+                        // log.error("");
                     });
         }
     }
@@ -150,7 +150,7 @@ public class PeerExchangeManager implements ConnectionListener {
                     return CompletableFuture.completedFuture(true);
                 })
                 .exceptionally(e -> {
-                    log.error(e.toString());
+                    //  log.error(e.toString());
                     return false;
                 });
     }

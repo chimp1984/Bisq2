@@ -40,7 +40,7 @@ public class ClearNetHttpClient extends BaseHttpClient {
     }
 
     @Override
-    public void shutDown() {
+    public void shutdown() {
         try {
             if (connection != null) {
                 connection.getInputStream().close();

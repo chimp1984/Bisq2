@@ -26,6 +26,7 @@ import network.misq.network.p2p.node.protection.GuardedMessage;
 import network.misq.network.p2p.node.protection.NoRestriction;
 import network.misq.network.p2p.node.protection.PermissionControl;
 import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.proxy.NetworkProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,5 +172,9 @@ public class Node implements MessageListener, ConnectionListener {
 
     public NetworkType getNetworkType() {
         return networkConfig.getNetworkType();
+    }
+
+    public NetworkProxy getNetworkProxy() {
+        return baseNode.getNetworkProxy();
     }
 }

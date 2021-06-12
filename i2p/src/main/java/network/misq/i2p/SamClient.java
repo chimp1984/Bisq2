@@ -74,7 +74,7 @@ public class SamClient {
         this.dirPath = dirPath;
         log.info("Sam client created with dirPath={}; host={}; port={}; socketTimeout={}",
                 dirPath, host, port, socketTimeout);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutDown));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
 
     /**
@@ -180,7 +180,7 @@ public class SamClient {
         }
     }
 
-    public void shutDown() {
+    public void shutdown() {
         openSamConnections.forEach(SamConnection::close);
     }
 

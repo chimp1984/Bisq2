@@ -98,6 +98,7 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
 
         showAmountPriceFilterToggle = new AutoTooltipSlideToggleButton("Filter by amount and price");
         showAmountPriceFilterToggle.setTextAlignment(TextAlignment.LEFT);
+        showAmountPriceFilterToggle.setVisible(false); //todo deactivated as not updated to domain changes
 
         amountPriceFilterBox = new HBox();
         amountPriceFilterBox.setSpacing(80);
@@ -106,6 +107,13 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
         baseAmountSliderBox = new RangeSliderBox("Filter by BTC amount", 300, model, controller);
         // priceSliderBox = new RangeSliderBox("Filter by price", 300, model, controller);
         amountPriceFilterBox.getChildren().addAll(baseAmountSliderBox/*, priceSliderBox*/);
+
+        //todo deactivated as not updated to domain changes
+        showAmountPriceFilterToggle.managedProperty().bind(showAmountPriceFilterToggle.visibleProperty());
+        baseAmountSliderBox.visibleProperty().bind(showAmountPriceFilterToggle.visibleProperty());
+        baseAmountSliderBox.managedProperty().bind(showAmountPriceFilterToggle.visibleProperty());
+        amountPriceFilterBox.visibleProperty().bind(showAmountPriceFilterToggle.visibleProperty());
+        amountPriceFilterBox.managedProperty().bind(showAmountPriceFilterToggle.visibleProperty());
 
         tableView = new TableView<>();
         VBox.setVgrow(tableView, Priority.ALWAYS);

@@ -29,12 +29,11 @@ import java.util.UUID;
 
 @Slf4j
 public abstract class BaseHttpClient implements HttpClient {
-    protected final String baseUrl;
+    public final String baseUrl;
     protected final String userAgent;
     protected final String uid;
 
-
-    protected boolean hasPendingRequest;
+    public boolean hasPendingRequest;
 
     public BaseHttpClient(String baseUrl, String userAgent) {
         this.baseUrl = baseUrl;
@@ -51,6 +50,16 @@ public abstract class BaseHttpClient implements HttpClient {
     @Override
     public String post(String param, Optional<Couple<String, String>> optionalHeader) throws IOException {
         return doRequest(param, HttpMethod.POST, optionalHeader);
+    }
+
+    @Override
+    public boolean hasPendingRequest() {
+        return hasPendingRequest;
+    }
+
+    @Override
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     abstract protected String doRequest(String param, HttpMethod httpMethod,

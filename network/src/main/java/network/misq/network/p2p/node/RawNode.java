@@ -196,6 +196,10 @@ public class RawNode {
         connectionListeners.remove(connectionListener);
     }
 
+    NetworkProxy getNetworkProxy() {
+        return networkProxy;
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private
