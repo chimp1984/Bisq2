@@ -52,8 +52,7 @@ dependencies {
     implementation project(':application')
 
     implementation 'com.google.guava:guava'
-
-    implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
+    implementation 'io.reactivex.rxjava3:rxjava'
 
     implementation "com.jfoenix:jfoenix:9.0.10"
     implementation "de.jensd:fontawesomefx:8.0.0"

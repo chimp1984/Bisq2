@@ -17,8 +17,8 @@ dependencies {
     implementation project(':common')
     implementation project(':persistence')
 
-    implementation group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
     implementation 'com.google.guava:guava'
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
 }
 test {
     useJUnitPlatform()

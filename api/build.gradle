@@ -14,7 +14,7 @@ apply from: '../buildSrc/lombok-dependencies.gradle'
 
 dependencies {
     api platform(project(':platforms:common-platform'))
-   
+    
     implementation project(':common')
     implementation project(':persistence')
     implementation project(':security')
@@ -30,7 +30,7 @@ dependencies {
     implementation project(':application')
 
     implementation 'com.google.guava:guava'
-    implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
+    implementation 'io.reactivex.rxjava3:rxjava'
 }
 
 test {

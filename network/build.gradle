@@ -24,13 +24,12 @@ dependencies {
     implementation project(':persistence')
 
     implementation 'com.google.guava:guava'
-    implementation("org.apache.httpcomponents:httpclient:4.5.13")
+    implementation 'io.reactivex.rxjava3:rxjava'
+    implementation 'com.google.protobuf:protobuf-gradle-plugin'
+    implementation 'com.google.protobuf:protobuf-java'
+    
     implementation("com.github.chimp1984:jsocks:567e1cd6")
-
-    api 'com.google.protobuf:protobuf-gradle-plugin'
-    api 'com.google.protobuf:protobuf-java'
-    implementation group: 'io.reactivex.rxjava3', name: 'rxjava', version: '3.0.13'
-
+    implementation("org.apache.httpcomponents:httpclient:4.5.13")
 }
 
 test {
