@@ -99,9 +99,10 @@ public class OfferbookModel implements Model {
         applyBaseCurrency();
 
         resetFilter();
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskCurrencyCode().equals(selectedBidCurrencyProperty.get());
-        setAskCurrencyPredicate(predicate);
-        updateHeaders();
+
+        setSelectAskCurrency("BTC");
+        setSelectBidCurrency("USD");
+
         amountFilterModel.activate();
 
         offerEntityAddedDisposable = api.getOfferEntityAddedSubject().subscribe(offerEntity -> {
