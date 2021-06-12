@@ -1,30 +1,58 @@
 package network.misq.application;
 
+import lombok.extern.slf4j.Slf4j;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.application.options.ApplicationOptionsParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import network.misq.common.timer.UserThread;
+import network.misq.common.util.ThreadingUtils;
 
-
-public abstract class Executable {
-    private static final Logger log = LoggerFactory.getLogger(Executable.class);
+@Slf4j
+public abstract class Executable<T extends ApplicationFactory> {
+    protected final T applicationFactory;
 
     public Executable(String[] args) {
         ApplicationOptions applicationOptions = ApplicationOptionsParser.parse(args);
-        setupDomain(applicationOptions, args);
+        applicationFactory = createApplicationFactory(applicationOptions, args);
         createApi();
         launchApplication();
     }
 
-    abstract protected void setupDomain(ApplicationOptions applicationOptions, String[] args);
+    abstract protected T createApplicationFactory(ApplicationOptions applicationOptions, String[] args);
 
     abstract protected void createApi();
 
-    abstract protected void launchApplication();
+    protected void launchApplication() {
+        applicationLaunched();
+    }
 
-    abstract protected void setupUserThread();
+    protected void applicationLaunched() {
+        setupUserThread();
+        initializeDomain();
+    }
 
-    abstract protected void initializeDomain();
+    protected void setupUserThread() {
+        UserThread.setExecutor(ThreadingUtils.getSingleThreadExecutor(getClass().getSimpleName()));
+    }
 
-    abstract protected void initializeApplication();
+    protected void initializeDomain() {
+        applicationFactory.initialize()
+                .whenComplete((success, throwable) -> {
+                    if (success) {
+                        onInitializeDomainCompleted();
+                    } else {
+                        onInitializeDomainFailed(throwable);
+                    }
+                });
+    }
+
+    protected void onInitializeDomainFailed(Throwable throwable) {
+        throwable.printStackTrace();
+    }
+
+    abstract protected void onInitializeDomainCompleted();
+
+    public void shutdown() {
+        applicationFactory.shutdown();
+        System.exit(0);
+    }
 }

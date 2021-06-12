@@ -18,7 +18,7 @@
 package network.misq.api.partial;
 
 import lombok.Getter;
-import network.misq.api.Domain;
+import network.misq.api.DefaultApplicationFactory;
 import network.misq.network.NetworkService;
 import network.misq.security.KeyPairRepository;
 
@@ -30,8 +30,8 @@ public class SeedNodeApi {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
 
-    public SeedNodeApi(Domain domain) {
-        keyPairRepository = domain.getKeyPairRepository();
-        networkService = domain.getNetworkService();
+    public SeedNodeApi(DefaultApplicationFactory applicationFactory) {
+        keyPairRepository = applicationFactory.getKeyPairRepository();
+        networkService = applicationFactory.getNetworkService();
     }
 }

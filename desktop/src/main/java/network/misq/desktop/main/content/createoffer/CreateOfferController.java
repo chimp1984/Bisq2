@@ -18,7 +18,7 @@
 package network.misq.desktop.main.content.createoffer;
 
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.desktop.common.Controller;
 import network.misq.desktop.common.View;
 import network.misq.desktop.main.content.createoffer.assetswap.amounts.SetAmountsController;
@@ -28,13 +28,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CreateOfferController implements Controller {
-    private final Api api;
+    private final DefaultApi api;
     private CreateOfferModel model;
     @Getter
     private CreateOfferView view;
     private final Map<Class<? extends Controller>, Controller> map = new ConcurrentHashMap<>();
 
-    public CreateOfferController(Api api) {
+    public CreateOfferController(DefaultApi api) {
         this.api = api;
     }
 

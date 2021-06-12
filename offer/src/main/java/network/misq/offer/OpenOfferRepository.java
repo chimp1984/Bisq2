@@ -64,4 +64,8 @@ public class OpenOfferRepository {
         openOffers.add(openOffer);
         //  Persistence.write(openOffers);
     }
+
+    public void shutdown() {
+
+    }
 }

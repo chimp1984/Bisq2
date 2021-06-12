@@ -101,6 +101,10 @@ public class OfferRepository {
         networkService.addData(offer);
     }
 
+    public void shutdown() {
+
+    }
+
     public static class MockOfferBuilder {
 
         @Getter

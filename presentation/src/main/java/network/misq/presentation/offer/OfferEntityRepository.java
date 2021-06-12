@@ -100,4 +100,8 @@ public class OfferEntityRepository {
     public PublishSubject<OfferEntity> getOfferEntityRemovedSubject() {
         return offerEntityRemovedSubject;
     }
+
+    public void shutdown() {
+
+    }
 }

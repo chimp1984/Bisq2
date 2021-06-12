@@ -18,7 +18,7 @@
 package network.misq.grpc;
 
 import io.grpc.stub.StreamObserver;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.grpc.proto.GetMethodHelpReply;
 import network.misq.grpc.proto.GetMethodHelpRequest;
 import network.misq.grpc.proto.HelpGrpc;
@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 public class GrpcHelpService extends HelpGrpc.HelpImplBase {
     private static final Logger log = LoggerFactory.getLogger(GrpcHelpService.class);
 
-    private final Api api;
+    private final DefaultApi api;
 
-    public GrpcHelpService(Api api) {
+    public GrpcHelpService(DefaultApi api) {
         this.api = api;
     }
 

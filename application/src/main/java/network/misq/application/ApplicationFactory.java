@@ -15,30 +15,12 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.id;
-
-
-import network.misq.network.NetworkService;
-import network.misq.persistence.Persistence;
+package network.misq.application;
 
 import java.util.concurrent.CompletableFuture;
 
-public class IdentityRepository {
-    // expected dependencies
-    Persistence persistence;
-    private NetworkService networkService;
+public interface ApplicationFactory {
+    public CompletableFuture<Boolean> initialize();
 
-    public IdentityRepository(NetworkService networkService) {
-        this.networkService = networkService;
-    }
-
-    public CompletableFuture<Boolean> initialize() {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-        //todo
-        future.complete(true);
-        return future;
-    }
-
-    public void shutdown() {
-    }
+    void shutdown();
 }

@@ -18,7 +18,7 @@
 package network.misq.grpc;
 
 import io.grpc.stub.StreamObserver;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.grpc.proto.GetVersionGrpc;
 import network.misq.grpc.proto.GetVersionReply;
 import network.misq.grpc.proto.GetVersionRequest;
@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 public class GrpcVersionService extends GetVersionGrpc.GetVersionImplBase {
     private static final Logger log = LoggerFactory.getLogger(GrpcVersionService.class);
 
-    private final Api api;
+    private final DefaultApi api;
 
-    public GrpcVersionService(Api api) {
+    public GrpcVersionService(DefaultApi api) {
         this.api = api;
     }
 

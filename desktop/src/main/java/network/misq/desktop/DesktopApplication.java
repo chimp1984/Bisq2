@@ -19,31 +19,30 @@ package network.misq.desktop;
 
 import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.api.Api;
-import network.misq.api.Domain;
+import network.misq.api.DefaultApi;
+import network.misq.api.DefaultApplicationFactory;
 import network.misq.application.Executable;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.common.timer.UserThread;
 import network.misq.desktop.utils.UITimer;
 
 @Slf4j
-public class DesktopApplication extends Executable {
+public class DesktopApplication extends Executable<DefaultApplicationFactory> {
     private StageController stageController;
-    protected Api api;
-    private Domain domain;
+    protected DefaultApi api;
 
     public DesktopApplication(String[] args) {
         super(args);
     }
 
     @Override
-    protected void setupDomain(ApplicationOptions applicationOptions, String[] args) {
-        domain = new Domain(applicationOptions, args);
+    protected DefaultApplicationFactory createApplicationFactory(ApplicationOptions applicationOptions, String[] args) {
+        return new DefaultApplicationFactory(applicationOptions, args);
     }
 
     @Override
     protected void createApi() {
-        api = new Api(domain);
+        api = new DefaultApi(applicationFactory);
     }
 
     @Override
@@ -51,8 +50,7 @@ public class DesktopApplication extends Executable {
         stageController = new StageController(api);
         stageController.launchApplication().whenComplete((success, throwable) -> {
             log.info("Java FX Application initialized");
-            setupUserThread();
-            initializeDomain();
+            applicationLaunched();
         });
     }
 
@@ -63,19 +61,22 @@ public class DesktopApplication extends Executable {
     }
 
     @Override
-    protected void initializeDomain() {
-        domain.initialize().whenComplete((success, throwable) -> {
-            if (success) {
-                Platform.runLater(this::initializeApplication);
-            } else {
-                log.error("API Initialisation failed", throwable);
-                //todo handle error
-            }
-        });
+    protected void onInitializeDomainFailed(Throwable throwable) {
+        super.onInitializeDomainFailed(throwable);
+        stageController.onInitializeDomainFailed();
     }
 
     @Override
-    protected void initializeApplication() {
-        stageController.activate();
+    protected void onInitializeDomainCompleted() {
+        Platform.runLater(stageController::activate);
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+
+        if (stageController != null) {
+            stageController.shutdown();
+        }
     }
 }

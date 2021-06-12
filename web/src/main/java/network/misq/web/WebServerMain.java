@@ -1,23 +1,22 @@
 package network.misq.web;
 
 
-import network.misq.api.Api;
-import network.misq.api.Domain;
+import network.misq.api.DefaultApi;
+import network.misq.api.DefaultApplicationFactory;
 import network.misq.application.Executable;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.web.server.WebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebServerMain extends Executable {
+public class WebServerMain extends Executable<DefaultApplicationFactory> {
     private static final Logger log = LoggerFactory.getLogger(WebServerMain.class);
 
     public static void main(String[] args) {
         new WebServerMain(args);
     }
 
-    protected Api api;
-    private Domain domain;
+    protected DefaultApi api;
     private WebServer webServer;
 
     public WebServerMain(String[] args) {
@@ -25,31 +24,24 @@ public class WebServerMain extends Executable {
     }
 
     @Override
-    protected void setupDomain(ApplicationOptions applicationOptions, String[] args) {
-        domain = new Domain(applicationOptions, args);
+    protected DefaultApplicationFactory createApplicationFactory(ApplicationOptions applicationOptions, String[] args) {
+        return new DefaultApplicationFactory(applicationOptions, args);
     }
 
     @Override
     protected void createApi() {
-        api = new Api(domain);
+        api = new DefaultApi(applicationFactory);
     }
 
     @Override
-    protected void launchApplication() {
-        initializeDomain();
-    }
-
-    @Override
-    protected void initializeDomain() {
-        domain.initialize().whenComplete((success, throwable) -> {
-            if (success) {
-                webServer = new WebServer(api);
-                webServer.start();
-            }
-        });
+    protected void onInitializeDomainCompleted() {
+        webServer = new WebServer(api);
+        webServer.start();
     }
 
     public void shutdown() {
+        super.shutdown();
+
         if (webServer != null) {
             try {
                 log.info("Shutting down grpc server...");

@@ -21,6 +21,7 @@ import lombok.Getter;
 import network.misq.api.options.KeyPairRepositoryOptionsParser;
 import network.misq.api.options.MarketPriceServiceOptionsParser;
 import network.misq.api.options.NetworkServiceOptionsParser;
+import network.misq.application.ApplicationFactory;
 import network.misq.application.Version;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.common.currency.FiatCurrencyRepository;
@@ -49,7 +50,7 @@ import java.util.concurrent.TimeUnit;
  * Provides the completely setup instances to other clients (Api)
  */
 @Getter
-public class Domain {
+public class DefaultApplicationFactory implements ApplicationFactory {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
     private final OfferRepository offerRepository;
@@ -59,7 +60,7 @@ public class Domain {
     private final ApplicationOptions applicationOptions;
     private final MarketPriceService marketPriceService;
 
-    public Domain(ApplicationOptions applicationOptions, String[] args) {
+    public DefaultApplicationFactory(ApplicationOptions applicationOptions, String[] args) {
         this.applicationOptions = applicationOptions;
         Locale locale = applicationOptions.getLocale();
         LocaleRepository.setDefaultLocale(locale);
@@ -101,5 +102,16 @@ public class Domain {
                 .thenApply(success -> success.stream().allMatch(e -> e))
                 .orTimeout(120, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);
+    }
+
+    @Override
+    public void shutdown() {
+        keyPairRepository.shutdown();
+        identityRepository.shutdown();
+        networkService.shutdown();
+        marketPriceService.shutdown();
+        offerRepository.shutdown();
+        openOfferRepository.shutdown();
+        offerEntityRepository.shutdown();
     }
 }

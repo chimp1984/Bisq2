@@ -19,16 +19,16 @@ package network.misq.desktop.main.content.markets;
 
 import javafx.application.Platform;
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.desktop.common.Controller;
 
 public class MarketsController implements Controller {
-    private final Api api;
+    private final DefaultApi api;
     private MarketsModel model;
     @Getter
     private MarketsView view;
 
-    public MarketsController(Api api) {
+    public MarketsController(DefaultApi api) {
         this.api = api;
     }
 

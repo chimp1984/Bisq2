@@ -1,7 +1,7 @@
 package network.misq.web.server;
 
 import io.reactivex.Observable;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.web.server.handler.GetOffersHandler;
 import network.misq.web.server.handler.GetVersionHandler;
 import org.slf4j.Logger;
@@ -17,9 +17,9 @@ public class WebServer {
 
     private RatpackServer ratpackServer;
 
-    private final Api api;
+    private final DefaultApi api;
 
-    public WebServer(Api api) {
+    public WebServer(DefaultApi api) {
         this.api = api;
     }
 

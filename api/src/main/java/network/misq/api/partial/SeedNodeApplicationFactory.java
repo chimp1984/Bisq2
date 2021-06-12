@@ -20,6 +20,7 @@ package network.misq.api.partial;
 import lombok.Getter;
 import network.misq.api.options.KeyPairRepositoryOptionsParser;
 import network.misq.api.options.NetworkServiceOptionsParser;
+import network.misq.application.ApplicationFactory;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.common.util.CollectionUtil;
 import network.misq.network.NetworkService;
@@ -38,11 +39,11 @@ import java.util.concurrent.TimeUnit;
  * Provides the completely setup instances to other clients (Api)
  */
 @Getter
-public class SeedNodeDomain {
+public class SeedNodeApplicationFactory implements ApplicationFactory {
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
 
-    public SeedNodeDomain(ApplicationOptions applicationOptions, String[] args) {
+    public SeedNodeApplicationFactory(ApplicationOptions applicationOptions, String[] args) {
         KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
 
@@ -64,5 +65,11 @@ public class SeedNodeDomain {
                 .thenApply(success -> success.stream().allMatch(e -> e))
                 .orTimeout(10, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);
+    }
+
+    @Override
+    public void shutdown() {
+        keyPairRepository.shutdown();
+        networkService.shutdown();
     }
 }

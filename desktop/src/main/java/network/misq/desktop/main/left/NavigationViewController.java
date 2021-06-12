@@ -18,7 +18,7 @@
 package network.misq.desktop.main.left;
 
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.desktop.common.Controller;
 import network.misq.desktop.main.content.ContentViewController;
 import network.misq.desktop.main.content.createoffer.CreateOfferController;
@@ -28,11 +28,11 @@ public class NavigationViewController implements Controller {
     private NavigationViewModel model;
     @Getter
     private NavigationView view;
-    private final Api api;
+    private final DefaultApi api;
     private final ContentViewController contentViewController;
     private final OverlayController overlayController;
 
-    public NavigationViewController(Api api,
+    public NavigationViewController(DefaultApi api,
                                     ContentViewController contentViewController,
                                     OverlayController overlayController) {
         this.api = api;

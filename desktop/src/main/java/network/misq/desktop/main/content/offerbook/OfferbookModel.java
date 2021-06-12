@@ -24,7 +24,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import lombok.Getter;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import network.misq.desktop.common.Model;
 import network.misq.offer.MarketPrice;
 
@@ -42,7 +42,7 @@ public class OfferbookModel implements Model {
     // Exposed for filter model
     final ObservableList<OfferListItem> offerItems = FXCollections.observableArrayList();
     final Set<Predicate<OfferListItem>> listFilterPredicates = new CopyOnWriteArraySet<>();
-    private final Api api;
+    private final DefaultApi api;
     Predicate<OfferListItem> askCurrencyPredicate = e -> true;
     Predicate<OfferListItem> bidCurrencyPredicate = e -> true;
     String baseCurrency, quoteCurrency;
@@ -73,7 +73,7 @@ public class OfferbookModel implements Model {
 
     private Disposable offerEntityAddedDisposable, offerEntityRemovedDisposable, marketPriceDisposable;
 
-    public OfferbookModel(Api api) {
+    public OfferbookModel(DefaultApi api) {
         this.api = api;
 
         amountFilterModel = new RangeFilterModel(this);

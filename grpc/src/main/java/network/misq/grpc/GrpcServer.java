@@ -4,7 +4,7 @@ package network.misq.grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.protobuf.services.ProtoReflectionService;
-import network.misq.api.Api;
+import network.misq.api.DefaultApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class GrpcServer {
 
     private final Server server;
 
-    public GrpcServer(Api api) {
+    public GrpcServer(DefaultApi api) {
         this.server = ServerBuilder.forPort(7777)
                 .addService(new GrpcHelpService(api))
                 .addService(new GrpcVersionService(api))

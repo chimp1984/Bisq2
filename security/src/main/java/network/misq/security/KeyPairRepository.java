@@ -54,6 +54,9 @@ public class KeyPairRepository {
         return future;
     }
 
+    public void shutdown() {
+    }
+
     public void add(KeyPair keyPair, String tag) {
         checkArgument(!keyPairsByTag.containsKey(tag));
         keyPairsByTag.put(tag, keyPair);

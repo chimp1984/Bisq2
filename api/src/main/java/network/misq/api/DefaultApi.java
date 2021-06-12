@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
  * Api for fully featured nodes, like a desktop app.
  */
 @Getter
-public class Api {
+public class DefaultApi {
     private final ApplicationOptions applicationOptions;
     private final KeyPairRepository keyPairRepository;
     private final NetworkService networkService;
@@ -50,15 +50,15 @@ public class Api {
     private final IdentityRepository identityRepository;
     private final MarketPriceService marketPriceService;
 
-    public Api(Domain domain) {
-        applicationOptions = domain.getApplicationOptions();
-        keyPairRepository = domain.getKeyPairRepository();
-        networkService = domain.getNetworkService();
-        identityRepository = domain.getIdentityRepository();
-        offerRepository = domain.getOfferRepository();
-        openOfferRepository = domain.getOpenOfferRepository();
-        offerEntityRepository = domain.getOfferEntityRepository();
-        marketPriceService = domain.getMarketPriceService();
+    public DefaultApi(DefaultApplicationFactory applicationFactory) {
+        applicationOptions = applicationFactory.getApplicationOptions();
+        keyPairRepository = applicationFactory.getKeyPairRepository();
+        networkService = applicationFactory.getNetworkService();
+        identityRepository = applicationFactory.getIdentityRepository();
+        offerRepository = applicationFactory.getOfferRepository();
+        openOfferRepository = applicationFactory.getOpenOfferRepository();
+        offerEntityRepository = applicationFactory.getOfferEntityRepository();
+        marketPriceService = applicationFactory.getMarketPriceService();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////

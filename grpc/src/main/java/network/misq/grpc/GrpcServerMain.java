@@ -1,23 +1,22 @@
 package network.misq.grpc;
 
 
-import network.misq.api.Api;
-import network.misq.api.Domain;
+import network.misq.api.DefaultApi;
+import network.misq.api.DefaultApplicationFactory;
 import network.misq.application.Executable;
 import network.misq.application.options.ApplicationOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class GrpcServerMain extends Executable {
+public class GrpcServerMain extends Executable<DefaultApplicationFactory> {
     private static final Logger log = LoggerFactory.getLogger(GrpcServerMain.class);
 
     public static void main(String[] args) {
         new GrpcServerMain(args);
     }
 
-    protected Api api;
-    private Domain domain;
+    protected DefaultApi api;
     private GrpcServer grpcServer;
 
     public GrpcServerMain(String[] args) {
@@ -25,38 +24,27 @@ public class GrpcServerMain extends Executable {
     }
 
     @Override
-    protected void setupDomain(ApplicationOptions applicationOptions, String[] args) {
-        domain = new Domain(applicationOptions, args);
+    protected DefaultApplicationFactory createApplicationFactory(ApplicationOptions applicationOptions, String[] args) {
+        return new DefaultApplicationFactory(applicationOptions, args);
     }
 
     @Override
     protected void createApi() {
-        api = new Api(domain);
+        api = new DefaultApi(applicationFactory);
     }
 
     @Override
-    protected void launchApplication() {
-        initializeDomain();
+    protected void onInitializeDomainCompleted() {
+        grpcServer = new GrpcServer(api);
+        grpcServer.start();
     }
 
     @Override
-    protected void initializeDomain() {
-        domain.initialize().whenComplete((success, throwable) -> {
-            if (success) {
-                grpcServer = new GrpcServer(api);
-                grpcServer.start();
-            }
-        });
-    }
-
     public void shutdown() {
+        super.shutdown();
+
         if (grpcServer != null) {
-            try {
-                log.info("Shutting down grpc server...");
-                grpcServer.shutdown();
-            } catch (Exception ex) {
-                log.error("", ex);
-            }
+            grpcServer.shutdown();
         }
     }
 }
