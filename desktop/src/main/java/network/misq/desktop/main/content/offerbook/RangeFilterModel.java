@@ -100,13 +100,13 @@ public class RangeFilterModel {
 
     private void applyMinBaseAmountValue() {
         FilteredList<OfferListItem> tempList = new FilteredList<>(model.offerItems);
-        tempList.setPredicate(model.currencyPredicate);
+        tempList.setPredicate(model.askCurrencyPredicate);
         min = getMin(tempList);
     }
 
     private void applyMaxBaseAmountValue() {
         FilteredList<OfferListItem> tempList = new FilteredList<>(model.offerItems);
-        tempList.setPredicate(model.currencyPredicate);
+        tempList.setPredicate(model.askCurrencyPredicate);
         max = getMax(tempList);
     }
 
@@ -124,7 +124,7 @@ public class RangeFilterModel {
 
     private void setLowBaseAmountPredicate(Predicate<OfferListItem> predicate) {
         model.clearFilterPredicates();
-        model.listFilterPredicates.add(model.currencyPredicate);
+        model.listFilterPredicates.add(model.askCurrencyPredicate);
         model.listFilterPredicates.add(predicate);
         model.listFilterPredicates.add(highPredicate);
         lowPredicate = predicate;
@@ -133,7 +133,7 @@ public class RangeFilterModel {
 
     private void setHighBaseAmountPredicate(Predicate<OfferListItem> predicate) {
         model.clearFilterPredicates();
-        model.listFilterPredicates.add(model.currencyPredicate);
+        model.listFilterPredicates.add(model.askCurrencyPredicate);
         model.listFilterPredicates.add(predicate);
         model.listFilterPredicates.add(lowPredicate);
         highPredicate = predicate;

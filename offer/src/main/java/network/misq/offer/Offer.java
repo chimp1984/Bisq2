@@ -91,8 +91,20 @@ public class Offer extends Listing {
         return isBaseCurrencyAskSide ? bidAsset : askAsset;
     }
 
-    public String getBaseCurrency() {
+    public String getBaseCurrencyCode() {
         return getBaseAsset().currencyCode();
+    }
+
+    public String getQuoteCurrencyCode() {
+        return getQuoteAsset().currencyCode();
+    }
+
+    public String getAskCurrencyCode() {
+        return askAsset.currencyCode();
+    }
+
+    public String getBidCurrencyCode() {
+        return bidAsset.currencyCode();
     }
 
     public Optional<Double> getMinAmountAsPercentage() {

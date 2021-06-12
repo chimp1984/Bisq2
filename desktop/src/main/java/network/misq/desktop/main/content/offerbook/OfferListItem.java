@@ -19,6 +19,7 @@ package network.misq.desktop.main.content.offerbook;
 
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
@@ -32,10 +33,27 @@ public class OfferListItem extends OfferEntity {
     @Getter
     private final StringProperty quoteProperty = new SimpleStringProperty("");
     @Getter
+    private final StringProperty marketPriceOffsetProperty = new SimpleStringProperty("");
+    @Getter
     private final StringProperty quoteAmountProperty = new SimpleStringProperty("");
+    @Getter
+    private final StringProperty askAmountProperty = new SimpleStringProperty("");
+    @Getter
+    private final StringProperty bidAmountProperty = new SimpleStringProperty("");
+    private BooleanProperty showAllAskCurrencies;
+    private BooleanProperty showAllBidCurrencies;
 
-    public OfferListItem(Offer offer, BehaviorSubject<Map<String, MarketPrice>> marketPriceSubject) {
+    public OfferListItem(Offer offer,
+                         BehaviorSubject<Map<String, MarketPrice>> marketPriceSubject,
+                         BooleanProperty showAllAskCurrencies,
+                         BooleanProperty showAllBidCurrencies) {
+
         super(offer, marketPriceSubject);
+        this.showAllAskCurrencies = showAllAskCurrencies;
+        this.showAllBidCurrencies = showAllBidCurrencies;
+
+        showAllAskCurrencies.addListener(o -> applyAskAmountProperty());
+        showAllBidCurrencies.addListener(o -> applyBidAmountProperty());
     }
 
     @Override
@@ -44,8 +62,37 @@ public class OfferListItem extends OfferEntity {
         // We get called from the constructor of our superclass, so our fields are not initialized at that moment.
         // We delay with Platform.runLater which guards us also in case we get called from a non JavaFxApplication thread.
         Platform.runLater(() -> {
-            quoteProperty.set(formattedQuote);
+            applyQuote();
+            marketPriceOffsetProperty.set(formattedMarketPriceOffset);
+
             quoteAmountProperty.set(formattedQuoteAmountWithMinAmount);
+
+            applyBidAmountProperty();
+            applyAskAmountProperty();
         });
+    }
+
+    private void applyQuote() {
+        quoteProperty.set(formattedQuote + getQuoteCode());
+    }
+
+    private void applyBidAmountProperty() {
+        bidAmountProperty.set(getFormattedBidAmountWithMinAmount() + getBidCurrencyCode());
+    }
+
+    private void applyAskAmountProperty() {
+        askAmountProperty.set(getFormattedAskAmountWithMinAmount() + getAskCurrencyCode());
+    }
+
+    private String getQuoteCode() {
+        return showAllBidCurrencies.get() || showAllAskCurrencies.get() ? " " + offer.getQuote().getQuoteCode() : "";
+    }
+
+    private String getBidCurrencyCode() {
+        return showAllBidCurrencies.get() ? " " + offer.getBidCurrencyCode() : "";
+    }
+
+    private String getAskCurrencyCode() {
+        return showAllAskCurrencies.get() ? " " + offer.getAskCurrencyCode() : "";
     }
 }

@@ -18,6 +18,7 @@
 package network.misq.desktop.main.content.offerbook;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -119,9 +120,11 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
         VBox.setVgrow(tableView, Priority.ALWAYS);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        addValueColumn("Base amount", OfferListItem::getFormattedBaseAmountWithMinAmount, Optional.of(OfferListItem::compareBaseAmount));
-        addPropertyColumn("Price", OfferListItem::getQuoteProperty, Optional.of(OfferListItem::compareQuote));
-        addPropertyColumn("Quote amount", OfferListItem::getQuoteAmountProperty, Optional.of(OfferListItem::compareQuoteAmount));
+        addPropertyColumn(model.getOfferedAmountHeaderProperty(), OfferListItem::getBidAmountProperty, Optional.of(OfferListItem::compareBidAmount));
+        addPropertyColumn(model.getPriceHeaderProperty(), OfferListItem::getQuoteProperty, Optional.of(OfferListItem::compareQuote));
+        addPropertyColumn(new SimpleStringProperty("Market price % offset"),
+                OfferListItem::getMarketPriceOffsetProperty, Optional.of(OfferListItem::compareMarketPriceOffset));
+        addPropertyColumn(model.getAskedAmountHeaderProperty(), OfferListItem::getAskAmountProperty, Optional.of(OfferListItem::compareAskAmount));
         addValueColumn("Details", OfferListItem::getFormattedTransferOptions, Optional.empty());
         addMakerColumn("");
         addTakeOfferColumn("");
@@ -271,11 +274,11 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
             column.setSortable(true);
             column.setComparator(comparator);
         });
-
         tableView.getColumns().add(column);
     }
 
-    private void addPropertyColumn(String header, Function<OfferListItem, StringProperty> valueSupplier, Optional<Comparator<OfferListItem>> optionalComparator) {
+    private void addPropertyColumn(StringProperty header, Function<OfferListItem, StringProperty> valueSupplier,
+                                   Optional<Comparator<OfferListItem>> optionalComparator) {
         AutoTooltipTableColumn<OfferListItem, OfferListItem> column = new AutoTooltipTableColumn<>(header) {
             {
                 setMinWidth(125);
@@ -313,6 +316,10 @@ public class OfferbookView extends View<VBox, OfferbookModel, OfferbookControlle
                         };
                     }
                 });
+        optionalComparator.ifPresent(comparator -> {
+            column.setSortable(true);
+            column.setComparator(comparator);
+        });
         tableView.getColumns().add(column);
     }
 }

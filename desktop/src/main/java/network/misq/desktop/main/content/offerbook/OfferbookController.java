@@ -69,11 +69,15 @@ public class OfferbookController implements Controller {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void onSelectAskCurrency(String currency) {
-        model.setSelectAskCurrency(currency);
+        if (currency != null) {
+            model.setSelectAskCurrency(currency);
+        }
     }
 
     public void onSelectBidCurrency(String currency) {
-        model.setSelectBidCurrency(currency);
+        if (currency != null) {
+            model.setSelectBidCurrency(currency);
+        }
     }
 
     public void onFlipCurrencies() {

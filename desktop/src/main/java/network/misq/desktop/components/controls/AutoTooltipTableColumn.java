@@ -19,22 +19,32 @@ package network.misq.desktop.components.controls;
 
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.layout.HBox;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.desktop.components.controls.controlsfx.control.PopOver;
 import network.misq.desktop.components.overlay.PopOverWrapper;
 
+@Slf4j
 public class AutoTooltipTableColumn<S, T> extends TableColumn<S, T> {
 
     private Label helpIcon;
     private final PopOverWrapper popoverWrapper = new PopOverWrapper();
+    private final AutoTooltipLabel titleLabel = new AutoTooltipLabel();
 
     public AutoTooltipTableColumn(String text) {
         super();
 
         setTitle(text);
+    }
+
+    public AutoTooltipTableColumn(StringProperty titleProperty) {
+        super();
+
+        setTitle(titleProperty);
     }
 
     public AutoTooltipTableColumn(String text, String help) {
@@ -43,7 +53,13 @@ public class AutoTooltipTableColumn<S, T> extends TableColumn<S, T> {
     }
 
     public void setTitle(String title) {
-        setGraphic(new AutoTooltipLabel(title));
+        titleLabel.setText(title);
+        setGraphic(titleLabel);
+    }
+
+    public void setTitle(StringProperty titleProperty) {
+        titleLabel.textProperty().bind(titleProperty);
+        setGraphic(titleLabel);
     }
 
     public void setTitleWithHelpText(String title, String help) {

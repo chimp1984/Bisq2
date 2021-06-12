@@ -18,10 +18,7 @@
 package network.misq.desktop.main.content.offerbook;
 
 import io.reactivex.rxjava3.disposables.Disposable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -40,12 +37,15 @@ import java.util.stream.Collectors;
 // Handled jfx only concerns, others which can be re-used by other frontends are in OfferbookEntity
 public class OfferbookModel implements Model {
 
+    static final String SHOW_ALL = "Show all";
+
     // Exposed for filter model
     final ObservableList<OfferListItem> offerItems = FXCollections.observableArrayList();
     final Set<Predicate<OfferListItem>> listFilterPredicates = new CopyOnWriteArraySet<>();
     private final Api api;
-    Predicate<OfferListItem> currencyPredicate = e -> true;
-    String baseCurrency;
+    Predicate<OfferListItem> askCurrencyPredicate = e -> true;
+    Predicate<OfferListItem> bidCurrencyPredicate = e -> true;
+    String baseCurrency, quoteCurrency;
 
     private final FilteredList<OfferListItem> filteredItems = new FilteredList<>(offerItems);
 
@@ -59,9 +59,17 @@ public class OfferbookModel implements Model {
     @Getter
     private final ObjectProperty<Map<String, MarketPrice>> marketPriceByCurrencyMapProperty = new SimpleObjectProperty<>();
     @Getter
-    private final ObservableList<String> currenciesProperty = FXCollections.observableArrayList("BTC", "USD", "EUR", "XMR", "USDT");
+    private final ObservableList<String> currenciesProperty = FXCollections.observableArrayList(SHOW_ALL, "BTC", "USD", "EUR", "XMR", "USDT");
     @Getter
     private final RangeFilterModel amountFilterModel;
+    @Getter
+    private final StringProperty offeredAmountHeaderProperty = new SimpleStringProperty("Offered amount");
+    @Getter
+    private final StringProperty askedAmountHeaderProperty = new SimpleStringProperty("Asked amount");
+    @Getter
+    private final StringProperty priceHeaderProperty = new SimpleStringProperty("Price");
+    private final BooleanProperty showAllAskCurrencies = new SimpleBooleanProperty();
+    private final BooleanProperty showAllBidCurrencies = new SimpleBooleanProperty();
 
     private Disposable offerEntityAddedDisposable, offerEntityRemovedDisposable, marketPriceDisposable;
 
@@ -82,18 +90,25 @@ public class OfferbookModel implements Model {
 
         offerItems.clear();
         offerItems.addAll(api.getOfferEntities().stream()
-                .map(OfferListItem -> new OfferListItem(OfferListItem.getOffer(), OfferListItem.getMarketPriceSubject()))
+                .map(OfferListItem -> new OfferListItem(OfferListItem.getOffer(),
+                        OfferListItem.getMarketPriceSubject(),
+                        showAllAskCurrencies,
+                        showAllBidCurrencies))
                 .collect(Collectors.toList()));
 
         applyBaseCurrency();
 
         resetFilter();
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().currencyCode().equals(selectedAskCurrencyProperty.get());
-        setCurrencyPredicate(predicate);
+        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskCurrencyCode().equals(selectedBidCurrencyProperty.get());
+        setAskCurrencyPredicate(predicate);
+        updateHeaders();
         amountFilterModel.activate();
 
         offerEntityAddedDisposable = api.getOfferEntityAddedSubject().subscribe(offerEntity -> {
-            offerItems.add(new OfferListItem(offerEntity.getOffer(), offerEntity.getMarketPriceSubject()));
+            offerItems.add(new OfferListItem(offerEntity.getOffer(),
+                    offerEntity.getMarketPriceSubject(),
+                    showAllAskCurrencies,
+                    showAllBidCurrencies));
         }, Throwable::printStackTrace);
 
         offerEntityRemovedDisposable = api.getOfferEntityRemovedSubject().subscribe(offerEntity -> {
@@ -133,15 +148,49 @@ public class OfferbookModel implements Model {
     }
 
     public void setSelectAskCurrency(String currency) {
-        selectedAskCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getAskAsset().currencyCode().equals(currency);
-        setCurrencyPredicate(predicate);
+        if (SHOW_ALL.equals(currency)) {
+            selectedAskCurrencyProperty.set(null);
+            setAskCurrencyPredicate(item -> true);
+            showAllBidCurrencies.set(true);
+        } else {
+            selectedAskCurrencyProperty.set(currency);
+            setAskCurrencyPredicate(item -> item.getOffer().getBidAsset().currencyCode().equals(currency));
+            showAllBidCurrencies.set(false);
+        }
+        updateHeaders();
     }
 
     public void setSelectBidCurrency(String currency) {
-        selectedBidCurrencyProperty.set(currency);
-        Predicate<OfferListItem> predicate = item -> item.getOffer().getBidAsset().currencyCode().equals(currency);
-        setCurrencyPredicate(predicate);
+        if (SHOW_ALL.equals(currency)) {
+            selectedBidCurrencyProperty.set(null);
+            setBidCurrencyPredicate(item -> true);
+            showAllAskCurrencies.set(true);
+        } else {
+            selectedBidCurrencyProperty.set(currency);
+            setBidCurrencyPredicate(item -> item.getOffer().getAskCurrencyCode().equals(currency));
+            showAllAskCurrencies.set(false);
+        }
+        updateHeaders();
+    }
+
+    private void updateHeaders() {
+        if (selectedAskCurrencyProperty.get() == null || selectedBidCurrencyProperty.get() == null) {
+            priceHeaderProperty.set("Price");
+        } else {
+            priceHeaderProperty.set("Price " + baseCurrency + "/" + quoteCurrency);
+        }
+
+        if (selectedAskCurrencyProperty.get() == null) {
+            offeredAmountHeaderProperty.set("Offered amount");
+        } else {
+            offeredAmountHeaderProperty.set("Offered amount " + selectedAskCurrencyProperty.get());
+        }
+
+        if (selectedBidCurrencyProperty.get() == null) {
+            askedAmountHeaderProperty.set("Asked amount");
+        } else {
+            askedAmountHeaderProperty.set("Asked amount " + selectedBidCurrencyProperty.get());
+        }
     }
 
 
@@ -162,13 +211,25 @@ public class OfferbookModel implements Model {
     }
 
     void applyBaseCurrency() {
-        filteredItems.stream().findAny().ifPresent(o -> baseCurrency = o.getOffer().getBaseCurrency());
+        filteredItems.stream().findAny().ifPresent(o -> {
+            baseCurrency = o.getOffer().getBaseCurrencyCode();
+            quoteCurrency = o.getOffer().getQuoteCurrencyCode();
+        });
     }
 
-    private void setCurrencyPredicate(Predicate<OfferListItem> predicate) {
-        clearFilterPredicates();
+    private void setAskCurrencyPredicate(Predicate<OfferListItem> predicate) {
+        //clearFilterPredicates();
+        listFilterPredicates.remove(askCurrencyPredicate);
         listFilterPredicates.add(predicate);
-        currencyPredicate = predicate;
+        askCurrencyPredicate = predicate;
+        applyListFilterPredicates();
+    }
+
+    private void setBidCurrencyPredicate(Predicate<OfferListItem> predicate) {
+        //clearFilterPredicates();
+        listFilterPredicates.remove(bidCurrencyPredicate);
+        listFilterPredicates.add(predicate);
+        bidCurrencyPredicate = predicate;
         applyListFilterPredicates();
     }
 }

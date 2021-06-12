@@ -30,7 +30,7 @@ import java.util.Optional;
 public class AmountFormatter {
     public static String formatAmountWithMinAmount(Monetary amount, Optional<Long> optionalMinAmount) {
         return AmountFormatter.formatMinAmount(optionalMinAmount, amount) +
-                AmountFormatter.formatAmountWithCode(amount);
+                AmountFormatter.formatAmount(amount);
     }
 
     public static String formatAmount1(long amount, String currencyCode) {

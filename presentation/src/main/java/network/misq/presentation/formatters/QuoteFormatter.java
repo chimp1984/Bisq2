@@ -26,10 +26,13 @@ import network.misq.common.util.MathUtils;
 import java.util.Locale;
 
 public class QuoteFormatter {
-    public static String formatWithQuoteCode(Quote quote, double offset) {
-        return formatWithQuoteCode(quote, LocaleRepository.getDefaultLocale()) + " (" + formatOffsetAsPercent(offset) + ")";
+    public static String formatWithQuoteCode(Quote quote) {
+        return formatWithQuoteCode(quote, LocaleRepository.getDefaultLocale());
     }
 
+    public static String formatMarketPriceOffset(double offset) {
+        return MathUtils.roundDouble(offset * 100, 2) + "%";
+    }
 
     public static String formatWithQuoteCode(Quote quote, Locale locale) {
         return format(quote, locale) + " " + quote.getQuoteCode();
@@ -48,7 +51,5 @@ public class QuoteFormatter {
         return DecimalFormatters.getDecimalFormat(locale, precision);
     }
 
-    private static String formatOffsetAsPercent(double offset) {
-        return MathUtils.roundDouble(offset * 100, 2) + "%";
-    }
+
 }
