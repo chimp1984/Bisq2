@@ -18,26 +18,14 @@
 package network.misq.persistence;
 
 import lombok.extern.slf4j.Slf4j;
+import network.misq.common.util.FileUtils;
 
 import java.io.*;
+import java.nio.file.Path;
 
 @Slf4j
 public class Persistence {
-    public static void write(Persistable persistable) {
-        write(persistable, persistable.getDefaultStorageFileName());
-    }
-
-    public static void write(Serializable serializable, String storagePath) {
-        try (FileOutputStream fileOutputStream = new FileOutputStream(storagePath);
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-            objectOutputStream.writeObject(serializable);
-            objectOutputStream.flush();
-            fileOutputStream.flush();
-            fileOutputStream.getFD().sync();
-        } catch (IOException exception) {
-            log.error(exception.toString(), exception);
-        }
-    }
+    private static Path usedTempFilePath;
 
     public static Serializable read(String storagePath) {
         try (FileInputStream fileInputStream = new FileInputStream(storagePath);
@@ -47,5 +35,40 @@ public class Persistence {
             log.error(exception.toString(), exception);
             return null;
         }
+    }
+
+    public static void write(Serializable serializable, String directory, String fileName) {
+        try {
+            FileUtils.makeDirs(directory);
+            File tempFile = getTempFile(fileName, directory);
+            File storageFile = new File(directory, fileName);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+                objectOutputStream.writeObject(serializable);
+                objectOutputStream.flush();
+                fileOutputStream.flush();
+                fileOutputStream.getFD().sync();
+
+                FileUtils.renameFile(tempFile, storageFile);
+                usedTempFilePath = tempFile.toPath();
+            } catch (IOException exception) {
+                log.error(exception.toString(), exception);
+                usedTempFilePath = null;
+            } finally {
+                FileUtils.deleteFile(tempFile);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static File getTempFile(String fileName, String dir) throws IOException {
+        File tempFile = usedTempFilePath != null
+                ? FileUtils.createNewFile(usedTempFilePath)
+                : File.createTempFile("temp_" + fileName, null, new File(dir));
+        // We don't use a new temp file path each time, as that causes the delete-on-exit hook to leak memory:
+        tempFile.deleteOnExit();
+        return tempFile;
     }
 }

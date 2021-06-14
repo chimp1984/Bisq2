@@ -28,11 +28,14 @@ import static java.io.File.separator;
 
 public abstract class DataStore {
     protected final String storageFilePath;
+    protected final String storageDirectory;
+    protected final String fileName;
 
     public DataStore(String appDirPath, MetaData metaData) throws IOException {
-        String dir = appDirPath + Storage.DIR + File.separator + getStoreDir();
-        FileUtils.makeDirs(dir);
-        storageFilePath = dir + separator + metaData.getFileName();
+        storageDirectory = appDirPath + Storage.DIR + File.separator + getStoreDir();
+        FileUtils.makeDirs(storageDirectory);
+        fileName = metaData.getFileName();
+        storageFilePath = storageDirectory + separator + fileName;
     }
 
     protected String getStoreDir() {

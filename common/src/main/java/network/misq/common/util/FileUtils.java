@@ -71,6 +71,14 @@ public class FileUtils {
         dir.delete();
     }
 
+    public static void deleteFile(File file) {
+        if (file != null && file.exists()) {
+            if (!file.delete()) {
+                log.error("Cannot delete file {}", file);
+            }
+        }
+    }
+
     public static void makeDirs(String dirPath) throws IOException {
         makeDirs(new File(dirPath));
     }
@@ -170,6 +178,30 @@ public class FileUtils {
         } catch (IOException e) {
             log.error(e.toString(), e);
             return new HashSet<>();
+        }
+    }
+
+    public static File createNewFile(Path path) throws IOException {
+        File file = path.toFile();
+        if (!file.createNewFile()) {
+            throw new IOException("File with path exists already: " + path);
+        }
+        return file;
+    }
+
+    public static void renameFile(File oldFile, File newFile) throws IOException {
+        File target = newFile;
+        if (OsUtils.isWindows()) {
+            // Work around an issue on Windows whereby you can't rename over existing files.
+            target = newFile.getCanonicalFile();
+            if (target.exists() && !target.delete()) {
+                throw new IOException("Failed to delete canonical file for replacement with save");
+            }
+        }
+
+        boolean success = oldFile.renameTo(target);
+        if (!success) {
+            throw new IOException("Failed to rename " + oldFile + " to " + target);
         }
     }
 }

@@ -245,7 +245,7 @@ public class MailboxDataStore extends DataStore {
     }
 
     private void persist() {
-        Persistence.write(map, storageFilePath);
+        Persistence.write(map, storageDirectory, fileName);
     }
 
 }

@@ -47,13 +47,14 @@ public class PersistenceTest {
 
     @Test
     public void testPersistence() throws IOException {
-        String dir = OsUtils.getUserDataDir() + File.separator + "misq_PersistenceTest";
-        FileUtils.makeDirs(dir);
-        String storagePath = dir + File.separator + "MockObject";
+        String storageDirectory = OsUtils.getUserDataDir() + File.separator + "misq_PersistenceTest";
+        FileUtils.makeDirs(storageDirectory);
+        String fileName = "MockObject";
+        String storagePath = storageDirectory + File.separator + fileName;
         MockObject mockObject = new MockObject(1);
         for (int i = 0; i < 100; i++) {
             mockObject.list.add(i);
-            Persistence.write(mockObject, storagePath);
+            Persistence.write(mockObject, storageDirectory, fileName);
         }
         MockObject mockObject2 = (MockObject) Persistence.read(storagePath);
         assertEquals(mockObject.getIndex(), mockObject2.getIndex());
