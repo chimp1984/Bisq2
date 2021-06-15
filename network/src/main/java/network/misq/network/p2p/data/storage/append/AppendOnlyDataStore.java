@@ -37,7 +37,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * If key already exists we return. If map size exceeds MAX_MAP_SIZE we ignore new data.
  */
 @Slf4j
-public class AppendOnlyDataStore extends DataStore {
+public class AppendOnlyDataStore extends DataStore<AppendOnlyData> {
     private static final int MAX_MAP_SIZE = 10_000_000; // in bytes
 
     private final int maxMapSize;
@@ -46,7 +46,6 @@ public class AppendOnlyDataStore extends DataStore {
         void onAppended(AppendOnlyData appendOnlyData);
     }
 
-    final ConcurrentHashMap<MapKey, AppendOnlyData> map = new ConcurrentHashMap<>();
     private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
 
     public AppendOnlyDataStore(String appDirPath, MetaData metaData) throws IOException {
@@ -96,10 +95,6 @@ public class AppendOnlyDataStore extends DataStore {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void persist() {
-        Persistence.write(map, storageDirectory, fileName);
-    }
 
     @VisibleForTesting
     ConcurrentHashMap<MapKey, AppendOnlyData> getMap() {

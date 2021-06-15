@@ -19,13 +19,30 @@ package network.misq.persistence;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.FileUtils;
+import network.misq.common.util.ThreadingUtils;
 
 import java.io.*;
-import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class Persistence {
-    private static Path usedTempFilePath;
+    private final String directory;
+    private final String fileName;
+    private final String storagePath;
+    private final Object writeLock = new Object();
+    private File tempFile;
+    private Serializable serializable;
+
+    public Persistence(String directory, Serializable serializable) {
+        this(directory, serializable.getClass().getSimpleName(), serializable);
+    }
+
+    public Persistence(String directory, String fileName, Serializable serializable) {
+        this.directory = directory;
+        this.serializable = serializable;
+        this.fileName = fileName;
+        storagePath = directory + File.separator + fileName;
+    }
 
     public static Serializable read(String storagePath) {
         try (FileInputStream fileInputStream = new FileInputStream(storagePath);
@@ -37,38 +54,37 @@ public class Persistence {
         }
     }
 
-    public static void write(Serializable serializable, String directory, String fileName) {
-        try {
-            FileUtils.makeDirs(directory);
-            File tempFile = getTempFile(fileName, directory);
-            File storageFile = new File(directory, fileName);
-            try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
-                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-                objectOutputStream.writeObject(serializable);
-                objectOutputStream.flush();
-                fileOutputStream.flush();
-                fileOutputStream.getFD().sync();
+    public CompletableFuture<Boolean> persist() {
+        return CompletableFuture.supplyAsync(() -> {
+            synchronized (writeLock) {
+                boolean success = false;
+                try {
+                    FileUtils.makeDirs(directory);
+                    // We use a temp file to not risk data corruption in case the write operation fails.
+                    // After write is done we rename the tempFile to our storageFile which is an atomic operation.
+                    tempFile = File.createTempFile("temp_" + fileName, null, new File(directory));
+                    FileUtils.deleteOnExit(tempFile);
+                    File storageFile = new File(directory, fileName);
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+                        objectOutputStream.writeObject(serializable);
+                        objectOutputStream.flush();
+                        fileOutputStream.flush();
+                        fileOutputStream.getFD().sync();
 
-                FileUtils.renameFile(tempFile, storageFile);
-                usedTempFilePath = tempFile.toPath();
-            } catch (IOException exception) {
-                log.error(exception.toString(), exception);
-                usedTempFilePath = null;
-            } finally {
-                FileUtils.deleteFile(tempFile);
+                        // Atomic rename
+                        FileUtils.renameFile(tempFile, storageFile);
+                        success = true;
+                    } catch (IOException exception) {
+                        log.error(exception.toString(), exception);
+                    } finally {
+                        FileUtils.releaseTempFile(tempFile);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return success;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private static File getTempFile(String fileName, String dir) throws IOException {
-        File tempFile = usedTempFilePath != null
-                ? FileUtils.createNewFile(usedTempFilePath)
-                : File.createTempFile("temp_" + fileName, null, new File(dir));
-        // We don't use a new temp file path each time, as that causes the delete-on-exit hook to leak memory:
-        tempFile.deleteOnExit();
-        return tempFile;
+        }, ThreadingUtils.getSingleThreadExecutor("Write-to-disk: " + fileName));
     }
 }

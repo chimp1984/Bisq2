@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MailboxDataStore extends DataStore {
+public class MailboxDataStore extends DataStore<MailboxRequest> {
     private static final long MAX_AGE = TimeUnit.DAYS.toMillis(10);
     private static final int MAX_MAP_SIZE = 10000;
 
@@ -57,9 +57,7 @@ public class MailboxDataStore extends DataStore {
         void onRemoved(MailboxPayload mailboxPayload);
     }
 
-
     private final int maxItems;
-    private final ConcurrentHashMap<MapKey, MailboxRequest> map = new ConcurrentHashMap<>();
     private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
 
     public MailboxDataStore(String appDirPath, MetaData metaData) throws IOException {
@@ -243,9 +241,4 @@ public class MailboxDataStore extends DataStore {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         map.putAll(pruned);
     }
-
-    private void persist() {
-        Persistence.write(map, storageDirectory, fileName);
-    }
-
 }

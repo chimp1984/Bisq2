@@ -43,10 +43,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class AuthenticatedDataStore extends DataStore {
+public class AuthenticatedDataStore extends DataStore<AuthenticatedDataRequest> {
     private static final long MAX_AGE = TimeUnit.DAYS.toMillis(10);
     private static final int MAX_MAP_SIZE = 10000;
-
 
     // Max size of serialized NetworkData or MailboxMessage. Used to limit response map.
     // Depends on data types max. expected size.
@@ -64,8 +63,8 @@ public class AuthenticatedDataStore extends DataStore {
     }
 
     private final int maxItems;
-    private final ConcurrentHashMap<MapKey, AuthenticatedDataRequest> map = new ConcurrentHashMap<>();
     private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
+
 
     public AuthenticatedDataStore(String appDirPath, MetaData metaData) throws IOException {
         super(appDirPath, metaData);
@@ -287,11 +286,6 @@ public class AuthenticatedDataStore extends DataStore {
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
-
-    private void persist() {
-        Persistence.write(map, storageDirectory, fileName);
-    }
-
 
     // todo call by time interval
     private void maybePruneMap(ConcurrentHashMap<MapKey, AuthenticatedDataRequest> current) {

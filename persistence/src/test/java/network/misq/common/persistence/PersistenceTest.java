@@ -52,9 +52,10 @@ public class PersistenceTest {
         String fileName = "MockObject";
         String storagePath = storageDirectory + File.separator + fileName;
         MockObject mockObject = new MockObject(1);
+        Persistence persistence = new Persistence(storageDirectory, fileName, mockObject);
         for (int i = 0; i < 100; i++) {
             mockObject.list.add(i);
-            Persistence.write(mockObject, storageDirectory, fileName);
+            persistence.persist();
         }
         MockObject mockObject2 = (MockObject) Persistence.read(storagePath);
         assertEquals(mockObject.getIndex(), mockObject2.getIndex());
