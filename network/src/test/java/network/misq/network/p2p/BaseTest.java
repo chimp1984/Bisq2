@@ -124,11 +124,15 @@ public abstract class BaseTest {
         alice.initializeServer().whenComplete((result, throwable) -> {
             assertNotNull(result);
             serversReadyLatch.countDown();
+
+            // As alice1 and alice2 use same parent dir it could fail at first run
+            // as the mkdir call would be called in concurrent mode and exists() could return false.
+            alice2.initializeServer().whenComplete((result1, throwable1) -> {
+                assertNotNull(result1);
+                serversReadyLatch.countDown();
+            });
         });
-        alice2.initializeServer().whenComplete((result, throwable) -> {
-            assertNotNull(result);
-            serversReadyLatch.countDown();
-        });
+
         bob.initializeServer().whenComplete((result, throwable) -> {
             assertNotNull(result);
             serversReadyLatch.countDown();
