@@ -17,7 +17,7 @@
 
 package network.misq.desktop.main.content.offerbook;
 
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.subjects.BehaviorSubject;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleStringProperty;

@@ -17,8 +17,8 @@
 
 package network.misq.api;
 
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.PublishSubject;
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.id.IdentityRepository;

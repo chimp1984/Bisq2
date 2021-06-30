@@ -17,7 +17,7 @@
 
 package network.misq.offer;
 
-import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.subjects.PublishSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.account.FiatTransfer;

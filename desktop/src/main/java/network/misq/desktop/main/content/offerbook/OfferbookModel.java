@@ -17,7 +17,7 @@
 
 package network.misq.desktop.main.content.offerbook;
 
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.disposables.Disposable;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

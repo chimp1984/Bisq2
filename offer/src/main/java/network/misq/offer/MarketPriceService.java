@@ -20,7 +20,7 @@ package network.misq.offer;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.subjects.BehaviorSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.currency.MisqCurrency;
