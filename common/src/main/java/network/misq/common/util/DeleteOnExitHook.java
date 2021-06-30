@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.util;
+
 /*
  * Copyright (c) 2005, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -41,18 +41,23 @@ package network.misq.common.util;
  * questions.
  */
 
+package network.misq.common.util;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 
 /**
+ * Based on package private java.io.DeleteOnExitHook. Adds a remove method to avoid
+ * memory leak (https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6664633).
+ * <p>
  * This class holds a set of filenames to be deleted on VM exit through a shutdown hook.
  * A set is used both to prevent double-insertion of the same file as well as offer
  * quick removal.
  */
-
 class DeleteOnExitHook {
     private static LinkedHashSet<String> files = new LinkedHashSet<>();
 
@@ -89,9 +94,9 @@ class DeleteOnExitHook {
             files = null;
         }
 
-        ArrayList<String> toBeDeleted = new ArrayList<>(theFiles);
+        List<String> toBeDeleted = new ArrayList<>(theFiles);
 
-        // reverse the list to maintain previous jdk deletion order.
+        // Reverse the list to maintain previous jdk deletion order.
         // Last in first deleted.
         Collections.reverse(toBeDeleted);
         for (String filename : toBeDeleted) {
