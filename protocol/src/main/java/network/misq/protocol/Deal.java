@@ -20,7 +20,7 @@ package network.misq.protocol;
 import network.misq.account.Account;
 import network.misq.contract.Contract;
 import network.misq.id.IdentityRepository;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.NetworkService;
 import network.misq.offer.Offer;
 import network.misq.persistence.Persistence;
 import network.misq.wallets.Wallet;
@@ -32,7 +32,7 @@ public class Deal {
     Account account;
     Contract contract;
     Offer offer;
-    P2pService networkService;
+    NetworkService networkService;
     Persistence persistence;
     Wallet wallet;
 }

@@ -19,7 +19,6 @@ package network.misq.security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import java.security.Security;
 import java.security.*;
 
 public class SignatureUtil {

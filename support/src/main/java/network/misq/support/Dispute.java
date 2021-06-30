@@ -18,11 +18,9 @@
 package network.misq.support;
 
 import network.misq.id.IdentityRepository;
-import network.misq.protocol.Deal;
 
 public class Dispute {
     // expected dependencies
     IdentityRepository peerIdentityRepository;
     IdentityRepository disputeAgentIdentityRepository;
-    Deal deal;
 }
