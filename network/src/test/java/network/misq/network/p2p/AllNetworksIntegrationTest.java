@@ -18,7 +18,8 @@
 package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.data.storage.Storage;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.services.data.storage.Storage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +66,7 @@ public class AllNetworksIntegrationTest {
         CountDownLatch serversReadyLatch = new CountDownLatch(4);
         alice1.initializeServer((res, error) -> {
             if (res != null)
-                log.error("initializeServer completed: {}", res);
+                log.info("initializeServer completed: {}", res);
         }).whenComplete((result, throwable) -> {
             assertNotNull(result);
             Assertions.assertTrue(result);
@@ -73,7 +74,7 @@ public class AllNetworksIntegrationTest {
         });
         alice2.initializeServer((res, error) -> {
             if (res != null)
-                log.error("initializeServer completed: {}", res);
+                log.info("initializeServer completed: {}", res);
         }).whenComplete((result, throwable) -> {
             assertNotNull(result);
             Assertions.assertTrue(result);
@@ -81,7 +82,7 @@ public class AllNetworksIntegrationTest {
         });
         bob1.initializeServer((res, error) -> {
             if (res != null)
-                log.error("initializeServer completed: {}", res);
+                log.info("initializeServer completed: {}", res);
         }).whenComplete((result, throwable) -> {
             assertNotNull(result);
             Assertions.assertTrue(result);
@@ -89,7 +90,7 @@ public class AllNetworksIntegrationTest {
         });
         bob2.initializeServer((res, error) -> {
             if (res != null)
-                log.error("initializeServer completed: {}", res);
+                log.info("initializeServer completed: {}", res);
         }).whenComplete((result, throwable) -> {
             assertNotNull(result);
             Assertions.assertTrue(result);
@@ -122,7 +123,7 @@ public class AllNetworksIntegrationTest {
         CountDownLatch receivedLatch = new CountDownLatch(24);
         alice1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("onMessage alice1 {} {}", message, connection);
+            log.info("onMessage alice1 {} {}", message, connection);
             if (bob1Addresses.contains(connection.getPeerAddress())) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice1Msg);
             } else if (bob2Addresses.contains(connection.getPeerAddress())) {
@@ -134,7 +135,7 @@ public class AllNetworksIntegrationTest {
         });
         alice2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("onMessage alice2 {} {}", message, connection);
+            log.info("onMessage alice2 {} {}", message, connection);
             if (bob1Addresses.contains(connection.getPeerAddress())) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice2Msg);
             } else if (bob2Addresses.contains(connection.getPeerAddress())) {
@@ -147,7 +148,7 @@ public class AllNetworksIntegrationTest {
 
         bob1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("onMessage bob1 {} {}", message, connection);
+            log.info("onMessage bob1 {} {}", message, connection);
             if (alice1Addresses.contains(connection.getPeerAddress())) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob1Msg);
             } else if (alice2Addresses.contains(connection.getPeerAddress())) {
@@ -159,7 +160,7 @@ public class AllNetworksIntegrationTest {
         });
         bob2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("onMessage bob2 {} {}", message, connection);
+            log.info("onMessage bob2 {} {}", message, connection);
             if (alice1Addresses.contains(connection.getPeerAddress())) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob2Msg);
             } else if (alice2Addresses.contains(connection.getPeerAddress())) {

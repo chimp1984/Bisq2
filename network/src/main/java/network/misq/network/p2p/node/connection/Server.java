@@ -20,9 +20,9 @@ package network.misq.network.p2p.node.connection;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
-import network.misq.network.p2p.Address;
-import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.socket.SocketFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,12 +30,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 @Slf4j
-public class Server {
+public class Server implements Closeable {
     private final ServerSocket serverSocket;
     private final ExecutorService executorService;
     @Getter
     private final Address address;
-    private final Object isStoppedLock = new Object();
     private volatile boolean isStopped;
 
     /**
@@ -45,10 +44,10 @@ public class Server {
      * @param socketHandler         Consumes socket on new inbound connection
      * @param exceptionHandler
      */
-    public Server(GetServerSocketResult getServerSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
-        this.serverSocket = getServerSocketResult.getServerSocket();
+    public Server(SocketFactory.GetServerSocketResult getServerSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
+        this.serverSocket = getServerSocketResult.serverSocket();
 
-        address = getServerSocketResult.getAddress();
+        address = getServerSocketResult.address();
         log.debug("Create server: {}", getServerSocketResult);
         executorService = ThreadingUtils.getSingleThreadExecutor("Server-" + getServerSocketResult);
         executorService.execute(() -> {
@@ -62,7 +61,7 @@ public class Server {
                 } catch (IOException e) {
                     if (!isStopped) {
                         exceptionHandler.accept(e);
-                        stop();
+                        close();
                     }
                 }
             }
@@ -73,13 +72,11 @@ public class Server {
         return !isStopped && !Thread.currentThread().isInterrupted();
     }
 
-    public void stop() {
+    public void close() {
         if (isStopped) {
             return;
         }
-        synchronized (isStoppedLock) {
-            isStopped = true;
-        }
+        isStopped = true;
         ThreadingUtils.shutdownAndAwaitTermination(executorService);
         try {
             serverSocket.close();

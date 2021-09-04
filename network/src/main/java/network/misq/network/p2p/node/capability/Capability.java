@@ -17,24 +17,13 @@
 
 package network.misq.network.p2p.node.capability;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import network.misq.network.p2p.Address;
-import network.misq.network.p2p.NetworkType;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
 
 import java.io.Serializable;
 import java.util.Set;
 
-@Getter
-@EqualsAndHashCode
-public class Capability implements Serializable {
-    private final Address address;
-    private final Set<NetworkType> supportedNetworkTypes;
-
-    public Capability(Address address, Set<NetworkType> supportedNetworkTypes) {
-        this.address = address;
-        this.supportedNetworkTypes = supportedNetworkTypes;
-    }
+public record Capability(Address address, Set<NetworkType> supportedNetworkTypes) implements Serializable {
 
     @Override
     public String toString() {

@@ -19,15 +19,16 @@ package network.misq.network.p2p;
 
 
 import network.misq.common.util.CompletableFutureUtils;
-import network.misq.network.p2p.data.filter.DataFilter;
-import network.misq.network.p2p.data.inventory.RequestInventoryResult;
-import network.misq.network.p2p.data.storage.Storage;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.proxy.GetServerSocketResult;
-import network.misq.network.p2p.node.proxy.NetworkProxy;
-import network.misq.network.p2p.router.gossip.GossipResult;
+import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.services.data.filter.DataFilter;
+import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
+import network.misq.network.p2p.services.data.storage.Storage;
+import network.misq.network.p2p.services.overlay.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +49,14 @@ import java.util.stream.Collectors;
 public class P2pService {
     private static final Logger log = LoggerFactory.getLogger(P2pService.class);
 
-    public Optional<NetworkProxy> getNetworkProxy(NetworkType networkType) {
+    public Optional<SocketFactory> getNetworkProxy(NetworkType networkType) {
         return Optional.ofNullable(p2pNodes.get(networkType).getNetworkProxy());
     }
 
     public static record Option(String appDirPath, Set<NetworkConfig> networkConfigs) {
     }
 
-    private final Map<NetworkType, NetworkNode> p2pNodes = new ConcurrentHashMap<>();
+    private final Map<NetworkType, P2pServiceNode> p2pNodes = new ConcurrentHashMap<>();
 
     public P2pService(Option option, KeyPairRepository keyPairRepository) {
         this(option.appDirPath(), option.networkConfigs(), keyPairRepository);
@@ -65,8 +66,8 @@ public class P2pService {
         Storage storage = new Storage("");//todo
         networkConfigs.forEach(networkConfig -> {
             NetworkType networkType = networkConfig.getNetworkType();
-            NetworkNode networkNode = new NetworkNode(networkConfig, storage, keyPairRepository);
-            p2pNodes.put(networkType, networkNode);
+            P2pServiceNode p2PServiceNode = new P2pServiceNode(networkConfig, storage, keyPairRepository);
+            p2pNodes.put(networkType, p2PServiceNode);
         });
     }
 
@@ -78,7 +79,11 @@ public class P2pService {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<GetServerSocketResult, Throwable> resultHandler) {
+    /**
+     * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
+     * otherwise returns false.
+     */
+    public CompletableFuture<Boolean> initializeServer(BiConsumer<SocketFactory.GetServerSocketResult, Throwable> resultHandler) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         AtomicInteger completed = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
@@ -104,12 +109,16 @@ public class P2pService {
         return future;
     }
 
-    public CompletableFuture<Boolean> bootstrap() {
+    /**
+     * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
+     * and at least one has been successful.
+     */
+    public CompletableFuture<Boolean> initializeOverlay() {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         p2pNodes.values().forEach(networkNode -> {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             allFutures.add(future);
-            networkNode.bootstrap()
+            networkNode.initializeOverlay()
                     .whenComplete((success, e) -> {
                         if (e == null) {
                             future.complete(success); // Can be still false
@@ -118,7 +127,7 @@ public class P2pService {
                         }
                     });
         });
-        return CompletableFutureUtils.allOf(allFutures)                                 // We require all futures the be completed
+        return CompletableFutureUtils.allOf(allFutures)                                 // We require all futures to be completed
                 .thenApply(resultList -> resultList.stream().anyMatch(e -> e))  // If at least one network succeeded
                 .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
     }
@@ -210,7 +219,7 @@ public class P2pService {
     }
 
     public void shutdown() {
-        p2pNodes.values().forEach(NetworkNode::shutdown);
+        p2pNodes.values().forEach(P2pServiceNode::shutdown);
     }
 
     public Optional<Address> findMyAddress(NetworkType networkType) {

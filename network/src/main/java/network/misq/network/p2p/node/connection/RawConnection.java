@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Message;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -44,7 +45,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Notifies errorHandler on exceptions from the inputHandlerService executor.
  */
 @Slf4j
-public abstract class RawConnection {
+public abstract class RawConnection implements Closeable {
     public interface MessageListener {
         void onMessage(Message message);
     }
@@ -61,28 +62,30 @@ public abstract class RawConnection {
         @Override
         public String toString() {
             return "MisqMessage{" +
-                    ",\r\n     payload=" + payload +
+                    ",\r\n     message=" + payload +
                     "\r\n}";
         }
     }
 
-    private ExecutorService outputExecutor;
-    private ExecutorService inputHandler;
-    private ObjectInputStream objectInputStream;
-    private ObjectOutputStream objectOutputStream;
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private final Socket socket;
     protected final String id = UUID.randomUUID().toString();
-    private final Object isStoppedLock = new Object();
+    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+
+    private ExecutorService writeExecutor;
+    private ExecutorService readExecutor;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
+
     private volatile boolean isStopped;
 
     protected RawConnection(Socket socket) {
         this.socket = socket;
     }
 
-    public void listen(Consumer<Exception> errorHandler) throws IOException {
-        outputExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
-        inputHandler = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
+    void listen(Consumer<Exception> errorHandler) throws IOException {
+        //todo use global pool
+        writeExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
+        readExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
 
         // TODO java serialisation is just for dev, will be replaced by custom serialisation
         // Type-Length-Value Format is considered to be used:
@@ -92,11 +95,10 @@ public abstract class RawConnection {
         objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         objectInputStream = new ObjectInputStream(socket.getInputStream());
 
-        inputHandler.execute(() -> {
+        readExecutor.execute(() -> {
             while (!isStopped && !Thread.currentThread().isInterrupted()) {
-                Object object;
                 try {
-                    object = objectInputStream.readObject();
+                    Object object = objectInputStream.readObject();
                     checkArgument(object instanceof MisqMessage,
                             "Received object is not of type MisqMessage: " + object.getClass().getName());
                     MisqMessage misqMessage = (MisqMessage) object;
@@ -113,7 +115,7 @@ public abstract class RawConnection {
 
     public CompletableFuture<RawConnection> send(Message message) {
         CompletableFuture<RawConnection> future = new CompletableFuture<>();
-        outputExecutor.execute(() -> {
+        writeExecutor.execute(() -> {
             try {
                 MisqMessage misqMessage = new MisqMessage(message);
                 objectOutputStream.writeObject(misqMessage);
@@ -135,11 +137,9 @@ public abstract class RawConnection {
             return;
         }
 
-        synchronized (isStoppedLock) {
-            isStopped = true;
-        }
-        ThreadingUtils.shutdownAndAwaitTermination(inputHandler);
-        ThreadingUtils.shutdownAndAwaitTermination(outputExecutor);
+        isStopped = true;
+        ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
+        ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
         try {
             socket.close();
         } catch (IOException ignore) {

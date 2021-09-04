@@ -19,7 +19,6 @@ package network.misq.offer;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import io.reactivex.subjects.BehaviorSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,16 +30,13 @@ import network.misq.common.util.CollectionUtil;
 import network.misq.common.util.MathUtils;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.NetworkService;
-import network.misq.network.http.common.ClearNetHttpClient;
-import network.misq.network.http.common.HttpClient;
-import network.misq.network.http.common.Socks5ProxyProvider;
-import network.misq.network.http.common.TorHttpClient;
-import network.misq.network.p2p.NetworkType;
-import network.misq.network.p2p.node.proxy.TorNetworkProxy;
+import network.misq.network.http.common.BaseHttpClient;
+import network.misq.network.p2p.node.socket.NetworkType;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -53,6 +49,7 @@ public class MarketPriceService {
 
     private static final long REQUEST_INTERVAL_SEC = 180;
     private ExecutorService executor;
+    private BaseHttpClient httpClient;
 
     public static record Options(Set<Provider> providers) {
     }
@@ -65,7 +62,6 @@ public class MarketPriceService {
     private final NetworkService networkService;
     private final String userAgent;
     private Provider provider;
-    private HttpClient httpClient;
 
     @Getter
     private final Map<String, MarketPrice> marketPriceByCurrencyMap = new HashMap<>();
@@ -91,7 +87,11 @@ public class MarketPriceService {
             if (map.isEmpty() || throwable != null) {
                 selectProvider();
                 httpClient.shutdown();
-                httpClient = getHttpClient(provider);
+                try {
+                    httpClient = getHttpClient(provider).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
                 request();
             }
         }), REQUEST_INTERVAL_SEC, TimeUnit.SECONDS);
@@ -158,14 +158,14 @@ public class MarketPriceService {
 
     private void selectProvider() {
         if (candidates.isEmpty()) {
-            // First try to use the clearnet candidate if clearnet is supported
+            // First try to use the clear net candidate if clear net is supported
             candidates.addAll(providers.stream()
-                    .filter(prov -> networkService.getSupportedNetworkTypes().contains(NetworkType.CLEAR))
-                    .filter(prov -> NetworkType.CLEAR == prov.networkType)
+                    .filter(provider -> networkService.getSupportedNetworkTypes().contains(NetworkType.CLEAR))
+                    .filter(provider -> NetworkType.CLEAR == provider.networkType)
                     .toList());
             if (candidates.isEmpty()) {
                 candidates.addAll(providers.stream()
-                        .filter(prov -> networkService.getSupportedNetworkTypes().contains(prov.networkType))
+                        .filter(provider -> networkService.getSupportedNetworkTypes().contains(provider.networkType))
                         .toList());
             }
         }
@@ -173,35 +173,14 @@ public class MarketPriceService {
         checkNotNull(candidate);
         candidates.remove(candidate);
         provider = candidate;
-        httpClient = getHttpClient(provider);
+        try {
+            httpClient = getHttpClient(provider).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
-    private HttpClient getHttpClient(Provider provider) {
-        switch (provider.networkType) {
-            case TOR:
-                // If we have a socks5ProxyAddress defined in options we use that as proxy
-                Socks5ProxyProvider socks5ProxyProvider = networkService.getSocks5ProxyAddress()
-                        .map(Socks5ProxyProvider::new)
-                        .orElse(networkService.getNetworkProxy(NetworkType.TOR)
-                                .map(networkProxy -> {
-                                    try {
-                                        Socks5Proxy socksProxy = ((TorNetworkProxy) networkProxy).getSocksProxy();
-                                        return new Socks5ProxyProvider(socksProxy);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        return null;
-                                    }
-                                })
-                                .orElse(null));
-                checkNotNull(socks5ProxyProvider, "No socks5ProxyAddress provided and no torNetworkProxy available.");
-                return new TorHttpClient(provider.url, userAgent, socks5ProxyProvider);
-            case I2P:
-                // TODO We need to figure out how to get a proxy from i2p or require tor in any case
-                throw new IllegalArgumentException("I2P providers not supported yet.");
-            case CLEAR:
-                return new ClearNetHttpClient(provider.url, userAgent);
-            default:
-                throw new IllegalArgumentException("Providers network type not recognized. " + provider.networkType);
-        }
+    private CompletableFuture<BaseHttpClient> getHttpClient(Provider provider) {
+        return networkService.getHttpClient(provider.url, userAgent, provider.networkType);
     }
 }

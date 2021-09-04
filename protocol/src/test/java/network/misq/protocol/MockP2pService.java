@@ -18,17 +18,17 @@
 package network.misq.protocol;
 
 
-import network.misq.network.p2p.Address;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.P2pService;
-import network.misq.network.p2p.data.filter.DataFilter;
-import network.misq.network.p2p.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.proxy.GetServerSocketResult;
-import network.misq.network.p2p.router.gossip.GossipResult;
+import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.services.data.filter.DataFilter;
+import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
+import network.misq.network.p2p.services.overlay.router.gossip.GossipResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +49,12 @@ public class MockP2pService extends P2pService {
     }
 
     @Override
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<GetServerSocketResult, Throwable> resultHandler) {
+    public CompletableFuture<Boolean> initializeServer(BiConsumer<SocketFactory.GetServerSocketResult, Throwable> resultHandler) {
         return CompletableFuture.completedFuture(true);
     }
 
     @Override
-    public CompletableFuture<Boolean> bootstrap() {
+    public CompletableFuture<Boolean> initializeOverlay() {
         return CompletableFuture.completedFuture(true);
     }
 

@@ -18,6 +18,7 @@
 package network.misq.network.p2p.node;
 
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.capability.Connection;
 
 public interface MessageListener {
     void onMessage(Message message, Connection connection);

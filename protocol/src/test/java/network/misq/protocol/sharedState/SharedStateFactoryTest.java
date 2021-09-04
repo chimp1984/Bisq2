@@ -16,21 +16,21 @@ public class SharedStateFactoryTest {
 //        var factory = new SharedStateFactory<>(LightningEscrow.SharedState.class);
         var factory = new SharedStateFactory<>(MultiSig.SharedState.class);
 
-        System.out.println();
+        System.out.println("Parties:");
         System.out.println(factory.getParties());
-        System.out.println();
+        System.out.println("\nDependencyMultimap:");
         factory.getDependencyMultimap().asMap().forEach((id, list) -> System.out.println(id + " -> " + list));
-        System.out.println();
+        System.out.println("\nActorMap:");
         factory.getActorMap().forEach((id, party) -> System.out.println(id + " -> " + party));
-        System.out.println();
+        System.out.println("\nSupplierMap:");
         factory.getSupplierMap().forEach((id, party) -> System.out.println(id + " -> " + party));
-        System.out.println();
+        System.out.println("\nEventObserverMap:");
         factory.getEventObserverMap().forEach((id, party) -> System.out.println(id + " -> " + party));
-        System.out.println();
+        System.out.println("\nDeclaredAccessConditionMap:");
         factory.getDeclaredAccessConditionMap().forEach((id, cond) -> System.out.println(id + " -> " + cond));
-        System.out.println();
+        System.out.println("\nAccessConditionMap:");
         factory.getAccessConditionMap().forEach((id, cond) -> System.out.println(id + " -> " + cond));
-        System.out.println();
+        System.out.println("");
 
         var wallet = new Bitcoind();
         var makerState = factory.create("maker", state -> {

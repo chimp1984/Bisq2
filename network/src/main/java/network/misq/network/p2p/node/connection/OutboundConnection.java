@@ -20,7 +20,6 @@ package network.misq.network.p2p.node.connection;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
-import network.misq.network.p2p.Address;
 
 import java.net.Socket;
 

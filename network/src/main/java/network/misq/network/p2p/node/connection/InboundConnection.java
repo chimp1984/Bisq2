@@ -19,16 +19,16 @@ package network.misq.network.p2p.node.connection;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.proxy.GetServerSocketResult;
+import network.misq.network.p2p.node.socket.SocketFactory;
 
 import java.net.Socket;
 
 @Slf4j
 public class InboundConnection extends RawConnection {
     @Getter
-    private final GetServerSocketResult getServerSocketResult;
+    private final SocketFactory.GetServerSocketResult getServerSocketResult;
 
-    public InboundConnection(Socket socket, GetServerSocketResult getServerSocketResult) {
+    public InboundConnection(Socket socket, SocketFactory.GetServerSocketResult getServerSocketResult) {
         super(socket);
         this.getServerSocketResult = getServerSocketResult;
         log.debug("Create inboundConnection from server: {}", getServerSocketResult);

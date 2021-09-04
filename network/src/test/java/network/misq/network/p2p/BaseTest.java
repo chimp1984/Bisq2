@@ -19,7 +19,10 @@ package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.data.storage.Storage;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.services.data.storage.Storage;
 
 import java.security.GeneralSecurityException;
 import java.util.Set;
@@ -32,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public abstract class BaseTest {
 
     protected final Storage storage = new Storage("");
-    protected NetworkNode alice, bob, carol;
+    protected P2pServiceNode alice, bob, carol;
 
     protected abstract int getTimeout();
 
@@ -43,9 +46,9 @@ public abstract class BaseTest {
     protected abstract Address getPeerAddress(Config.Role role);
 
     protected void testBootstrapSolo(int count) throws InterruptedException {
-        alice = new NetworkNode(getNetworkConfig(Config.Role.Alice), storage, Config.aliceKeyPairSupplier1);
+        alice = new P2pServiceNode(getNetworkConfig(Config.Role.Alice), storage, Config.aliceKeyPairSupplier1);
         CountDownLatch bootstrappedLatch = new CountDownLatch(count);
-        alice.bootstrap().whenComplete((success, t) -> {
+        alice.initializeOverlay().whenComplete((success, t) -> {
             if (success && t == null) {
                 bootstrappedLatch.countDown();
             }
@@ -64,8 +67,8 @@ public abstract class BaseTest {
     protected void testInitializeServer(int serversReadyLatchCount,
                                         NetworkConfig networkConfigAlice,
                                         NetworkConfig networkConfigBob) throws InterruptedException {
-        alice = new NetworkNode(networkConfigAlice, storage, Config.aliceKeyPairSupplier1);
-        bob = new NetworkNode(networkConfigBob, storage, Config.bobKeyPairSupplier1);
+        alice = new P2pServiceNode(networkConfigAlice, storage, Config.aliceKeyPairSupplier1);
+        bob = new P2pServiceNode(networkConfigBob, storage, Config.bobKeyPairSupplier1);
         CountDownLatch serversReadyLatch = new CountDownLatch(serversReadyLatchCount);
         alice.initializeServer().whenComplete((result, throwable) -> {
             assertNotNull(result);
@@ -111,14 +114,14 @@ public abstract class BaseTest {
     protected void startOfMultipleIds(NetworkType networkType, Set<NetworkType> networkTypes) throws InterruptedException {
         String baseDirNameAlice = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Alice";
         NodeId nodeIdAlice1 = new NodeId("id_alice_1", 1111, networkTypes);
-        alice = new NetworkNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
+        alice = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
 
         NodeId nodeIdAlice2 = new NodeId("id_alice_2", 1112, networkTypes);
-        NetworkNode alice2 = new NetworkNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier1);
+        P2pServiceNode alice2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier1);
 
         String baseDirNameBob = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Bob";
         NodeId nodeIdBob1 = new NodeId("id_bob_1", 2222, networkTypes);
-        bob = new NetworkNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
+        bob = new P2pServiceNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(3);
         alice.initializeServer().whenComplete((result, throwable) -> {
@@ -147,17 +150,17 @@ public abstract class BaseTest {
             throws InterruptedException, GeneralSecurityException {
         String baseDirNameAlice = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Alice";
         NodeId nodeIdAlice1 = new NodeId("id_alice_1", 1111, networkTypes);
-        NetworkNode alice1 = new NetworkNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
+        P2pServiceNode alice1 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
 
         NodeId nodeIdAlice2 = new NodeId("id_alice_2", 1112, networkTypes);
-        NetworkNode alice2 = new NetworkNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier2);
+        P2pServiceNode alice2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier2);
 
         String baseDirNameBob = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Bob";
         NodeId nodeIdBob1 = new NodeId("id_bob_1", 2222, networkTypes);
-        NetworkNode bob1 = new NetworkNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
+        P2pServiceNode bob1 = new P2pServiceNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
 
         NodeId nodeIdBob2 = new NodeId("id_bob_2", 2223, networkTypes);
-        NetworkNode bob2 = new NetworkNode(new NetworkConfig(baseDirNameAlice, nodeIdBob2, networkType), storage, Config.bobKeyPairSupplier2);
+        P2pServiceNode bob2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdBob2, networkType), storage, Config.bobKeyPairSupplier2);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(4);
         alice1.initializeServer().whenComplete((result, throwable) -> {
@@ -196,7 +199,7 @@ public abstract class BaseTest {
         CountDownLatch receivedLatch = new CountDownLatch(8);
         alice1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("alice1 {} {}", message, connection);
+            log.info("alice1 {} {}", message, connection);
             if (connection.getPeerAddress().equals(bob1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice1Msg);
             } else if (connection.getPeerAddress().equals(bob2Address)) {
@@ -208,7 +211,7 @@ public abstract class BaseTest {
         });
         alice2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("alice2 {} {}", message, connection);
+            log.info("alice2 {} {}", message, connection);
             if (connection.getPeerAddress().equals(bob1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), bob1ToAlice2Msg);
             } else if (connection.getPeerAddress().equals(bob2Address)) {
@@ -222,7 +225,7 @@ public abstract class BaseTest {
 
         bob1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("bob1 {} {}", message, connection);
+            log.info("bob1 {} {}", message, connection);
             if (connection.getPeerAddress().equals(alive1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob1Msg);
             } else if (connection.getPeerAddress().equals(alive2Address)) {
@@ -234,7 +237,7 @@ public abstract class BaseTest {
         });
         bob2.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
-            log.error("bob2 {} {}", message, connection);
+            log.info("bob2 {} {}", message, connection);
             if (connection.getPeerAddress().equals(alive1Address)) {
                 assertEquals(((MockMessage) message).getMsg(), alice1ToBob2Msg);
             } else if (connection.getPeerAddress().equals(alive2Address)) {

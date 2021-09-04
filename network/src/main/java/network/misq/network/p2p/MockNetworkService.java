@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+// TODO just for dev test setup
+@Deprecated
 public class MockNetworkService implements INetworkService {
     public interface Listener {
         void onDataAdded(Serializable serializable);

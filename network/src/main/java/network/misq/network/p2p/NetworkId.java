@@ -19,6 +19,8 @@ package network.misq.network.p2p;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
 
 import java.security.PublicKey;
 import java.util.Map;

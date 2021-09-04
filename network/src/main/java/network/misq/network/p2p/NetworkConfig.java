@@ -18,31 +18,46 @@
 package network.misq.network.p2p;
 
 import lombok.Getter;
-import network.misq.network.p2p.peers.PeerConfig;
-import network.misq.network.p2p.peers.exchange.PeerExchangeConfig;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.services.overlay.discovery.SeedNodeRepository;
+import network.misq.network.p2p.services.overlay.peers.PeerConfig;
+import network.misq.network.p2p.services.overlay.peers.exchange.PeerExchangeConfig;
+
+import java.util.Set;
 
 @Getter
 public class NetworkConfig {
-    private final NetworkType networkType;
-    private final PeerConfig peerConfig;
+    public enum Service {
+        OVERLAY,
+        DATA,
+        CONFIDENTIAL,
+        RELAY
+    }
+
     private final String baseDirPath;
     private final NodeId nodeId;
+    private final NetworkType networkType;
+    private final PeerConfig peerConfig;
+    private final Set<Service> services;
 
     public NetworkConfig(String baseDirPath, NodeId nodeId, NetworkType networkType) {
         this(baseDirPath,
                 nodeId,
                 networkType,
-                new PeerConfig(new PeerExchangeConfig(), new SeedNodeRepository().getNodes(networkType)));
-
+                new PeerConfig(new PeerExchangeConfig(), new SeedNodeRepository().getNodes(networkType)),
+                Set.of(Service.OVERLAY, Service.DATA, Service.CONFIDENTIAL, Service.RELAY));
     }
 
     public NetworkConfig(String baseDirPath,
                          NodeId nodeId,
                          NetworkType networkType,
-                         PeerConfig peerConfig) {
+                         PeerConfig peerConfig,
+                         Set<Service> services) {
         this.baseDirPath = baseDirPath;
         this.nodeId = nodeId;
         this.networkType = networkType;
         this.peerConfig = peerConfig;
+        this.services = services;
     }
 }

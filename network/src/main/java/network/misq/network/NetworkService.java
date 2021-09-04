@@ -19,14 +19,17 @@ package network.misq.network;
 
 
 import lombok.Getter;
-import network.misq.network.p2p.Address;
+import network.misq.network.http.HttpService;
+import network.misq.network.http.common.BaseHttpClient;
+import network.misq.network.p2p.NetworkConfig;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.P2pService;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.proxy.NetworkProxy;
+import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.SocketFactory;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,16 +52,22 @@ public class NetworkService {
     }
 
     @Getter
-    private final Optional<String> socks5ProxyAddress;
+    private final HttpService httpService;
+
+    @Getter
+    private final Optional<String> socks5ProxyAddress; // Optional proxy address of external tor instance 
     @Getter
     private final Set<NetworkType> supportedNetworkTypes;
 
     private final P2pService p2pService;
 
     public NetworkService(Options options, KeyPairRepository keyPairRepository) {
+        httpService = new HttpService();
         socks5ProxyAddress = options.socks5ProxyAddress;
         p2pService = new P2pService(options.p2pServiceOption(), keyPairRepository);
-        supportedNetworkTypes = options.p2pServiceOption().networkConfigs().stream().map(networkConfig -> networkConfig.getNetworkType()).collect(Collectors.toSet());
+        supportedNetworkTypes = options.p2pServiceOption().networkConfigs().stream()
+                .map(NetworkConfig::getNetworkType)
+                .collect(Collectors.toSet());
     }
 
 
@@ -67,7 +76,7 @@ public class NetworkService {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public CompletableFuture<Boolean> initialize() {
-        CompletableFuture<Boolean> bootstrap = p2pService.bootstrap();
+        CompletableFuture<Boolean> bootstrap = p2pService.initializeOverlay();
         // For now we dont want to wait for bootstrap done at startup
         // return CompletableFuture.completedFuture(true);
         return bootstrap;
@@ -91,11 +100,16 @@ public class NetworkService {
         p2pService.removeMessageListener(messageListener);
     }
 
-    public Optional<NetworkProxy> getNetworkProxy(NetworkType networkType) {
+    public Optional<SocketFactory> getNetworkProxy(NetworkType networkType) {
         return p2pService.getNetworkProxy(networkType);
+    }
+
+    public CompletableFuture<BaseHttpClient> getHttpClient(String url, String userAgent, NetworkType networkType) {
+        return httpService.getHttpClient(url, userAgent, networkType, getNetworkProxy(networkType), socks5ProxyAddress);
     }
 
     public void shutdown() {
         p2pService.shutdown();
+        httpService.shutdown();
     }
 }

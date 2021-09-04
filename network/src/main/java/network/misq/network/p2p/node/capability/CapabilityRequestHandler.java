@@ -19,10 +19,10 @@ package network.misq.network.p2p.node.capability;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
-import network.misq.network.p2p.Address;
-import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.connection.Address;
 import network.misq.network.p2p.node.connection.RawConnection;
+import network.misq.network.p2p.node.socket.NetworkType;
 
 import java.util.Random;
 import java.util.Set;
@@ -65,25 +65,24 @@ public class CapabilityRequestHandler implements RawConnection.MessageListener, 
 
     @Override
     public void onMessage(Message message) {
-        if (message instanceof CapabilityResponse) {
-            CapabilityResponse capabilityResponse = (CapabilityResponse) message;
+        if (message instanceof CapabilityResponse capabilityResponse) {
             Capability capability = capabilityResponse.getCapability();
             if (capabilityResponse.getRequestNonce() != requestNonce) {
                 log.warn("Responded nonce {} does not match requestNonce {}",
                         capabilityResponse.getRequestNonce(), requestNonce);
                 rawConnection.close();
                 future.completeExceptionally(new Exception("Invalid HandshakeResponse"));
-            }
-            if (!peersAddress.equals(capability.getAddress())) {
+            } else if (!peersAddress.equals(capability.address())) {
                 log.warn("Responded address {} does not match peersAddress {}",
-                        capability.getAddress(), peersAddress);
+                        capability.address(), peersAddress);
 
                 rawConnection.close();
                 future.completeExceptionally(new Exception("Invalid HandshakeResponse"));
+            } else {
+                future.complete(capability);
             }
 
             rawConnection.removeMessageListener(this);
-            future.complete(capability);
         }
     }
 }

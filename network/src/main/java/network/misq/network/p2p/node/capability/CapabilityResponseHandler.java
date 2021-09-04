@@ -19,10 +19,10 @@ package network.misq.network.p2p.node.capability;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
-import network.misq.network.p2p.Address;
-import network.misq.network.p2p.NetworkType;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.connection.Address;
 import network.misq.network.p2p.node.connection.RawConnection;
+import network.misq.network.p2p.node.socket.NetworkType;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -52,12 +52,7 @@ public class CapabilityResponseHandler implements RawConnection.MessageListener,
 
     @Override
     public void onMessage(Message message) {
-        if (message instanceof CapabilityRequest) {
-            CapabilityRequest capabilityRequest = (CapabilityRequest) message;
-          /*  ConnectionMetaData metaData = connection.getMetaData().get();
-            metaData.setPeerAddress(handshakeRequest.getAddress());
-            metaData.setSupportedNetworkTypes(handshakeRequest.getSupportedNetworkTypes());
-            metaData.handShakeCompleted();*/
+        if (message instanceof CapabilityRequest capabilityRequest) {
             Capability capability = new Capability(myAddress, mySupportedNetworkTypes);
             rawConnection.send(new CapabilityResponse(capability, capabilityRequest.getNonce()));
             rawConnection.removeMessageListener(this);

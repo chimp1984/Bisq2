@@ -22,9 +22,9 @@ import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.NetworkType;
-import network.misq.network.p2p.NodeId;
 import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.socket.NodeId;
 
 import java.util.HashSet;
 import java.util.Optional;

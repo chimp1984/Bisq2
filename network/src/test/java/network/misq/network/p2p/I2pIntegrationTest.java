@@ -19,6 +19,8 @@ package network.misq.network.p2p;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.socket.NetworkType;
 import org.junit.jupiter.api.Test;
 
 import java.security.GeneralSecurityException;
@@ -53,7 +55,7 @@ public class I2pIntegrationTest extends BaseTest {
 
     @Override
     protected Address getPeerAddress(Config.Role role) {
-        NetworkNode networkNode;
+        P2pServiceNode networkNode;
         String persisted = "undefined";
         switch (role) {
             case Alice:
@@ -127,7 +129,7 @@ public class I2pIntegrationTest extends BaseTest {
             // assertEquals(((MockMessage) message).getMsg(), msg);
             int key = Integer.parseInt(((MockMessage) message).getMsg());
             if (tsMap.containsKey(key)) {
-                log.error("Sending msg {} took {}", key, System.currentTimeMillis() - tsMap.get(key));
+                log.info("Sending msg {} took {}", key, System.currentTimeMillis() - tsMap.get(key));
             }
             receivedLatch.countDown();
         });
@@ -143,12 +145,12 @@ public class I2pIntegrationTest extends BaseTest {
 
         alice.shutdown();
         bob.shutdown();
-        log.error("Took {} ms", System.currentTimeMillis() - ts);
+        log.info("Took {} ms", System.currentTimeMillis() - ts);
     }
 
     private void send(CountDownLatch sentLatch, Address peerAddress, AtomicInteger i, Map<Integer, Long> tsMap) throws GeneralSecurityException {
         tsMap.put(i.get(), System.currentTimeMillis());
-        log.error("Send msg {}", i.get());
+        log.info("Send msg {}", i.get());
         NetworkId networkId = new NetworkId(peerAddress, Config.keyPairBob1.getPublic(), "default");
         alice.confidentialSend(new MockMessage(String.valueOf(i.get())), networkId, Config.keyPairAlice1)
                 .whenComplete((connection, throwable) -> {
