@@ -19,7 +19,7 @@ package network.misq.network.p2p.node.socket;
 
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 
 import java.io.Closeable;
 import java.io.IOException;

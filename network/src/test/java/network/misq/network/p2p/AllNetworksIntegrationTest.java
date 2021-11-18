@@ -18,7 +18,7 @@
 package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.data.storage.Storage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

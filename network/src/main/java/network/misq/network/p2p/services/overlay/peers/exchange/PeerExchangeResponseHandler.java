@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
 import network.misq.network.p2p.services.overlay.peers.Peer;
 
 import java.util.Set;
@@ -30,12 +30,12 @@ import java.util.function.Consumer;
 
 @Slf4j
 public class PeerExchangeResponseHandler implements MessageListener, Disposable {
-    private final AuthorizedNode node;
+    private final Node node;
     private final String connectionId;
     private final Set<Peer> peers;
     private final Consumer<Set<Peer>> resultHandler;
 
-    public PeerExchangeResponseHandler(AuthorizedNode node,
+    public PeerExchangeResponseHandler(Node node,
                                        String connectionId,
                                        Set<Peer> peers,
                                        Consumer<Set<Peer>> resultHandler) {

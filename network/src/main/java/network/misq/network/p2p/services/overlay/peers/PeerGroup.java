@@ -20,10 +20,10 @@ package network.misq.network.p2p.services.overlay.peers;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.capability.ConnectionListener;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.ConnectionListener;
+import network.misq.network.p2p.node.Address;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +34,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 @Slf4j
 public class PeerGroup implements ConnectionListener {
-    private final AuthorizedNode node;
+    private final Node node;
     @Getter
     private final ImmutableList<Address> seedNodes;
     private final Map<Address, Peer> connectedPeerByAddress = new ConcurrentHashMap<>();
@@ -52,7 +52,7 @@ public class PeerGroup implements ConnectionListener {
     @Getter
     private final Set<Connection> connections = new CopyOnWriteArraySet<>();
 
-    public PeerGroup(AuthorizedNode node, PeerConfig peerConfig, int serverPort) {
+    public PeerGroup(Node node, PeerConfig peerConfig, int serverPort) {
         this.serverPort = serverPort;
         this.node = node;
 
@@ -65,7 +65,7 @@ public class PeerGroup implements ConnectionListener {
 
     @Override
     public void onConnection(Connection connection) {
-        Peer peer = new Peer(connection.getCapability());
+        Peer peer = new Peer(connection.getPeersCapability());
         connectedPeerByAddress.put(peer.getAddress(), peer);
         connections.add(connection);
     }

@@ -20,7 +20,7 @@ package network.misq.network.p2p.services.confidential;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 
 @EqualsAndHashCode(callSuper = true)
 @Getter

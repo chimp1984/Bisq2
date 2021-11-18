@@ -19,7 +19,7 @@ package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.socket.NetworkType;
 import network.misq.network.p2p.node.socket.NodeId;
 import network.misq.network.p2p.services.data.storage.Storage;

@@ -19,7 +19,7 @@ package network.misq.network.p2p;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.socket.NetworkType;
 import org.junit.jupiter.api.Test;
 

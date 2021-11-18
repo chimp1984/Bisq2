@@ -19,7 +19,7 @@ package network.misq.protocol;
 
 import network.misq.contract.*;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.offer.Listing;
 
 import java.util.Map;

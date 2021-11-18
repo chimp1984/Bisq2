@@ -14,65 +14,48 @@
 
 ## Architecture
 
-### Nodes
-
-Nodes are structured following the chain of responsibility pattern.
-
-#### Connection layer
+### Node
 
 - `SocketFactory`
-  - Interface for getting a `ServerSocket` and a `Socket` from different implementations (Tor, I2P, ClearNet)
-  - Provides factory method for creating the `SocketFactory` for the given `NetworkType`
+    - Interface for getting a `ServerSocket` and a `Socket` from different implementations (Tor, I2P, ClearNet)
+    - Provides factory method for creating the `SocketFactory` for the given `NetworkType`
 - `Server`
-  - Listening for connections
-- `RawConnection`
-  - Listening for messages
-  - Send a `Message` by wrapping it into a `MisqMessage`
-  - Unwrap `MisqMessage` and pass `Message` to listener
-- `RawNode`
-  - Manages `Server` and `RawConnection` instances
+    - Listening for connections
+- `Connection`
+    - Listening for messages
+    - Send a `Message` by wrapping it into a `MisqMessage`
+    - Unwrap `MisqMessage` and pass `Message` to listener
+- `Node`
+    - Manages `Server` and `Connection` instances
+    - Performs initial _Connection Handshake Protocol_
+    - Listen on messages from connection and performs _Authorization Protocol_. If successful notify `MessageListener`s
+    - At requests to send a message add AuthorizationToken according to _Authorization Protocol_
 
-#### Capability exchange layer
-
-- `CapabilityAwareNode`
-  - Creates `RawNode`
-  - Performs the _Capability Exchange Protocol_
-  - Maintains a queue for messages sent while protocol is not completed and process those after completion
-  - Creates `Connection` as wrapper for `RawConnection` containing `Capability` as well as other metadata
-  - Activates `Connection` and `Message` listeners once protocol is completed
-
-#### Authorization layer
-
-- `AuthorizedNode`
-  - Creates `CapabilityAwareNode`
-  - Performs _Authorization Protocol_
-  - For sending wrap `Message` into a `AuthorizedMessage` via _Authorization Protocol_
-  - Expect type `AuthorizedMessage` at message handler, unwraps it and verify it in _Authorization Protocol_
 
 #### Service layer
 
 - `P2pServiceNode`
-  - Creates `AuthorizedNode`
-  - Creates `OverlayNetworkService` if that service is supported
-  - Creates `ConfidentialMessageService` if that service is supported
-  - Creates `DataService` if that service is supported
-  - Creates `RelayService` if that service is supported
+    - Creates `Node`
+    - Creates `OverlayNetworkService` if that service is supported
+    - Creates `ConfidentialMessageService` if that service is supported
+    - Creates `DataService` if that service is supported
+    - Creates `RelayService` if that service is supported
 - `P2pService`
-  - Creates `P2pServiceNode`
-  - Maintains a map of `P2pServiceNode`s by `NetworkType`
+    - Creates `P2pServiceNode`
+    - Maintains a map of `P2pServiceNode`s by `NetworkType`
 
 #### Module API
 
 - `NetworkService`
-  - Top level service for accessing `P2pService` and `HttpService`
+    - Top level service for accessing `P2pService` and `HttpService`
 
 ### Services
 
 - `ConfidentialMessageService`
-  - Encrypts and signs a `Message` and creates a `ConfidentialMessage`
-  - Decrypts and verify signature when receiving a `ConfidentialMessage` and send `Message` to listeners.
-  - Forward messages to all it's nodes
-  - Listen on messages of all its nodes
+    - Encrypts and signs a `Message` and creates a `ConfidentialMessage`
+    - Decrypts and verify signature when receiving a `ConfidentialMessage` and send `Message` to listeners.
+    - Forward messages to all it's nodes
+    - Listen on messages of all its nodes
 
 - `RelayService`
   TODO
@@ -98,8 +81,8 @@ Nodes are structured following the chain of responsibility pattern.
 #### Node level
 
 - `Massege`: Base type of all messages
-- `MisqMessage`: Wrapper for messages at `RawConnection` level
-- `CapabilityRequest`, `CapabilityResponse`: Used in _Capability Exchange Protocol_
+- `MisqMessage`: Wrapper for messages at `Connection` level
+- `Connection.Request`, `Connection.Response`: Used in _Connection Handshake Protocol_
 - `AuthorizedMessage`: Used in _Authorization Protocol_
 
 #### ConfidentialMessageService
@@ -112,26 +95,26 @@ Nodes are structured following the chain of responsibility pattern.
 
 ### Protocols
 
-#### Capability Exchange Protocol
+#### Connection Handshake Protocol
 
-At the first connection we perform an exchange of the nodes capabilities. Basic capabilities are the set of supported
+At the first connection we perform a handshake protocol for exchanging the nodes capabilities. Basic capabilities are the set of supported
 network types and the announced own address which is sent by the initiating node. This is not a verified address but is
 useful for most cases to avoid creating a new outbound connection in case there is already an inbound connection to that
 node. Further capabilities will be pow related parameters and supported services.
+The initial messages require as well to pass the Authorization Protocol using default parameters as nodes parameters are only known after capability exchange.
 
-The initiator of the connection starts the protocol with sending a CapabilityRequest.
+The initiator of the connection starts the protocol with sending a Connection.Request.
 
-1. Send CapabilityRequest with own Capability and nonce
-2. On receiving the CapabilityRequest send back the CapabilityResponse with own Capability and nonce. Apply capability
+1. Send Connection.Request with own Capability and AuthorizationToken
+2. On receiving the Connection.Request send back the Connection.Response with own Capability and AuthorizationToken. Apply capability
    and complete protocol.
-3. On receiving the CapabilityResponse check if nonce matches and if peers address matches the address used to send the
-   request. If matches apply capability and complete protocol.
+3. On receiving the Connection.Response check if AuthorizationToken matches requirement and if peers address matches the address used to send the request. If matches apply capability and complete protocol.
 
 #### Authorization Protocol
 
-Wraps a message into a GuardedMessage with adding the AccessToken, which can contain in case of PoW the pow hash and the
-related parameters to allow verification. Verifies received messages by unwrapping the GuardedMessage using the specific
-AccessToken for verification. PoW not implemented yet.
+Wraps a message into a AuthorizedMessage with adding the AuthorizationToken, which can contain in case of PoW the pow hash and the
+related parameters to allow verification. Verifies received messages by unwrapping the AuthorizedMessage using the specific
+AuthorizationToken for verification. PoW not implemented yet.
 
 ## Config examples
 
@@ -140,10 +123,10 @@ AccessToken for verification. PoW not implemented yet.
 A typical config contains one Tor and one I2P `P2pServiceNode` with all services activated. First we start the servers
 of all our nodes. Then we bootstrap all nodes to the overlay network. After that our node is complete. When sending a
 message we create an outbound connection if no connection to that peer already exists. After connection is established
-it performs the _Capability Exchange Protocol_ and once completed it is used to send the message. We send the message
+it performs the _Connection Handshake Protocol_ and once completed it is used to send the message. We send the message
 from all our network nodes matching the NetworkTypes of the peers `NetworkId`. E.g. if peer also supports both Tor and
-one I2P we send the message over both those networkNodes. We can have multiple servers at one `RawNode` used for
-multiple networkIds (e.g. multiple offers). We use a default serverId used for the `OverlayNetworkService`.
+one I2P we send the message over both those networkNodes. We can have multiple servers at one `Node` used for multiple
+networkIds (e.g. multiple offers). We use a default serverId used for the `OverlayNetworkService`.
 
 ### Node just supporting the overlay network and data distribution
 

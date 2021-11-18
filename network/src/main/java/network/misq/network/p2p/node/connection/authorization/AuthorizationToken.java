@@ -15,28 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.capability;
+package network.misq.network.p2p.node.connection.authorization;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.p2p.message.Message;
+
+import java.io.Serializable;
 
 @EqualsAndHashCode
 @Getter
-class CapabilityResponse implements Message {
-    private final Capability capability;
-    private final int requestNonce;
-
-    CapabilityResponse(Capability capability, int requestNonce) {
-        this.capability = capability;
-        this.requestNonce = requestNonce;
-    }
-
-    @Override
-    public String toString() {
-        return "CapabilityResponse{" +
-                "\r\n     capability=" + capability +
-                ",\r\n     requestNonce=" + requestNonce +
-                "\r\n}";
-    }
+public class AuthorizationToken implements Serializable {
 }

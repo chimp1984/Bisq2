@@ -23,7 +23,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.currency.MisqCurrency;
-import network.misq.common.data.Couple;
+import network.misq.common.data.Pair;
 import network.misq.common.monetary.Quote;
 import network.misq.common.timer.UserThread;
 import network.misq.common.util.CollectionUtil;
@@ -118,7 +118,7 @@ public class MarketPriceService {
                 }
                 long ts = System.currentTimeMillis();
                 log.info("Request market price from {}", httpClient.getBaseUrl());
-                String json = httpClient.get("getAllMarketPrices", Optional.of(new Couple<>("User-Agent", userAgent)));
+                String json = httpClient.get("getAllMarketPrices", Optional.of(new Pair<>("User-Agent", userAgent)));
                 LinkedTreeMap<?, ?> map = new Gson().fromJson(json, LinkedTreeMap.class);
                 List<?> list = (ArrayList<?>) map.get("data");
                 list.forEach(obj -> {

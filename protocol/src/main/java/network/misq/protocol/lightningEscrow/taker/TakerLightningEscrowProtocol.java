@@ -4,7 +4,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ManyPartyContract;
 import network.misq.network.p2p.P2pService;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.connection.Connection;
 import network.misq.protocol.lightningEscrow.LightningEscrow;
 import network.misq.protocol.lightningEscrow.LightningEscrowProtocol;
 

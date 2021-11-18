@@ -5,8 +5,8 @@ import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.i2p.SamClient;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.connection.Address;
-import network.misq.network.p2p.node.connection.RawNode;
+import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Node;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -66,7 +66,7 @@ public class I2pSocketFactory implements SocketFactory {
         try {
             log.debug("Create new Socket to {}", address);
             //todo pass session id
-            Socket socket = samClient.connect(address.getHost(), RawNode.DEFAULT_SERVER_ID + "Alice");
+            Socket socket = samClient.connect(address.getHost(), Node.DEFAULT_SERVER_ID + "Alice");
             log.debug("Created new Socket");
             return socket;
         } catch (IOException exception) {

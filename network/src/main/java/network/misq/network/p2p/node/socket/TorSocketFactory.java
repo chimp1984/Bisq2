@@ -4,7 +4,7 @@ import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.FileUtils;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.tor.Constants;
 import network.misq.tor.Tor;
 import network.misq.tor.TorServerSocket;

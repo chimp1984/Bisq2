@@ -2,7 +2,7 @@ package network.misq.network.p2p.node.socket;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 
 import java.io.IOException;
 import java.net.ServerSocket;

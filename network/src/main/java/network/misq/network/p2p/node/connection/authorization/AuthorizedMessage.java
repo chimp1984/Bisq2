@@ -15,9 +15,9 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.data;
+package network.misq.network.p2p.node.connection.authorization;
 
-import java.io.Serializable;
+import network.misq.network.p2p.message.Message;
 
-public record Couple<A, B>(A first, B second) implements Serializable {
+public record AuthorizedMessage(Message message, AuthorizationToken authorizationToken) implements Message {
 }

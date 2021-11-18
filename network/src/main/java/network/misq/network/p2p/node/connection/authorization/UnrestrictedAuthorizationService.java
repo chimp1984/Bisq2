@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.authorization;
+package network.misq.network.p2p.node.connection.authorization;
 
 import network.misq.network.p2p.message.Message;
 
@@ -32,7 +32,13 @@ public class UnrestrictedAuthorizationService implements AuthorizationService {
     }
 
     @Override
-    public CompletableFuture<AuthorizationToken> createToken(Message message) {
+    public boolean isAuthorized(AuthorizationToken authorizationToken) {
+        return true;
+    }
+
+
+    @Override
+    public CompletableFuture<AuthorizationToken> createToken(Class<? extends Message> messageClass) {
         return CompletableFuture.completedFuture(new AuthorizationToken());
     }
 

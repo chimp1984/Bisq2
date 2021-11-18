@@ -21,20 +21,20 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 
 import java.util.function.Function;
 
 @Slf4j
 public class InventoryResponseHandler implements MessageListener, Disposable {
-    private final AuthorizedNode node;
+    private final Node node;
     private final Connection connection;
     private final Function<DataFilter, Inventory> inventoryProvider;
     private final Runnable completeHandler;
 
-    public InventoryResponseHandler(AuthorizedNode node,
+    public InventoryResponseHandler(Node node,
                                     Connection connection,
                                     Function<DataFilter, Inventory> inventoryProvider,
                                     Runnable completeHandler) {

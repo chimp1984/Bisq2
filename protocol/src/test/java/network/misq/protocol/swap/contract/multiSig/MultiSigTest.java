@@ -28,7 +28,7 @@ import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pService;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;

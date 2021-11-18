@@ -20,10 +20,10 @@ package network.misq.network.p2p.services.data;
 import network.misq.common.util.MapUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.capability.ConnectionListener;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.ConnectionListener;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.InventoryRequestHandler;
 import network.misq.network.p2p.services.data.inventory.InventoryResponseHandler;
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 public class DataService implements MessageListener, ConnectionListener {
     private static final long BROADCAST_TIMEOUT = 90;
 
-    private final AuthorizedNode node;
+    private final Node node;
     private final Router router;
     private final OverlayNetworkService overlayNetworkService;
     private final Storage storage;
@@ -62,7 +62,7 @@ public class DataService implements MessageListener, ConnectionListener {
     private final Map<String, InventoryResponseHandler> responseHandlerMap = new ConcurrentHashMap<>();
     private final Map<String, InventoryRequestHandler> requestHandlerMap = new ConcurrentHashMap<>();
 
-    public DataService(AuthorizedNode node, OverlayNetworkService overlayNetworkService, Storage storage) {
+    public DataService(Node node, OverlayNetworkService overlayNetworkService, Storage storage) {
         this.node = node;
         this.overlayNetworkService = overlayNetworkService;
         this.storage = storage;

@@ -15,21 +15,9 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.capability;
-
-import network.misq.network.p2p.node.connection.Address;
-import network.misq.network.p2p.node.socket.NetworkType;
+package network.misq.common.data;
 
 import java.io.Serializable;
-import java.util.Set;
 
-public record Capability(Address address, Set<NetworkType> supportedNetworkTypes) implements Serializable {
-
-    @Override
-    public String toString() {
-        return "Capability{" +
-                "\r\n     address=" + address +
-                ",\r\n     supportedNetworkTypes=" + supportedNetworkTypes +
-                "\r\n}";
-    }
+public record Pair<A, B>(A first, B second) implements Serializable {
 }

@@ -20,9 +20,9 @@ package network.misq.network.p2p;
 
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.socket.NetworkType;
 import network.misq.network.p2p.node.socket.SocketFactory;
 import network.misq.network.p2p.services.confidential.ConfidentialMessageService;
@@ -53,7 +53,7 @@ public class P2pServiceNode {
 
     private final NetworkConfig networkConfig;
     private final Storage storage;
-    private final AuthorizedNode node;
+    private final Node node;
     private Optional<ConfidentialMessageService> confidentialMessageService;
     private Optional<DataService> dataService;
     private Optional<OverlayNetworkService> overlayNetworkService;
@@ -63,7 +63,7 @@ public class P2pServiceNode {
         this.networkConfig = networkConfig;
         this.storage = storage;
 
-        node = new AuthorizedNode(networkConfig);
+        node = new Node(networkConfig);
         Set<NetworkConfig.Service> services = networkConfig.getServices();
         if (services.contains(NetworkConfig.Service.CONFIDENTIAL)) {
             confidentialMessageService = Optional.of(new ConfidentialMessageService(node, keyPairRepository));

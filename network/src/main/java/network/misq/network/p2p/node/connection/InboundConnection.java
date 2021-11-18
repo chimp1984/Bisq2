@@ -19,17 +19,22 @@ package network.misq.network.p2p.node.connection;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.network.p2p.node.Capability;
+import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.socket.SocketFactory;
 
 import java.net.Socket;
 
 @Slf4j
-public class InboundConnection extends RawConnection {
+public class InboundConnection extends Connection {
     @Getter
     private final SocketFactory.GetServerSocketResult getServerSocketResult;
 
-    public InboundConnection(Socket socket, SocketFactory.GetServerSocketResult getServerSocketResult) {
-        super(socket);
+    public InboundConnection(Socket socket,
+                             SocketFactory.GetServerSocketResult getServerSocketResult,
+                             Capability capability,
+                             MessageListener messageListener) {
+        super(socket, capability, messageListener);
         this.getServerSocketResult = getServerSocketResult;
         log.debug("Create inboundConnection from server: {}", getServerSocketResult);
     }

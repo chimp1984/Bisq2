@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,11 +32,11 @@ import java.util.concurrent.TimeUnit;
 public class InventoryRequestHandler implements MessageListener, Disposable {
     private static final long TIMEOUT_SEC = 90;
 
-    private final AuthorizedNode node;
+    private final Node node;
     private final Connection connection;
     private final CompletableFuture<Inventory> future = new CompletableFuture<>();
 
-    public InventoryRequestHandler(AuthorizedNode node, Connection connection) {
+    public InventoryRequestHandler(Node node, Connection connection) {
         this.node = node;
         this.connection = connection;
     }

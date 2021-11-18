@@ -20,10 +20,10 @@ package network.misq.network.p2p.services.overlay.peers.exchange;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.MapUtils;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.capability.ConnectionListener;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.ConnectionListener;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.overlay.peers.Peer;
 
 import java.util.*;
@@ -41,14 +41,14 @@ import java.util.stream.Collectors;
 public class PeerExchangeManager implements ConnectionListener {
     public static final int TIMEOUT = 300;
 
-    private final AuthorizedNode node;
+    private final Node node;
     private final PeerExchangeStrategy peerExchangeStrategy;
     private final Map<String, PeerExchangeResponseHandler> responseHandlerMap = new ConcurrentHashMap<>();
     private final Map<String, PeerExchangeRequestHandler> requestHandlerMap = new ConcurrentHashMap<>();
     private final PeerExchangeGraph peerExchangeGraph;
     private volatile boolean isStopped;
 
-    public PeerExchangeManager(AuthorizedNode node, PeerExchangeStrategy peerExchangeStrategy) {
+    public PeerExchangeManager(Node node, PeerExchangeStrategy peerExchangeStrategy) {
         this.node = node;
         this.peerExchangeStrategy = peerExchangeStrategy;
 

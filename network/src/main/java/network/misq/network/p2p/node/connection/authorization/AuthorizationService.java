@@ -15,10 +15,19 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.capability;
+package network.misq.network.p2p.node.connection.authorization;
 
-public interface ConnectionListener {
-    void onConnection(Connection connection);
+import network.misq.network.p2p.message.Message;
 
-    void onDisconnect(Connection connection);
+import java.util.concurrent.CompletableFuture;
+
+public interface AuthorizationService {
+
+    boolean isAuthorized(AuthorizedMessage authorizedMessage);
+
+    boolean isAuthorized(AuthorizationToken authorizationToken);
+
+    CompletableFuture<AuthorizationToken> createToken(Class<? extends Message> message);
+
+    void shutdown();
 }

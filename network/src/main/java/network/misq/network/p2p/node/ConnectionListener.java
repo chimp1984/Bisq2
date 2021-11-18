@@ -15,28 +15,12 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.capability;
+package network.misq.network.p2p.node;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.connection.Connection;
 
-@EqualsAndHashCode
-@Getter
-class CapabilityRequest implements Message {
-    private final int nonce;
-    private final Capability capability;
+public interface ConnectionListener {
+    void onConnection(Connection connection);
 
-    CapabilityRequest(Capability capability, int nonce) {
-        this.capability = capability;
-        this.nonce = nonce;
-    }
-
-    @Override
-    public String toString() {
-        return "CapabilityRequest{" +
-                "\r\n     Capability=" + capability +
-                ",\r\n     nonce=" + nonce +
-                "\r\n}";
-    }
+    void onDisconnect(Connection connection);
 }

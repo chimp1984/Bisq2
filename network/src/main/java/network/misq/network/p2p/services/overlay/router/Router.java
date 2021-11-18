@@ -19,9 +19,9 @@ package network.misq.network.p2p.services.overlay.router;
 
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.overlay.peers.PeerGroup;
 import network.misq.network.p2p.services.overlay.router.gossip.GossipResult;
 import network.misq.network.p2p.services.overlay.router.gossip.GossipRouter;
@@ -40,7 +40,7 @@ public class Router implements MessageListener {
     private final GossipRouter gossipRouter;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
-    public Router(AuthorizedNode node, PeerGroup peerGroup) {
+    public Router(Node node, PeerGroup peerGroup) {
         gossipRouter = new GossipRouter(node, peerGroup);
         gossipRouter.addMessageListener(this);
     }

@@ -18,8 +18,8 @@
 package network.misq.network.p2p.services.overlay.peers;
 
 import lombok.Getter;
-import network.misq.network.p2p.node.capability.Capability;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Capability;
+import network.misq.network.p2p.node.Address;
 
 import java.io.Serializable;
 import java.util.Date;

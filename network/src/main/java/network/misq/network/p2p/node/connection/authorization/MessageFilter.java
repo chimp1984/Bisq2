@@ -15,9 +15,27 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.authorization;
+package network.misq.network.p2p.node.connection.authorization;
 
+import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.message.Message;
 
-public record AuthorizedMessage(Message message, AuthorizationToken authorizationToken) implements Message {
+import java.util.Optional;
+
+@Slf4j
+public class MessageFilter {
+    private final AuthorizationService authorizationService;
+
+    public MessageFilter(AuthorizationService authorizationService) {
+        this.authorizationService = authorizationService;
+    }
+
+    public Optional<Message> process(Message message) {
+        if (message instanceof AuthorizedMessage authorizedMessage) {
+            if (authorizationService.isAuthorized(authorizedMessage)) {
+                return Optional.of(authorizedMessage.message());
+            }
+        }
+        return Optional.empty();
+    }
 }

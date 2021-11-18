@@ -15,17 +15,20 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.authorization;
+package network.misq.network.p2p.node;
 
-import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.socket.NetworkType;
 
-import java.util.concurrent.CompletableFuture;
+import java.io.Serializable;
+import java.util.Set;
 
-public interface AuthorizationService {
+public record Capability(Address address, Set<NetworkType> supportedNetworkTypes) implements Serializable {
 
-    boolean isAuthorized(AuthorizedMessage authorizedMessage);
-
-    CompletableFuture<AuthorizationToken> createToken(Message message);
-
-    void shutdown();
+    @Override
+    public String toString() {
+        return "Capability{" +
+                "\r\n     address=" + address +
+                ",\r\n     supportedNetworkTypes=" + supportedNetworkTypes +
+                "\r\n}";
+    }
 }

@@ -24,8 +24,8 @@ import network.misq.common.util.OsUtils;
 import network.misq.network.p2p.NetworkConfig;
 import network.misq.network.p2p.NetworkConfig.Service;
 import network.misq.network.p2p.P2pServiceNode;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.socket.NetworkType;
 import network.misq.network.p2p.node.socket.NodeId;
 import network.misq.network.p2p.services.data.storage.Storage;
@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class PeerExchangeBase {
-    protected AuthorizedNode nodeSeed, node1, node2, node3;
+    protected Node nodeSeed, node1, node2, node3;
     protected PeerExchangeManager peerExchangeManagerSeed, peerExchangeManager1, peerExchangeManager2, peerExchangeManager3;
     protected PeerGroup peerGroupSeed, peerGroupNode1, peerGroupNode2, peerGroupNode3;
     protected Storage storage = new Storage("");
@@ -56,7 +56,7 @@ public class PeerExchangeBase {
     protected final int minNumConnectedPeers = 30;
     protected final int maxNumConnectedPeers = 40;
     protected final int repeatPeerExchangeDelay = 200;
-    protected Map<Integer, Triple<PeerExchangeManager, PeerGroup, AuthorizedNode>> tuples;
+    protected Map<Integer, Triple<PeerExchangeManager, PeerGroup, Node>> tuples;
 
 
     // Seed node only, so num connection and num reported will be 0
@@ -324,8 +324,8 @@ public class PeerExchangeBase {
 
     }
 
-    protected CompletableFuture<Triple<PeerExchangeManager, PeerGroup, AuthorizedNode>> getTuple(NetworkConfig networkConfig) {
-        AuthorizedNode node = new AuthorizedNode(networkConfig);
+    protected CompletableFuture<Triple<PeerExchangeManager, PeerGroup, Node>> getTuple(NetworkConfig networkConfig) {
+        Node node = new Node(networkConfig);
 
         PeerConfig peerConfig = networkConfig.getPeerConfig();
         PeerGroup peerGroup = new PeerGroup(node, peerConfig, networkConfig.getNodeId().getServerPort());

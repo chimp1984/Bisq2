@@ -22,9 +22,9 @@ import network.misq.common.ObjectSerializer;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Address;
 import network.misq.security.ConfidentialData;
 import network.misq.security.HybridEncryption;
 import network.misq.security.KeyPairRepository;
@@ -37,11 +37,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 public class ConfidentialMessageService implements MessageListener {
-    private final AuthorizedNode node;
+    private final Node node;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private final KeyPairRepository keyPairRepository;
 
-    public ConfidentialMessageService(AuthorizedNode node, KeyPairRepository keyPairRepository) {
+    public ConfidentialMessageService(Node node, KeyPairRepository keyPairRepository) {
         this.node = node;
         this.keyPairRepository = keyPairRepository;
 

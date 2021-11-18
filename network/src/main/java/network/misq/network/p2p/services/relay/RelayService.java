@@ -17,11 +17,11 @@
 
 package network.misq.network.p2p.services.relay;
 
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
+import network.misq.network.p2p.node.Node;
 
 //TODO
 public class RelayService {
-    public RelayService(AuthorizedNode node) {
+    public RelayService(Node node) {
 
     }
 

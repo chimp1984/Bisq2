@@ -19,7 +19,7 @@ package network.misq.network.p2p.services.overlay.peers;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
+import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.overlay.peers.exchange.PeerExchangeManager;
 import network.misq.network.p2p.services.overlay.peers.exchange.PeerExchangeStrategy;
 
@@ -51,14 +51,14 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class PeerManager {
 
-    private final AuthorizedNode node;
+    private final Node node;
     private final PeerGroup peerGroup;
     private final PeerConfig peerConfig;
     private final PeerExchangeManager peerExchangeManager;
     private final PeerGroupHealth peerGroupHealth;
     private volatile boolean isStopped;
 
-    public PeerManager(AuthorizedNode node,
+    public PeerManager(Node node,
                        PeerGroup peerGroup,
                        PeerExchangeStrategy peerExchangeStrategy,
                        PeerConfig peerConfig) {
@@ -103,7 +103,7 @@ public class PeerManager {
     }
 
     @VisibleForTesting
-    public AuthorizedNode getGuard() {
+    public Node getGuard() {
         return node;
     }
 }

@@ -20,9 +20,9 @@ package network.misq.network.p2p.services.overlay.router.gossip;
 import network.misq.common.util.CollectionUtil;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
-import network.misq.network.p2p.node.capability.Connection;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.overlay.peers.PeerGroup;
 
 import java.util.Set;
@@ -40,11 +40,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GossipRouter implements MessageListener {
     private static final long BROADCAST_TIMEOUT = 90;
 
-    private final AuthorizedNode node;
+    private final Node node;
     private final PeerGroup peerGroup;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
-    public GossipRouter(AuthorizedNode node, PeerGroup peerGroup) {
+    public GossipRouter(Node node, PeerGroup peerGroup) {
         this.node = node;
         this.peerGroup = peerGroup;
 

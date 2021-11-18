@@ -22,16 +22,17 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Capability;
+import network.misq.network.p2p.node.MessageListener;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -45,10 +46,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Notifies errorHandler on exceptions from the inputHandlerService executor.
  */
 @Slf4j
-public abstract class RawConnection implements Closeable {
-    public interface MessageListener {
-        void onMessage(Message message);
-    }
+public abstract class Connection implements Closeable {
 
     @Getter
     @EqualsAndHashCode
@@ -67,9 +65,12 @@ public abstract class RawConnection implements Closeable {
         }
     }
 
-    private final Socket socket;
     protected final String id = UUID.randomUUID().toString();
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Socket socket;
+    @Getter
+    private final Capability peersCapability;
+
+    private final MessageListener messageListener;
 
     private ExecutorService writeExecutor;
     private ExecutorService readExecutor;
@@ -78,11 +79,13 @@ public abstract class RawConnection implements Closeable {
 
     private volatile boolean isStopped;
 
-    protected RawConnection(Socket socket) {
+    protected Connection(Socket socket, Capability peersCapability, MessageListener messageListener) {
         this.socket = socket;
+        this.peersCapability = peersCapability;
+        this.messageListener = messageListener;
     }
 
-    void listen(Consumer<Exception> errorHandler) throws IOException {
+   public void startListen(Consumer<Exception> errorHandler) throws IOException {
         //todo use global pool
         writeExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
         readExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
@@ -103,7 +106,7 @@ public abstract class RawConnection implements Closeable {
                             "Received object is not of type MisqMessage: " + object.getClass().getName());
                     MisqMessage misqMessage = (MisqMessage) object;
                     log.debug("Received message: {} at connection: {}", misqMessage, this);
-                    messageListeners.forEach(listener -> listener.onMessage(misqMessage.getPayload()));
+                    messageListener.onMessage(misqMessage.getPayload(), this);
                 } catch (Exception exception) {
                     //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
                     close();
@@ -113,8 +116,8 @@ public abstract class RawConnection implements Closeable {
         });
     }
 
-    public CompletableFuture<RawConnection> send(Message message) {
-        CompletableFuture<RawConnection> future = new CompletableFuture<>();
+    public CompletableFuture<Connection> send(Message message) {
+        CompletableFuture<Connection> future = new CompletableFuture<>();
         writeExecutor.execute(() -> {
             try {
                 MisqMessage misqMessage = new MisqMessage(message);
@@ -146,20 +149,30 @@ public abstract class RawConnection implements Closeable {
         }
     }
 
-    public void addMessageListener(MessageListener messageListener) {
-        messageListeners.add(messageListener);
-    }
-
-    public void removeMessageListener(MessageListener messageListener) {
-        messageListeners.remove(messageListener);
-    }
-
     public String getId() {
         return id;
     }
 
     private String getShortId() {
         return id.substring(0, 24);
+    }
+
+    public Address getPeerAddress() {
+        return peersCapability.address();
+    }
+
+    // Only at outbound connections we can be sure that the peer address is correct.
+    // The announced peer address in capability is not guaranteed to be valid.
+    // For most cases that is sufficient as the peer would not gain anything if lying about their address
+    // as it would make them unreachable for receiving messages from newly established connections. But there are
+    // cases where we need to be sure that it is the real address, like if we might use the peer address for banning a
+    // not correctly behaving peer.
+    public boolean getPeerAddressVerified() {
+        return isOutboundConnection();
+    }
+
+    public boolean isOutboundConnection() {
+        return this instanceof OutboundConnection;
     }
 
     @Override

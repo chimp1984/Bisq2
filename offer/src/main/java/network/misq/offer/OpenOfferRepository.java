@@ -24,7 +24,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.INetworkService;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.network.p2p.node.Address;
 import network.misq.wallets.Wallet;
 
 import java.util.List;

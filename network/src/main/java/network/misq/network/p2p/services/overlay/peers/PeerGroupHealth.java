@@ -17,15 +17,15 @@
 
 package network.misq.network.p2p.services.overlay.peers;
 
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
+import network.misq.network.p2p.node.Node;
 
 import java.util.concurrent.CompletableFuture;
 
 public class PeerGroupHealth {
-    private final AuthorizedNode node;
+    private final Node node;
     private final PeerGroup peerGroup;
 
-    public PeerGroupHealth(AuthorizedNode node, PeerGroup peerGroup) {
+    public PeerGroupHealth(Node node, PeerGroup peerGroup) {
         this.node = node;
         this.peerGroup = peerGroup;
     }

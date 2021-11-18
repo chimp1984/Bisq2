@@ -17,17 +17,17 @@
 
 package network.misq.network.p2p.services.overlay.peers.exchange;
 
-import network.misq.common.data.Couple;
-import network.misq.network.p2p.node.connection.Address;
+import network.misq.common.data.Pair;
+import network.misq.network.p2p.node.Address;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PeerExchangeGraph {
 
-    private final List<Couple<Address, Address>> vectors = new CopyOnWriteArrayList<>();
+    private final List<Pair<Address, Address>> vectors = new CopyOnWriteArrayList<>();
 
     public void add(Address source, Address target) {
-        vectors.add(new Couple<>(source, target));
+        vectors.add(new Pair<>(source, target));
     }
 }

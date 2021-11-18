@@ -19,7 +19,7 @@ package network.misq.network.p2p.services.overlay;
 
 import lombok.Getter;
 import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.authorization.AuthorizedNode;
+import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.overlay.peers.PeerConfig;
 import network.misq.network.p2p.services.overlay.peers.PeerGroup;
 import network.misq.network.p2p.services.overlay.peers.PeerManager;
@@ -33,7 +33,7 @@ public class OverlayNetworkService {
     private final PeerGroup peerGroup;
     private final NetworkConfig networkConfig;
 
-    public OverlayNetworkService(AuthorizedNode node, NetworkConfig networkConfig) {
+    public OverlayNetworkService(Node node, NetworkConfig networkConfig) {
         this.networkConfig = networkConfig;
         PeerConfig peerConfig = networkConfig.getPeerConfig();
         peerGroup = new PeerGroup(node, peerConfig, networkConfig.getNodeId().getServerPort());
