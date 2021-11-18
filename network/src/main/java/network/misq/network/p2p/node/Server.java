@@ -19,10 +19,10 @@ package network.misq.network.p2p.node;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.common.util.StringUtils;
 import network.misq.common.util.ThreadingUtils;
-import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.node.proxy.ServerSocketResult;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,38 +30,33 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 @Slf4j
-public class Server implements Closeable {
+public class Server {
     private final ServerSocket serverSocket;
-    private final ExecutorService executorService;
+    private final ExecutorService executorService = ThreadingUtils.getSingleThreadExecutor("Server");
     @Getter
     private final Address address;
     private volatile boolean isStopped;
 
-    /**
-     * Server using the given ServerSocket.
-     *
-     * @param getServerSocketResult contains serverSocket and address
-     * @param socketHandler         Consumes socket on new inbound connection
-     * @param exceptionHandler
-     */
-    public Server(SocketFactory.GetServerSocketResult getServerSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
-        this.serverSocket = getServerSocketResult.serverSocket();
+    public Server(ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
+        this.serverSocket = serverSocketResult.serverSocket();
 
-        address = getServerSocketResult.address();
-        log.debug("Create server: {}", getServerSocketResult);
-        executorService = ThreadingUtils.getSingleThreadExecutor("Server-" + getServerSocketResult);
+        address = serverSocketResult.address();
+        log.debug("Create server: {}", serverSocketResult);
         executorService.execute(() -> {
+            Thread.currentThread().setName("Server-" +
+                    StringUtils.truncate(serverSocketResult.nodeId()) + "-" +
+                    StringUtils.truncate(serverSocketResult.address().toString()));
             while (isNotStopped()) {
                 try {
                     Socket socket = serverSocket.accept();
-                    log.debug("Accepted new connection on server: {}", getServerSocketResult);
+                    log.debug("Accepted new connection on server: {}", serverSocketResult);
                     if (isNotStopped()) {
                         socketHandler.accept(socket);
                     }
                 } catch (IOException e) {
                     if (!isStopped) {
                         exceptionHandler.accept(e);
-                        close();
+                        shutdown();
                     }
                 }
             }
@@ -72,14 +67,15 @@ public class Server implements Closeable {
         return !isStopped && !Thread.currentThread().isInterrupted();
     }
 
-    public void close() {
+    public void shutdown() {
+        //log.error("shutdown {}", address);
         if (isStopped) {
             return;
         }
         isStopped = true;
-        ThreadingUtils.shutdownAndAwaitTermination(executorService);
         try {
             serverSocket.close();
+            executorService.shutdownNow();
         } catch (IOException ignore) {
         }
     }

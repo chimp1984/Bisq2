@@ -18,7 +18,8 @@
 package network.misq.network.p2p.node;
 
 
-import network.misq.network.p2p.NetworkConfig;
+import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
+import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.connection.Connection;
 import network.misq.network.p2p.node.connection.ConnectionHandshake;
@@ -26,145 +27,106 @@ import network.misq.network.p2p.node.connection.InboundConnection;
 import network.misq.network.p2p.node.connection.OutboundConnection;
 import network.misq.network.p2p.node.connection.authorization.AuthorizationService;
 import network.misq.network.p2p.node.connection.authorization.AuthorizedMessage;
-import network.misq.network.p2p.node.connection.authorization.UnrestrictedAuthorizationService;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.NodeId;
-import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.node.proxy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 /**
  * Responsibility:
- * - Creates socketFactory based on networkConfig via SocketFactory factory method.
- * - Creates Servers kept in a map by serverId.
+ * - Creates networkProxy based on networkType
+ * - Creates 1 Server associated with that server
  * - Creates inbound and outbound connections.
  * - Checks if a connection has been created when sending a message and creates one otherwise.
+ * - Performs initial connection handshake for exchanging capability and performing authorization
  * - Notifies ConnectionListeners when a new connection has been created or one has been closed.
  */
-public class Node implements MessageListener, Closeable {
+public class Node {
     private static final Logger log = LoggerFactory.getLogger(Node.class);
-    public static final String DEFAULT_SERVER_ID = "default";
-    public static final int DEFAULT_SERVER_PORT = 9999;
+    public static final String DEFAULT_NODE_ID = "default";
 
-    private final SocketFactory socketFactory;
-    private final Map<String, Server> serverMap = new ConcurrentHashMap<>();
+    private final NetworkProxy networkProxy;
+    private final Set<NetworkType> supportedNetworkTypes;
+    private final AuthorizationService authorizationService;
+    private final String nodeId;
+
     private final Map<Address, OutboundConnection> outboundConnectionMap = new ConcurrentHashMap<>();
     private final Set<InboundConnection> inboundConnections = new CopyOnWriteArraySet<>();
-    private final AuthorizationService authorizationService;
-    private final Set<NetworkType> supportedNetworkTypes;
-    private final NetworkType networkType;
-    private final NodeId nodeId;
-    private final NetworkConfig networkConfig;
-    private volatile boolean isStopped;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private final Set<ConnectionListener> connectionListeners = new CopyOnWriteArraySet<>();
 
-    public Node(NetworkConfig networkConfig) {
-        socketFactory = SocketFactory.from(networkConfig);
-        supportedNetworkTypes = networkConfig.getNodeId().getNetworkTypes();
-        networkType = networkConfig.getNetworkType();
-        nodeId = networkConfig.getNodeId();
-        this.networkConfig = networkConfig;
-        authorizationService = new UnrestrictedAuthorizationService();
+    private Optional<Server> server = Optional.empty();
+    private Optional<Capability> myCapability;
+    private volatile boolean isStopped;
+
+    public Node(NodeConfig nodeConfig, String nodeId) {
+        networkProxy = getNetworkProxy(nodeConfig.networkType(), nodeConfig.networkProxyConfig());
+        supportedNetworkTypes = nodeConfig.supportedNetworkTypes();
+        authorizationService = nodeConfig.authorizationService();
+        this.nodeId = nodeId;
     }
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // API
+    // Server
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<SocketFactory.GetServerSocketResult> initializeServer(String serverId, int serverPort) {
-        return socketFactory.initialize()
-                .thenCompose(e -> createServerAndListen(serverId, serverPort));
+    public CompletableFuture<ServerSocketResult> initializeServer(int port) {
+        return networkProxy.initialize()
+                .thenCompose(e -> createServerAndListen(port));
     }
 
-    public CompletableFuture<SocketFactory.GetServerSocketResult> createServerAndListen(String serverId, int serverPort) {
-        return socketFactory.getServerSocket(serverId, serverPort)
-                .thenCompose(result -> {
-                    Server server = new Server(result,
-                            socket -> onClientSocket(socket, result),
-                            exception -> {
-                                serverMap.remove(serverId);
-                                handleException(exception);
-                            });
-                    serverMap.put(serverId, server);
-                    return CompletableFuture.completedFuture(result);
+    public CompletableFuture<ServerSocketResult> createServerAndListen(int port) {
+        return networkProxy.getServerSocket(port, nodeId)
+                .thenCompose(serverSocketResult -> {
+                    myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedNetworkTypes));
+                    server = Optional.of(new Server(serverSocketResult,
+                            socket -> onClientSocket(socket, serverSocketResult, myCapability.get()),
+                            this::handleException));
+                    return CompletableFuture.completedFuture(serverSocketResult);
                 });
     }
 
-    public CompletableFuture<Connection> getConnection(Address peerAddress) {
-        if (outboundConnectionMap.containsKey(peerAddress)) {
-            Connection connection = outboundConnectionMap.get(peerAddress);
-            return CompletableFuture.completedFuture(connection);
-        } else {
-            return createConnection(peerAddress);
-        }
-    }
-
-    public Optional<Connection> findConnection(String connectionUid) {
-        return getAllConnections()
-                .filter(e -> e.getId().equals(connectionUid))
-                .findAny();
-    }
-
-    private Stream<Connection> getAllConnections() {
-        return Stream.concat(outboundConnectionMap.values().stream(), inboundConnections.stream());
-    }
-
-    //todo
-    public Optional<Connection> findConnection(Address peerAddress) {
-        return getAllConnections()
-                .filter(c -> c.getPeerAddress().equals(peerAddress))
-                .findAny();
-    }
-
-    public void disconnect(Connection connection) {
-        log.info("disconnect connection {}", connection);
-        connection.close();
-        onDisconnect(connection);
+    private void onClientSocket(Socket socket, ServerSocketResult serverSocketResult, Capability myCapability) {
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        connectionHandshake.onSocket()
+                .whenComplete((peersCapability, throwable) -> {
+                    if (throwable == null) {
+                        try {
+                            InboundConnection connection = new InboundConnection(socket, serverSocketResult, peersCapability, this::onMessage);
+                            connection.startListen(exception -> handleException(connection, exception));
+                            inboundConnections.add(connection);
+                            runAsync(() -> connectionListeners.forEach(listener -> listener.onConnection(connection)));
+                        } catch (IOException exception) {
+                            handleException(exception);
+                        }
+                    } else {
+                        handleException(throwable);
+                    }
+                });
     }
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // MessageListener
+    // Send
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void onMessage(Message message, Connection connection) {
-        if (!isStopped && message instanceof AuthorizedMessage authorizedMessage) {
-            if (authorizationService.isAuthorized(authorizedMessage)) {
-                messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection));
-            } else {
-                log.warn("Handling message at onMessage is not permitted by authorizationService");
-            }
-        }
-    }
-
-
-    /**
-     * Sends to outbound connection if available, otherwise create the connection and then send the message.
-     * At that layer we do not send to a potentially existing inbound connection as we do not know the peers address
-     * at inbound connections. Higher layers can utilize that and use the send(Message message, RawConnection connection)
-     * method instead.
-     */
     public CompletableFuture<Connection> send(Message message, Address address) {
         return getConnection(address)
-                .thenCompose(connection -> send(message, connection));
+                .thenCompose(connection ->  send(message, connection));
     }
 
     public CompletableFuture<Connection> send(Message message, Connection connection) {
@@ -176,36 +138,91 @@ public class Node implements MessageListener, Closeable {
                 });
     }
 
-    public void close() {
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // OutboundConnection
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public CompletableFuture<Connection> getConnection(Address address) {
+        if (outboundConnectionMap.containsKey(address)) {
+            return CompletableFuture.completedFuture(outboundConnectionMap.get(address));
+        } else {
+            return createOutboundConnection(address);
+        }
+    }
+
+    private CompletableFuture<Connection> createOutboundConnection(Address address) {
+        return myCapability.map(capability -> createOutboundConnection(address, capability))
+                .orElseGet(() -> initializeServer(NetworkUtils.findFreeSystemPort())
+                        .thenCompose(serverSocketResult -> createOutboundConnection(address, myCapability.get())));
+    }
+
+    private CompletableFuture<Connection> createOutboundConnection(Address address, Capability myCapability) {
+        Socket socket;
+        try {
+            socket = networkProxy.getSocket(address);
+        } catch (IOException e) {
+            handleException(e);
+            return CompletableFuture.failedFuture(e);
+        }
+
+        CompletableFuture<Connection> future = new CompletableFuture<>();
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        connectionHandshake.start()
+                .whenComplete((peersCapability, throwable) -> {
+                    log.debug("Create new outbound connection to {}", address);
+                    checkArgument(address.equals(peersCapability.address()),
+                            "Peers reported address must match address we used to connect");
+                    OutboundConnection connection = new OutboundConnection(socket, address, peersCapability, this::onMessage);
+                    try {
+                        connection.startListen(exception -> {
+                            handleException(connection, exception);
+                            future.completeExceptionally(exception);
+                        });
+
+                        outboundConnectionMap.put(address, connection);
+                        runAsync(() -> connectionListeners.forEach(listener -> listener.onConnection(connection)));
+                        future.complete(connection);
+                    } catch (IOException exception) {
+                        handleException(connection, exception);
+                        future.completeExceptionally(exception);
+                    }
+                });
+        return future;
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // MessageHandler
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void onMessage(Message message, Connection connection) {
+        if (!isStopped && message instanceof AuthorizedMessage authorizedMessage) {
+            if (authorizationService.isAuthorized(authorizedMessage)) {
+                runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection)));
+            } else {
+                log.warn("Handling message at onMessage is not permitted by authorizationService");
+            }
+        }
+    }
+
+    public void shutdown() {
         if (isStopped) {
             return;
         }
         isStopped = true;
 
-        serverMap.values().forEach(Server::close);
-        serverMap.clear();
+        server.ifPresent(Server::shutdown);
         outboundConnectionMap.values().forEach(Connection::close);
         outboundConnectionMap.clear();
         inboundConnections.forEach(Connection::close);
         inboundConnections.clear();
 
-        socketFactory.close();
+        networkProxy.close();
     }
 
-    public Optional<Address> findMyAddress() {
-        return findMyAddress(DEFAULT_SERVER_ID);
-    }
-
-    public Optional<Address> findPeerAddress(Connection connection) {
-        if (connection instanceof OutboundConnection) {
-            return Optional.of(((OutboundConnection) connection).getAddress());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public SocketFactory getSocketFactory() {
-        return socketFactory;
+    public Optional<Socks5Proxy> getSocksProxy() throws IOException {
+        return networkProxy.getSocksProxy();
     }
 
     public void addMessageListener(MessageListener messageListener) {
@@ -226,26 +243,22 @@ public class Node implements MessageListener, Closeable {
 
     //todo
     // Only to be used when we know that we have already created the default server
-    public Address getMyAddress() {
+   /* public Address getMyAddress() {
         Optional<Address> myAddress = findMyAddress();
         checkArgument(myAddress.isPresent(), "myAddress need to be present at a getMyAddress call");
         return myAddress.get();
-    }
+    }*/
 
-    public NetworkType getNetworkType() {
-        return networkConfig.getNetworkType();
-    }
-
+    //todo
+ /*   public Optional<Address> findMyAddress() {
+        return findMyAddress(DEFAULT_CONNECTION_ID);
+    }*/
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private Socket getSocket(Address address) throws IOException {
-        return socketFactory.getSocket(address);
-    }
-
-    private Optional<Address> findMyAddress(String serverId) {
+    /*private Optional<Address> findMyAddress(String serverId) {
         if (serverMap.containsKey(serverId)) {
             return Optional.of(serverMap.get(serverId).getAddress());
         } else if (!serverMap.isEmpty()) {
@@ -253,74 +266,16 @@ public class Node implements MessageListener, Closeable {
         } else {
             return Optional.empty();
         }
-    }
+    }*/
 
-    private void onClientSocket(Socket socket, SocketFactory.GetServerSocketResult getServerSocketResult) {
-        Capability myCapability = new Capability(getServerSocketResult.address(), supportedNetworkTypes);
-        ConnectionHandshake.onSocket(socket, myCapability, authorizationService)
-                .whenComplete((peersCapability, throwable) -> {
-                    if (throwable == null) {
-                        try {
-                            //todo use peersCapability
-                            InboundConnection connection = new InboundConnection(socket, getServerSocketResult, peersCapability, this);
-                            connection.startListen(exception -> handleException(connection, exception));
-                            inboundConnections.add(connection);
-                            connectionListeners.forEach(listener -> listener.onConnection(connection));
-                        } catch (IOException exception) {
-                            handleException(exception);
-                        }
-                    } else {
-                        handleException(throwable);
-                    }
-                });
-    }
-
-    private CompletableFuture<Connection> createConnection(Address peerAddress) {
-
-        Socket socket;
-        try {
-            socket = getSocket(peerAddress);
-        } catch (IOException e) {
-            handleException(e);
-            return CompletableFuture.failedFuture(e);
-        }
-        CompletableFuture<Connection> future = new CompletableFuture<>();
-
-        //todo associated server address
-        Address myServerAddress = new ArrayList<>(serverMap.values()).get(0).getAddress();
-
-        Capability myCapability = new Capability(myServerAddress, supportedNetworkTypes);
-        ConnectionHandshake.connect(socket, myCapability, authorizationService)
-                .whenComplete((peersCapability, throwable) -> {
-                    log.debug("Create new outbound connection to {}", peerAddress);
-                    checkArgument(peerAddress.equals(peersCapability.address()), 
-                            "Peers reported address must match address we used to connect");
-                    OutboundConnection connection = new OutboundConnection(socket, peerAddress, peersCapability, this);
-                    try {
-                        connection.startListen(exception -> {
-                            handleException(connection, exception);
-                            future.completeExceptionally(exception);
-                        });
-
-                        outboundConnectionMap.put(peerAddress, connection);
-                        connectionListeners.forEach(listener -> listener.onConnection(connection));
-                        future.complete(connection);
-                    } catch (IOException exception) {
-                        handleException(connection, exception);
-                        future.completeExceptionally(exception);
-                    }
-                });
-        return future;
-    }
 
     private void onDisconnect(Connection connection) {
         if (connection instanceof InboundConnection) {
             inboundConnections.remove(connection);
         } else if (connection instanceof OutboundConnection outboundConnection) {
-            Address peerAddress = outboundConnection.getAddress();
-            outboundConnectionMap.remove(peerAddress);
+            outboundConnectionMap.remove(outboundConnection.getAddress());
         }
-        connectionListeners.forEach(listener -> listener.onDisconnect(connection));
+        runAsync(() -> connectionListeners.forEach(listener -> listener.onDisconnect(connection)));
     }
 
     private void handleException(Throwable exception) {
@@ -342,5 +297,18 @@ public class Node implements MessageListener, Closeable {
         }
         handleException(exception);
         onDisconnect(connection);
+    }
+
+
+    private NetworkProxy getNetworkProxy(NetworkType networkType, NetworkProxyConfig config) {
+        return switch (networkType) {
+            case TOR -> TorNetworkProxy.getInstance(config);
+            case I2P -> I2PNetworkProxy.getInstance(config);
+            case CLEAR -> ClearNetNetworkProxy.getInstance(config);
+        };
+    }
+
+    public Optional<Address> getMyAddress() {
+        return server.map(Server::getAddress);
     }
 }

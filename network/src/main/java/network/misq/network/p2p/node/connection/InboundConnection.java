@@ -19,28 +19,31 @@ package network.misq.network.p2p.node.connection;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Capability;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.node.proxy.ServerSocketResult;
 
 import java.net.Socket;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @Slf4j
 public class InboundConnection extends Connection {
     @Getter
-    private final SocketFactory.GetServerSocketResult getServerSocketResult;
+    private final ServerSocketResult serverSocketResult;
 
     public InboundConnection(Socket socket,
-                             SocketFactory.GetServerSocketResult getServerSocketResult,
+                             ServerSocketResult serverSocketResult,
                              Capability capability,
-                             MessageListener messageListener) {
-        super(socket, capability, messageListener);
-        this.getServerSocketResult = getServerSocketResult;
-        log.debug("Create inboundConnection from server: {}", getServerSocketResult);
+                             BiConsumer<Message, Connection> messageHandler) {
+        super(socket, capability, messageHandler);
+        this.serverSocketResult = serverSocketResult;
+        log.debug("Create inboundConnection from server: {}", serverSocketResult);
     }
 
     @Override
     public String toString() {
-        return getServerSocketResult + " / " + id;
+        return serverSocketResult + " / " + id;
     }
 }

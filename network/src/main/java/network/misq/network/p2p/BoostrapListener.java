@@ -17,8 +17,8 @@
 
 package network.misq.network.p2p;
 
-import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.node.proxy.ServerSocketResult;
 
 public interface BoostrapListener {
-    void onBootstrapped(SocketFactory.GetServerSocketResult getServerSocketResult);
+    void onBootstrapped(ServerSocketResult serverSocketResult);
 }

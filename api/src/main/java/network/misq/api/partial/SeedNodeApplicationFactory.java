@@ -47,8 +47,8 @@ public class SeedNodeApplicationFactory implements ApplicationFactory {
         KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
         keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
 
-        NetworkService.Options networkServiceOptions = new NetworkServiceOptionsParser(applicationOptions, args).getOptions();
-        networkService = new NetworkService(networkServiceOptions, keyPairRepository);
+        NetworkService.Config networkServiceConfig = new NetworkServiceOptionsParser(applicationOptions, args).getConfig();
+        networkService = new NetworkService(networkServiceConfig, keyPairRepository);
     }
 
     /**

@@ -51,6 +51,7 @@ public class TorController {
     }
 
     void start(int controlPort) throws IOException {
+        isStopped = false;
         controlSocket = new Socket("127.0.0.1", controlPort);
         torControlConnection = new TorControlConnection(controlSocket);
         torControlConnection.authenticate(FileUtils.asBytes(cookieFile));
@@ -101,6 +102,7 @@ public class TorController {
             } finally {
                 controlSocket = null;
                 torControlConnection = null;
+                isTorEventHandlerSet = false;
             }
         }
     }

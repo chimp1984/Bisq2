@@ -37,7 +37,7 @@ public class TooltipUtil {
                     final Tooltip tooltip = new Tooltip(unTruncatedText);
 
                     // Force tooltip to use color, as it takes in some cases the color of the parent label
-                    // and can't be overridden by class or id
+                    // and can't be overridden by class or nodeId
                     tooltip.setStyle("-fx-text-fill: -bs-rd-tooltip-truncated;");
                     labeled.setTooltip(tooltip);
                 }

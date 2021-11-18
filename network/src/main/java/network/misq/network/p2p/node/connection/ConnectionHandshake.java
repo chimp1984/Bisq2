@@ -19,6 +19,7 @@ package network.misq.network.p2p.node.connection;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
+import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Capability;
 import network.misq.network.p2p.node.connection.authorization.AuthorizationService;
@@ -30,6 +31,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * At initial connection we exchange capabilities and require a valid AuthorizationToken (e.g. PoW).
@@ -38,6 +41,9 @@ import java.util.concurrent.CompletionException;
  */
 @Slf4j
 public class ConnectionHandshake {
+    private final Socket socket;
+    private final Capability capability;
+    private final AuthorizationService authorizationService;
     public static record Request(AuthorizationToken token, Capability capability) implements Message {
     }
 
@@ -54,14 +60,20 @@ public class ConnectionHandshake {
         }
     }
 
+    public ConnectionHandshake(Socket socket, Capability capability, AuthorizationService authorizationService) {
+        this.socket = socket;
+        this.capability = capability;
+        this.authorizationService = authorizationService;
+    }
+
     // Client side protocol
-    public static CompletableFuture<Capability> connect(Socket socket, Capability capability, AuthorizationService authorizationService) {
+    public CompletableFuture<Capability> start() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.info("Connect using {}", socket);
+                log.info("Start using {}", socket);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
-                Request message = new Request(token, capability);
+                Envelope message = new Envelope(new Request(token, capability));
                 log.info("Client sends {}", message);
                 objectOutputStream.writeObject(message);
                 objectOutputStream.flush();
@@ -69,63 +81,72 @@ public class ConnectionHandshake {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
                 log.info("Client received {}", msg);
-                if (msg instanceof Response response) {
-                    if (authorizationService.isAuthorized(response.token())) {
-                        Capability serversCapability = response.capability();
-                        log.info("Servers capability {}", serversCapability);
-                        return serversCapability;
-                    } else {
-                        socket.close();
-                        throw new HandShakeException("authorizationService.isAuthorized failed");
-                    }
-                } else {
-                    socket.close();
-                    throw new HandShakeException("Received message not type of AcceptMessage. " +
+                if (!(msg instanceof Envelope envelope)) {
+                    throw new HandShakeException("Received message not type of Envelope. " +
                             msg.getClass().getSimpleName());
                 }
+                if (!(envelope.payload() instanceof Response response)) {
+                    throw new HandShakeException("Received envelope.payload not type of Response. " +
+                            msg.getClass().getSimpleName());
+                }
+                if (!authorizationService.isAuthorized(response.token())) {
+                    throw new HandShakeException("authorizationService.isAuthorized failed");
+                }
+
+                Capability serversCapability = response.capability();
+                log.info("Servers capability {}", serversCapability);
+                return serversCapability;
             } catch (Exception e) {
                 try {
                     socket.close();
                 } catch (IOException ignore) {
                 }
-                throw new HandShakeException(e);
+                if (e instanceof HandShakeException handShakeException) {
+                    throw handShakeException;
+                } else {
+                    throw new HandShakeException(e);
+                }
             }
-        }, ThreadingUtils.getSingleThreadExecutor("Client-ConnectionHandshake"));
+        }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-client"));
     }
 
     // Server side protocol
-    public static CompletableFuture<Capability> onSocket(Socket socket, Capability capability, AuthorizationService authorizationService) {
+    public CompletableFuture<Capability> onSocket() {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
                 log.info("Server received {}", msg);
-                if (msg instanceof Request request) {
-                    if (authorizationService.isAuthorized(request.token())) {
-                        Capability clientCapability = request.capability();
-                        log.info("Clients capability {}", clientCapability);
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                        AuthorizationToken token = authorizationService.createToken(Response.class).get();
-                        objectOutputStream.writeObject(new Response(token, capability));
-                        objectOutputStream.flush();
-
-                        return clientCapability;
-                    } else {
-                        socket.close();
-                        throw new HandShakeException("authorizationService.isAuthorized failed");
-                    }
-                } else {
-                    socket.close();
-                    throw new HandShakeException("Received message not type of ConnectMessage. " +
+                if (!(msg instanceof Envelope envelope)) {
+                    throw new HandShakeException("Received message not type of Envelope. " +
                             msg.getClass().getSimpleName());
                 }
+                if (!(envelope.payload() instanceof Request request)) {
+                    throw new HandShakeException("Received envelope.payload not type of Request. " +
+                            msg.getClass().getSimpleName());
+                }
+                if (!authorizationService.isAuthorized(request.token())) {
+                    throw new HandShakeException("authorizationService.isAuthorized failed");
+                }
+
+                Capability clientCapability = request.capability();
+                log.info("Clients capability {}", clientCapability);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                AuthorizationToken token = authorizationService.createToken(Response.class).get();
+                objectOutputStream.writeObject(new Envelope(new Response(token, capability)));
+                objectOutputStream.flush();
+                return clientCapability;
             } catch (Exception e) {
                 try {
                     socket.close();
                 } catch (IOException ignore) {
                 }
-                throw new HandShakeException(e);
+                if (e instanceof HandShakeException handShakeException) {
+                    throw handShakeException;
+                } else {
+                    throw new HandShakeException(e);
+                }
             }
-        }, ThreadingUtils.getSingleThreadExecutor("Server-ConnectionHandshake"));
+        }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-server"));
     }
 }

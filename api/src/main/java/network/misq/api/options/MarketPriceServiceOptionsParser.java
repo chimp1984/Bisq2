@@ -19,7 +19,7 @@ package network.misq.api.options;
 
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
-import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.proxy.NetworkType;
 import network.misq.offer.MarketPriceService;
 
 import java.util.Set;

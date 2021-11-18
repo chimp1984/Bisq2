@@ -19,31 +19,29 @@ package network.misq.network.p2p.services.data;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.node.proxy.NetworkType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 @Slf4j
 public class DataIntegrationTest extends DataNodeBase {
-    @Test
+   /* @Test
     public void testAddData() throws InterruptedException {
         String baseDirPath = OsUtils.getUserDataDir() + "/DataIntegrationTest";
-        NetworkConfig networkConfigsSeed = new NetworkConfig(baseDirPath,
+        NetworkServiceConfig networkServiceConfigsSeed = new NetworkServiceConfig(baseDirPath,
                 new NodeId("default", 1000, Set.of(NetworkType.CLEAR)),
                 NetworkType.CLEAR);
-        NetworkConfig networkConfigs1 = new NetworkConfig(baseDirPath,
+        NetworkServiceConfig networkServiceConfigs1 = new NetworkServiceConfig(baseDirPath,
                 new NodeId("default", 1111, Set.of(NetworkType.CLEAR)),
                 NetworkType.CLEAR);
-        NetworkConfig networkConfigs2 = new NetworkConfig(baseDirPath,
+        NetworkServiceConfig networkServiceConfigs2 = new NetworkServiceConfig(baseDirPath,
                 new NodeId("default", 1112, Set.of(NetworkType.CLEAR)),
                 NetworkType.CLEAR);
 
-        bootstrap(Set.of(networkConfigsSeed), Set.of(networkConfigs1), Set.of(networkConfigs2));
+        bootstrap(Set.of(networkServiceConfigsSeed), Set.of(networkServiceConfigs1), Set.of(networkServiceConfigs2));
         addData();
-    }
+    }*/
 
     private void addData() {
       /*  MockMessage data1 = new MockMessage("data1");

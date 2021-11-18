@@ -22,11 +22,8 @@ import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.http.common.ClearNetHttpClient;
 import network.misq.network.http.common.Socks5ProxyProvider;
 import network.misq.network.http.common.TorHttpClient;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.SocketFactory;
-import network.misq.network.p2p.node.socket.TorSocketFactory;
+import network.misq.network.p2p.node.proxy.NetworkType;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,7 +31,7 @@ public class HttpService {
     public CompletableFuture<BaseHttpClient> getHttpClient(String url,
                                                            String userAgent,
                                                            NetworkType networkType,
-                                                           Optional<SocketFactory> socketFactory,
+                                                           Optional<Socks5Proxy> socksProxy,
                                                            Optional<String> socks5ProxyAddress) {
         return CompletableFuture.supplyAsync(() -> {
             switch (networkType) {
@@ -42,17 +39,8 @@ public class HttpService {
                     // If we have a socks5ProxyAddress defined in options we use that as proxy
                     Socks5ProxyProvider socks5ProxyProvider = socks5ProxyAddress
                             .map(Socks5ProxyProvider::new)
-                            .orElse(socketFactory
-                                    .map(factory -> {
-                                        try {
-                                            Socks5Proxy socksProxy = ((TorSocketFactory) factory).getSocksProxy();
-                                            return new Socks5ProxyProvider(socksProxy);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                            return null;
-                                        }
-                                    })
-                                    .orElseThrow(() -> new RuntimeException("No socks5ProxyAddress provided and no torNetworkProxy available.")));
+                            .orElse(socksProxy.map(Socks5ProxyProvider::new)
+                                    .orElseThrow(() -> new RuntimeException("No socks5ProxyAddress provided and no Tor socksProxy available.")));
                     return new TorHttpClient(url, userAgent, socks5ProxyProvider);
                 case I2P:
                     // TODO We need to figure out how to get a proxy from i2p or require tor in any case

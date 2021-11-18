@@ -20,7 +20,7 @@ package network.misq.network.p2p.node;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.common.util.NetworkUtils;
-import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.proxy.NetworkType;
 
 import java.io.Serializable;
 import java.util.StringTokenizer;

@@ -27,7 +27,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.INetworkService;
 import network.misq.network.p2p.MockNetworkService;
-import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.node.Address;
 import network.misq.offer.options.*;
 
@@ -90,11 +90,11 @@ public class OfferRepository {
     }
 
     public Offer createOffer(long askAmount) {
-        NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
         Asset askAsset = new Asset(Coin.asBtc(askAmount), List.of(), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         return new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
-                makerNetworkId, bidAsset, askAsset);
+                makerMultiAddress, bidAsset, askAsset);
     }
 
     public void publishOffer(Offer offer) {
@@ -198,7 +198,7 @@ public class OfferRepository {
                 SwapProtocolType swapProtocolType = SwapProtocolType.values()[new Random().nextInt(SwapProtocolType.values().length)];
                 protocolTypes.add(swapProtocolType);
             }
-            NetworkId makerNetworkId = new NetworkId(Address.localHost(1000 + new Random().nextInt(1000)), null, "default");
+            MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(1000 + new Random().nextInt(1000)), null, "default");
 
             Set<OfferOption> options = new HashSet<>();
             ReputationProof accountCreationDateProof = new AccountCreationDateProof("hashOfAccount", "otsProof)");
@@ -215,7 +215,7 @@ public class OfferRepository {
             minAmountAsPercentage.ifPresent(value -> options.add(new AmountOption(value)));
             marketBasedPrice.ifPresent(value -> options.add(new PriceOption(value)));
             boolean isBaseCurrencyAskSide = baseCurrency.equals(askAsset.monetary().getCurrencyCode());
-            return new Offer(askAsset, bidAsset, isBaseCurrencyAskSide, protocolTypes, makerNetworkId, options);
+            return new Offer(askAsset, bidAsset, isBaseCurrencyAskSide, protocolTypes, makerMultiAddress, options);
         }
 
         private static Asset getRandomCryptoAsset(String code, long amount) {

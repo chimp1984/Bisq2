@@ -20,7 +20,7 @@ package network.misq.network.p2p;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.proxy.NetworkType;
 import org.junit.jupiter.api.Test;
 
 import java.security.GeneralSecurityException;
@@ -28,7 +28,7 @@ import java.util.Set;
 
 @Slf4j
 public class ClearNetIntegrationTest extends BaseTest {
-    @Override
+   /* @Override
     protected Set<NetworkType> getMySupportedNetworks() {
         return Sets.newHashSet(NetworkType.CLEAR);
     }
@@ -39,7 +39,7 @@ public class ClearNetIntegrationTest extends BaseTest {
     }
 
     @Override
-    protected NetworkConfig getNetworkConfig(Config.Role role) {
+    protected NetworkServiceConfig getNetworkConfig(Config.Role role) {
         return Config.getClearNetNetworkConfig(role);
     }
 
@@ -74,7 +74,7 @@ public class ClearNetIntegrationTest extends BaseTest {
         NetworkType networkType = NetworkType.CLEAR;
         Set<NetworkType> mySupportedNetworks = getMySupportedNetworks();
         sendMsgWithMultipleIds(networkType, mySupportedNetworks);
-    }
+    }*/
 
     /*
     @Test

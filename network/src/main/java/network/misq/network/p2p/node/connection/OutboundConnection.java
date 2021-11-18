@@ -20,22 +20,26 @@ package network.misq.network.p2p.node.connection;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
+import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Capability;
 import network.misq.network.p2p.node.MessageListener;
 
 import java.net.Socket;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @Slf4j
 public class OutboundConnection extends Connection {
+
     @Getter
     private final Address address;
 
     public OutboundConnection(Socket socket,
                               Address address,
                               Capability capability,
-                              MessageListener messageListener) {
-        super(socket, capability, messageListener);
+                              BiConsumer<Message, Connection> messageHandler) {
+        super(socket, capability, messageHandler);
 
         this.address = address;
         log.debug("Create outboundConnection to {}", address);

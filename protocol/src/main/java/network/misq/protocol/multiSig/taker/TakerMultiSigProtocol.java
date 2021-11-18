@@ -21,7 +21,7 @@ package network.misq.protocol.multiSig.taker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.connection.Connection;
 import network.misq.protocol.SecurityProvider;
@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
 
-    public TakerMultiSigProtocol(TwoPartyContract contract, P2pService p2pService, SecurityProvider securityProvider) {
+    public TakerMultiSigProtocol(TwoPartyContract contract, P2pServiceNodesByNetworkType p2pService, SecurityProvider securityProvider) {
         super(contract, p2pService, new AssetTransfer.Automatic(), securityProvider);
     }
 
@@ -48,8 +48,8 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
                     .thenCompose(multiSig::broadcastDepositTx)
                     .whenComplete((depositTx, t) -> setState(State.DEPOSIT_TX_BROADCAST))
                     .thenCompose(depositTx -> p2pService.confidentialSend(new DepositTxBroadcastMessage(depositTx),
-                            counterParty.getMakerNetworkId(),
-                            null))
+                            counterParty.getMakerMultiAddress(),
+                            null, null))
                     .whenComplete((connection1, t) -> setState(State.DEPOSIT_TX_BROADCAST_MSG_SENT));
         } else if (message instanceof FundsSentMessage) {
             FundsSentMessage fundsSentMessage = (FundsSentMessage) message;
@@ -79,8 +79,8 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         multiSig.broadcastPayoutTx()
                 .whenComplete((payoutTx, t) -> setState(State.PAYOUT_TX_BROADCAST))
                 .thenCompose(payoutTx -> p2pService.confidentialSend(new PayoutTxBroadcastMessage(payoutTx),
-                        counterParty.getMakerNetworkId(),
-                        null))
+                        counterParty.getMakerMultiAddress(),
+                        null, null))
                 .whenComplete((isValid, t) -> setState(State.PAYOUT_TX_BROADCAST_MSG_SENT));
     }
 }

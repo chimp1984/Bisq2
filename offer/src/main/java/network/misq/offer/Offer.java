@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.monetary.Quote;
 import network.misq.common.util.MathUtils;
 import network.misq.contract.SwapProtocolType;
-import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.MultiAddress;
 import network.misq.offer.options.AmountOption;
 import network.misq.offer.options.OfferOption;
 import network.misq.offer.options.PriceOption;
@@ -50,10 +50,10 @@ public class Offer extends Listing {
     private transient final long minBaseAmountOrAmount; //todo remove
 
     public Offer(List<SwapProtocolType> protocolTypes,
-                 NetworkId makerNetworkId,
+                 MultiAddress makerMultiAddress,
                  Asset askAsset,
                  Asset bidAsset) {
-        this(askAsset, bidAsset, true, protocolTypes, makerNetworkId, new HashSet<>());
+        this(askAsset, bidAsset, true, protocolTypes, makerMultiAddress, new HashSet<>());
     }
 
     /**
@@ -61,7 +61,7 @@ public class Offer extends Listing {
      * @param bidAsset              The asset on the bid side (what the maker offers)
      * @param isBaseCurrencyAskSide If the base currency for the price quote is the currency of the ask asset.
      * @param protocolTypes         The list of the supported swap protocol types. Order in the list can be used as priority.
-     * @param makerNetworkId        The networkId the maker used for that listing. It encapsulate the network addresses
+     * @param makerMultiAddress        The networkId the maker used for that listing. It encapsulate the network addresses
      *                              of the supported networks and the pubKey used for data protection in the storage layer.
      * @param offerOptions          Options for different aspects of an offer like min amount, market based price, fee options... Can be specific to protocol type.
      */
@@ -69,9 +69,9 @@ public class Offer extends Listing {
                  Asset bidAsset,
                  boolean isBaseCurrencyAskSide,
                  List<SwapProtocolType> protocolTypes,
-                 NetworkId makerNetworkId,
+                 MultiAddress makerMultiAddress,
                  Set<OfferOption> offerOptions) {
-        super(protocolTypes, makerNetworkId, offerOptions);
+        super(protocolTypes, makerMultiAddress, offerOptions);
 
         this.askAsset = askAsset;
         this.bidAsset = bidAsset;

@@ -20,7 +20,7 @@ package network.misq.offer.options;
 import java.util.Set;
 
 // Provides reputation proofs. E.g.Account age witness hash, signed account age witness,
-// tx id and signature of burned BSQ, or social media account address,...
+// tx nodeId and signature of burned BSQ, or social media account address,...
 public record ReputationOption(
         Set<ReputationProof> reputationProofs) implements OfferOption {
 }

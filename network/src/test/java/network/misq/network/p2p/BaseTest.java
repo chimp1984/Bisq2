@@ -20,8 +20,7 @@ package network.misq.network.p2p;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.node.proxy.NetworkType;
 import network.misq.network.p2p.services.data.storage.Storage;
 
 import java.security.GeneralSecurityException;
@@ -34,14 +33,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 public abstract class BaseTest {
 
-    protected final Storage storage = new Storage("");
+    /*protected final Storage storage = new Storage("");
     protected P2pServiceNode alice, bob, carol;
 
     protected abstract int getTimeout();
 
     protected abstract Set<NetworkType> getMySupportedNetworks();
 
-    protected abstract NetworkConfig getNetworkConfig(Config.Role role);
+    protected abstract NetworkServiceConfig getNetworkConfig(Config.Role role);
 
     protected abstract Address getPeerAddress(Config.Role role);
 
@@ -65,10 +64,10 @@ public abstract class BaseTest {
     }
 
     protected void testInitializeServer(int serversReadyLatchCount,
-                                        NetworkConfig networkConfigAlice,
-                                        NetworkConfig networkConfigBob) throws InterruptedException {
-        alice = new P2pServiceNode(networkConfigAlice, storage, Config.aliceKeyPairSupplier1);
-        bob = new P2pServiceNode(networkConfigBob, storage, Config.bobKeyPairSupplier1);
+                                        NetworkServiceConfig networkServiceConfigAlice,
+                                        NetworkServiceConfig networkServiceConfigBob) throws InterruptedException {
+        alice = new P2pServiceNode(networkServiceConfigAlice, storage, Config.aliceKeyPairSupplier1);
+        bob = new P2pServiceNode(networkServiceConfigBob, storage, Config.bobKeyPairSupplier1);
         CountDownLatch serversReadyLatch = new CountDownLatch(serversReadyLatchCount);
         alice.initializeServer().whenComplete((result, throwable) -> {
             assertNotNull(result);
@@ -95,8 +94,10 @@ public abstract class BaseTest {
         CountDownLatch sentLatch = new CountDownLatch(1);
 
         Address peerAddress = getPeerAddress(Config.Role.Bob);
-        NetworkId networkId = new NetworkId(peerAddress, Config.keyPairBob1.getPublic(), "default");
-        alice.confidentialSend(new MockMessage(msg), networkId, Config.keyPairAlice1)
+        MultiAddress multiAddress = new MultiAddress(peerAddress, Config.keyPairBob1.getPublic(), "default");
+        //todo
+        String connectionId = "aliceConnectionId";
+        alice.confidentialSend(new MockMessage(msg), multiAddress, Config.keyPairAlice1, connectionId)
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -114,14 +115,14 @@ public abstract class BaseTest {
     protected void startOfMultipleIds(NetworkType networkType, Set<NetworkType> networkTypes) throws InterruptedException {
         String baseDirNameAlice = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Alice";
         NodeId nodeIdAlice1 = new NodeId("id_alice_1", 1111, networkTypes);
-        alice = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
+        alice = new P2pServiceNode(new NetworkServiceConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
 
         NodeId nodeIdAlice2 = new NodeId("id_alice_2", 1112, networkTypes);
-        P2pServiceNode alice2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier1);
+        P2pServiceNode alice2 = new P2pServiceNode(new NetworkServiceConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier1);
 
         String baseDirNameBob = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Bob";
         NodeId nodeIdBob1 = new NodeId("id_bob_1", 2222, networkTypes);
-        bob = new P2pServiceNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
+        bob = new P2pServiceNode(new NetworkServiceConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(3);
         alice.initializeServer().whenComplete((result, throwable) -> {
@@ -150,17 +151,17 @@ public abstract class BaseTest {
             throws InterruptedException, GeneralSecurityException {
         String baseDirNameAlice = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Alice";
         NodeId nodeIdAlice1 = new NodeId("id_alice_1", 1111, networkTypes);
-        P2pServiceNode alice1 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
+        P2pServiceNode alice1 = new P2pServiceNode(new NetworkServiceConfig(baseDirNameAlice, nodeIdAlice1, networkType), storage, Config.aliceKeyPairSupplier1);
 
         NodeId nodeIdAlice2 = new NodeId("id_alice_2", 1112, networkTypes);
-        P2pServiceNode alice2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier2);
+        P2pServiceNode alice2 = new P2pServiceNode(new NetworkServiceConfig(baseDirNameAlice, nodeIdAlice2, networkType), storage, Config.aliceKeyPairSupplier2);
 
         String baseDirNameBob = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_Bob";
         NodeId nodeIdBob1 = new NodeId("id_bob_1", 2222, networkTypes);
-        P2pServiceNode bob1 = new P2pServiceNode(new NetworkConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
+        P2pServiceNode bob1 = new P2pServiceNode(new NetworkServiceConfig(baseDirNameBob, nodeIdBob1, networkType), storage, Config.bobKeyPairSupplier1);
 
         NodeId nodeIdBob2 = new NodeId("id_bob_2", 2223, networkTypes);
-        P2pServiceNode bob2 = new P2pServiceNode(new NetworkConfig(baseDirNameAlice, nodeIdBob2, networkType), storage, Config.bobKeyPairSupplier2);
+        P2pServiceNode bob2 = new P2pServiceNode(new NetworkServiceConfig(baseDirNameAlice, nodeIdBob2, networkType), storage, Config.bobKeyPairSupplier2);
 
         CountDownLatch serversReadyLatch = new CountDownLatch(4);
         alice1.initializeServer().whenComplete((result, throwable) -> {
@@ -226,10 +227,12 @@ public abstract class BaseTest {
         bob1.addMessageListener((message, connection) -> {
             assertTrue(message instanceof MockMessage);
             log.info("bob1 {} {}", message, connection);
-            if (connection.getPeerAddress().equals(alive1Address)) {
-                assertEquals(((MockMessage) message).getMsg(), alice1ToBob1Msg);
-            } else if (connection.getPeerAddress().equals(alive2Address)) {
-                assertEquals(((MockMessage) message).getMsg(), alice2ToBob1Msg);
+            String expected = ((MockMessage) message).getMsg();
+            Address connectionPeerAddress = connection.getPeerAddress();
+            if (connectionPeerAddress.equals(alive1Address)) {
+                assertEquals(expected, alice1ToBob1Msg);
+            } else if (connectionPeerAddress.equals(alive2Address)) {
+                assertEquals(expected, alice2ToBob1Msg);
             } else {
                 fail();
             }
@@ -249,8 +252,8 @@ public abstract class BaseTest {
         });
 
         CountDownLatch sentLatch = new CountDownLatch(8);
-        NetworkId bob1NetworkId = new NetworkId(bob1Address, Config.keyPairBob1.getPublic(), "default");
-        alice1.confidentialSend(new MockMessage(alice1ToBob1Msg), bob1NetworkId, Config.keyPairAlice1)
+        MultiAddress bob1MultiAddress = new MultiAddress(bob1Address, Config.keyPairBob1.getPublic(), "default");
+        alice1.confidentialSend(new MockMessage(alice1ToBob1Msg), bob1MultiAddress, Config.keyPairAlice1, nodeIdAlice1.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -259,8 +262,8 @@ public abstract class BaseTest {
                     }
                 });
 
-        NetworkId bob2NetworkId = new NetworkId(bob2Address, Config.keyPairBob2.getPublic(), "default");
-        alice1.confidentialSend(new MockMessage(alice1ToBob2Msg), bob2NetworkId, Config.keyPairAlice1)
+        MultiAddress bob2MultiAddress = new MultiAddress(bob2Address, Config.keyPairBob2.getPublic(), "default");
+        alice1.confidentialSend(new MockMessage(alice1ToBob2Msg), bob2MultiAddress, Config.keyPairAlice1, nodeIdAlice1.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -269,7 +272,7 @@ public abstract class BaseTest {
                     }
                 });
 
-        alice2.confidentialSend(new MockMessage(alice2ToBob1Msg), bob1NetworkId, Config.keyPairAlice2)
+        alice2.confidentialSend(new MockMessage(alice2ToBob1Msg), bob1MultiAddress, Config.keyPairAlice2, nodeIdAlice2.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -277,7 +280,7 @@ public abstract class BaseTest {
                         fail();
                     }
                 });
-        alice2.confidentialSend(new MockMessage(alice2ToBob2Msg), bob2NetworkId, Config.keyPairAlice2)
+        alice2.confidentialSend(new MockMessage(alice2ToBob2Msg), bob2MultiAddress, Config.keyPairAlice2, nodeIdAlice2.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -286,8 +289,8 @@ public abstract class BaseTest {
                     }
                 });
 
-        NetworkId alive1NetworkId = new NetworkId(alive1Address, Config.keyPairAlice1.getPublic(), "default");
-        bob1.confidentialSend(new MockMessage(bob1ToAlice1Msg), alive1NetworkId, Config.keyPairBob1)
+        MultiAddress alive1MultiAddress = new MultiAddress(alive1Address, Config.keyPairAlice1.getPublic(), "default");
+        bob1.confidentialSend(new MockMessage(bob1ToAlice1Msg), alive1MultiAddress, Config.keyPairBob1, nodeIdBob1.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -295,8 +298,8 @@ public abstract class BaseTest {
                         fail();
                     }
                 });
-        NetworkId alive2NetworkId = new NetworkId(alive2Address, Config.keyPairAlice2.getPublic(), "default");
-        bob1.confidentialSend(new MockMessage(bob1ToAlice2Msg), alive2NetworkId, Config.keyPairBob1)
+        MultiAddress alive2MultiAddress = new MultiAddress(alive2Address, Config.keyPairAlice2.getPublic(), "default");
+        bob1.confidentialSend(new MockMessage(bob1ToAlice2Msg), alive2MultiAddress, Config.keyPairBob1, nodeIdBob1.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -304,7 +307,7 @@ public abstract class BaseTest {
                         fail();
                     }
                 });
-        bob2.confidentialSend(new MockMessage(bob2ToAlice1Msg), alive1NetworkId, Config.keyPairBob2)
+        bob2.confidentialSend(new MockMessage(bob2ToAlice1Msg), alive1MultiAddress, Config.keyPairBob2, nodeIdBob2.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -312,7 +315,7 @@ public abstract class BaseTest {
                         fail();
                     }
                 });
-        bob2.confidentialSend(new MockMessage(bob2ToAlice2Msg), alive2NetworkId, Config.keyPairBob2)
+        bob2.confidentialSend(new MockMessage(bob2ToAlice2Msg), alive2MultiAddress, Config.keyPairBob2,  nodeIdBob2.getConnectionId())
                 .whenComplete((connection, throwable) -> {
                     if (connection != null) {
                         sentLatch.countDown();
@@ -330,5 +333,5 @@ public abstract class BaseTest {
         alice2.shutdown();
         bob1.shutdown();
         bob2.shutdown();
-    }
+    }*/
 }

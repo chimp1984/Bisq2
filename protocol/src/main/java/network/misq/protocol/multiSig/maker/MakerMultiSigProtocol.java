@@ -20,7 +20,7 @@ package network.misq.protocol.multiSig.maker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.connection.Connection;
 import network.misq.protocol.SecurityProvider;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
-    public MakerMultiSigProtocol(TwoPartyContract contract, P2pService p2pService, SecurityProvider securityProvider) {
+    public MakerMultiSigProtocol(TwoPartyContract contract, P2pServiceNodesByNetworkType p2pService, SecurityProvider securityProvider) {
         super(contract, p2pService, new AssetTransfer.Manual(), securityProvider);
     }
 
@@ -68,8 +68,8 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         setState(State.START);
         multiSig.getTxInputs()
                 .thenCompose(txInputs -> p2pService.confidentialSend(new TxInputsMessage(txInputs),
-                        counterParty.getMakerNetworkId(),
-                        null))
+                        counterParty.getMakerMultiAddress(),
+                        null, null))
                 .whenComplete((success, t) -> setState(State.TX_INPUTS_SENT));
         return CompletableFuture.completedFuture(true);
     }
@@ -79,8 +79,8 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         return multiSig.createPartialPayoutTx()
                 .thenCompose(multiSig::getPayoutTxSignature)
                 .thenCompose(sig -> p2pService.confidentialSend(new FundsSentMessage(sig),
-                        counterParty.getMakerNetworkId(),
-                        null))
+                        counterParty.getMakerMultiAddress(),
+                        null, null))
                 .whenComplete((isValid, t) -> setState(State.FUNDS_SENT_MSG_SENT));
     }
 }

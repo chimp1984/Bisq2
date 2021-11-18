@@ -18,38 +18,38 @@
 package network.misq.protocol;
 
 import network.misq.contract.*;
-import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.node.Address;
 import network.misq.offer.Listing;
 
 import java.util.Map;
 
 public class ContractMaker {
-    public static TwoPartyContract createMakerTrade(NetworkId takerNetworkId, ProtocolType protocolType) {
-        Party counterParty = new Party(takerNetworkId);
+    public static TwoPartyContract createMakerTrade(MultiAddress takerMultiAddress, ProtocolType protocolType) {
+        Party counterParty = new Party(takerMultiAddress);
         return new TwoPartyContract(protocolType, Role.MAKER, counterParty);
     }
 
     public static TwoPartyContract createTakerTrade(Listing offer, ProtocolType protocolType) {
-        NetworkId makerNetworkId = offer.getMakerNetworkId();
-        Party counterParty = new Party(makerNetworkId);
+        MultiAddress makerMultiAddress = offer.getMakerMultiAddress();
+        Party counterParty = new Party(makerMultiAddress);
         return new TwoPartyContract(protocolType, Role.TAKER, counterParty);
     }
 
-    public static ManyPartyContract createMakerTrade(NetworkId takerNetworkId, NetworkId escrowAgentNetworkId, ProtocolType protocolType) {
-        Party taker = new Party(takerNetworkId);
-        Party escrowAgent = new Party(escrowAgentNetworkId);
+    public static ManyPartyContract createMakerTrade(MultiAddress takerMultiAddress, MultiAddress escrowAgentMultiAddress, ProtocolType protocolType) {
+        Party taker = new Party(takerMultiAddress);
+        Party escrowAgent = new Party(escrowAgentMultiAddress);
         return new ManyPartyContract(protocolType, Role.MAKER, Map.of(Role.MAKER, self(), Role.TAKER, taker, Role.ESCROW_AGENT, escrowAgent));
     }
 
-    public static ManyPartyContract createTakerTrade(Listing offer, NetworkId escrowAgentNetworkId, ProtocolType protocolType) {
-        NetworkId makerNetworkId = offer.getMakerNetworkId();
-        Party maker = new Party(makerNetworkId);
-        Party escrowAgent = new Party(escrowAgentNetworkId);
+    public static ManyPartyContract createTakerTrade(Listing offer, MultiAddress escrowAgentMultiAddress, ProtocolType protocolType) {
+        MultiAddress makerMultiAddress = offer.getMakerMultiAddress();
+        Party maker = new Party(makerMultiAddress);
+        Party escrowAgent = new Party(escrowAgentMultiAddress);
         return new ManyPartyContract(protocolType, Role.TAKER, Map.of(Role.MAKER, maker, Role.TAKER, self(), Role.ESCROW_AGENT, escrowAgent));
     }
 
     private static Party self() {
-        return new Party(new NetworkId(Address.localHost(1000), null, "default"));
+        return new Party(new MultiAddress(Address.localHost(1000), null, "default"));
     }
 }

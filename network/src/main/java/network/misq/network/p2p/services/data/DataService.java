@@ -19,19 +19,19 @@ package network.misq.network.p2p.services.data;
 
 import network.misq.common.util.MapUtils;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.connection.Connection;
-import network.misq.network.p2p.node.ConnectionListener;
-import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.InventoryRequestHandler;
 import network.misq.network.p2p.services.data.inventory.InventoryResponseHandler;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.data.storage.Storage;
-import network.misq.network.p2p.services.overlay.OverlayNetworkService;
-import network.misq.network.p2p.services.overlay.router.Router;
-import network.misq.network.p2p.services.overlay.router.gossip.GossipResult;
+import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.router.Router;
+import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 
 import java.util.Map;
 import java.util.Set;
@@ -52,22 +52,27 @@ import java.util.concurrent.TimeUnit;
  * Probably acceptable trade off for many users. Would be good if the restart could be avoided. Maybe not that hard...
  */
 public class DataService implements MessageListener, ConnectionListener {
+
+    public static record Config(String baseDirPath) {
+    }
+
     private static final long BROADCAST_TIMEOUT = 90;
 
     private final Node node;
     private final Router router;
-    private final OverlayNetworkService overlayNetworkService;
+    private final MeshService meshService;
     private final Storage storage;
     private final Set<DataListener> dataListeners = new CopyOnWriteArraySet<>();
     private final Map<String, InventoryResponseHandler> responseHandlerMap = new ConcurrentHashMap<>();
     private final Map<String, InventoryRequestHandler> requestHandlerMap = new ConcurrentHashMap<>();
 
-    public DataService(Node node, OverlayNetworkService overlayNetworkService, Storage storage) {
+    public DataService(Node node, MeshService meshService, Config config) {
         this.node = node;
-        this.overlayNetworkService = overlayNetworkService;
-        this.storage = storage;
+        this.meshService = meshService;
 
-        router = new Router(node, overlayNetworkService.getPeerGroup());
+        this.storage = new Storage(config.baseDirPath());
+
+        router = new Router(node, meshService.getPeerGroup());
 
         router.addMessageListener(this);
         node.addConnectionListener(this);

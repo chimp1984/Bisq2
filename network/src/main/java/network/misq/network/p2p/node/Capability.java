@@ -17,18 +17,10 @@
 
 package network.misq.network.p2p.node;
 
-import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.proxy.NetworkType;
 
 import java.io.Serializable;
 import java.util.Set;
 
 public record Capability(Address address, Set<NetworkType> supportedNetworkTypes) implements Serializable {
-
-    @Override
-    public String toString() {
-        return "Capability{" +
-                "\r\n     address=" + address +
-                ",\r\n     supportedNetworkTypes=" + supportedNetworkTypes +
-                "\r\n}";
-    }
 }

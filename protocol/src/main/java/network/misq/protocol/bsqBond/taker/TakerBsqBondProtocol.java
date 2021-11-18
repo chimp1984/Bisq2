@@ -21,7 +21,7 @@ package network.misq.protocol.bsqBond.taker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.connection.Connection;
 import network.misq.protocol.bsqBond.BsqBond;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class TakerBsqBondProtocol extends BsqBondProtocol {
-    public TakerBsqBondProtocol(TwoPartyContract contract, P2pService p2pService) {
+    public TakerBsqBondProtocol(TwoPartyContract contract, P2pServiceNodesByNetworkType p2pService) {
         super(contract, p2pService, new AssetTransfer.Automatic(), new BsqBond());
     }
 
@@ -45,8 +45,8 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
                     .whenComplete((success, t) -> setState(State.COMMITMENT_RECEIVED))
                     .thenCompose(isValid -> security.getCommitment(contract))
                     .thenCompose(commitment -> p2pService.confidentialSend(new TakerCommitmentMessage(commitment),
-                            counterParty.getMakerNetworkId(),
-                            null))
+                            counterParty.getMakerMultiAddress(),
+                            null, null))
                     .whenComplete((success, t) -> setState(State.COMMITMENT_SENT));
         }
         if (message instanceof MakerFundsSentMessage) {
@@ -55,8 +55,8 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
                     .whenComplete((success, t) -> setState(State.FUNDS_RECEIVED))
                     .thenCompose(isValid -> transport.sendFunds(contract))
                     .thenCompose(isSent -> p2pService.confidentialSend(new TakerFundsSentMessage(),
-                            counterParty.getMakerNetworkId(),
-                            null))
+                            counterParty.getMakerMultiAddress(),
+                            null, null))
                     .whenComplete((success, t) -> setState(State.FUNDS_SENT));
         }
     }

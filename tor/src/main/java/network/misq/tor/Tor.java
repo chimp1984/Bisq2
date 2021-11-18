@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.runjva.sourceforge.jsocks.protocol.Authentication;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import com.runjva.sourceforge.jsocks.protocol.SocksSocket;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 
@@ -65,7 +66,7 @@ public class Tor {
     // We use one tor binary for one app
     private final static Map<String, Tor> TOR_BY_APP = new HashMap<>();
 
-    enum State {
+    public enum State {
         NOT_STARTED,
         STARTING,
         STARTED,
@@ -75,6 +76,7 @@ public class Tor {
     private final TorController torController;
     private final Bootstrap bootstrap;
     private final String torDirPath;
+    @Getter
     private final AtomicReference<State> state = new AtomicReference<>(State.NOT_STARTED);
     private final Set<CompletableFuture<Boolean>> startupFutures = new CopyOnWriteArraySet<>();
 
@@ -120,6 +122,7 @@ public class Tor {
             startupExecutor = null;
         }
         log.info("Shutdown Tor completed");
+        state.set(State.NOT_STARTED);
     }
 
     public CompletableFuture<Boolean> startAsync() {
@@ -129,6 +132,14 @@ public class Tor {
     public CompletableFuture<Boolean> startAsync(Executor executor) {
         if (state.get() == State.STARTED) {
             return CompletableFuture.completedFuture(true);
+        }
+
+        if (state.get() == State.STARTING) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignore) {
+            }
+            return startAsync(executor);
         }
 
         CompletableFuture<Boolean> future = new CompletableFuture<>();
@@ -165,7 +176,7 @@ public class Tor {
 
     public TorServerSocket getTorServerSocket() throws IOException {
         checkArgument(state.get() == State.STARTED,
-                "Invalid state at startAsync. state=" + state.get());
+                "Invalid state at Tor.startAsync. state=" + state.get());
         return new TorServerSocket(torDirPath, torController);
     }
 

@@ -30,7 +30,7 @@ public class Socks5ProxyProvider {
     @Getter
     private final Socks5Proxy socks5Proxy;
 
-    public Socks5ProxyProvider(Socks5Proxy socks5Proxy) throws IOException {
+    public Socks5ProxyProvider(Socks5Proxy socks5Proxy){
         this.socks5Proxy = socks5Proxy;
     }
 

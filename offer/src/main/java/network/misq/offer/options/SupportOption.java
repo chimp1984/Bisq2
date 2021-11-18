@@ -17,7 +17,7 @@
 
 package network.misq.offer.options;
 
-import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.MultiAddress;
 
 import java.util.Set;
 
@@ -26,7 +26,7 @@ public record SupportOption(
         Set<DisputeAgent> disputeAgents) implements OfferOption {
 
     public record DisputeAgent(SupportOption.DisputeAgent.Type type,
-                               NetworkId networkId) {
+                               MultiAddress multiAddress) {
         public enum Type {
             MEDIATOR,
             ARBITRATOR

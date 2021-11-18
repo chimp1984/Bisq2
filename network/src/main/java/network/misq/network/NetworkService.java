@@ -21,15 +21,16 @@ package network.misq.network;
 import lombok.Getter;
 import network.misq.network.http.HttpService;
 import network.misq.network.http.common.BaseHttpClient;
-import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.P2pServiceNode;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.connection.Connection;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.SocketFactory;
+import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.services.confidential.ConfMsgService;
+import network.misq.network.p2p.services.data.DataService;
+import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,6 @@ import java.security.KeyPair;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * High level API for network access to p2p network as well to http services (over Tor). If user has only I2P selected
@@ -48,26 +48,31 @@ import java.util.stream.Collectors;
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
-    public static record Options(P2pService.Option p2pServiceOption, Optional<String> socks5ProxyAddress) {
+    public static record Config(String baseDirPath,
+                                Set<NetworkType> supportedNetworkTypes,
+                                P2pServiceNode.Config p2pServiceNodeConfig,
+                                MeshService.Config meshServiceConfig,
+                                Optional<String> socks5ProxyAddress) {
     }
 
     @Getter
     private final HttpService httpService;
-
     @Getter
     private final Optional<String> socks5ProxyAddress; // Optional proxy address of external tor instance 
     @Getter
     private final Set<NetworkType> supportedNetworkTypes;
+    private final P2pServiceNodesByNetworkType p2pService;
 
-    private final P2pService p2pService;
-
-    public NetworkService(Options options, KeyPairRepository keyPairRepository) {
+    public NetworkService(Config config, KeyPairRepository keyPairRepository) {
         httpService = new HttpService();
-        socks5ProxyAddress = options.socks5ProxyAddress;
-        p2pService = new P2pService(options.p2pServiceOption(), keyPairRepository);
-        supportedNetworkTypes = options.p2pServiceOption().networkConfigs().stream()
-                .map(NetworkConfig::getNetworkType)
-                .collect(Collectors.toSet());
+        socks5ProxyAddress = config.socks5ProxyAddress;
+        supportedNetworkTypes = config.supportedNetworkTypes();
+        p2pService = new P2pServiceNodesByNetworkType(config.baseDirPath(),
+                supportedNetworkTypes,
+                config.p2pServiceNodeConfig(),
+                config.meshServiceConfig(),
+                new DataService.Config(config.baseDirPath()),
+                new ConfMsgService.Config(keyPairRepository));
     }
 
 
@@ -82,14 +87,8 @@ public class NetworkService {
         return bootstrap;
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
-        CompletableFuture<Connection> future = new CompletableFuture<>();
-        p2pService.confidentialSend(message, peerNetworkId, myKeyPair);
-        return future;
-    }
-
-    public Set<Address> findMyAddresses() {
-        return p2pService.findMyAddresses();
+    public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress peerMultiAddress, KeyPair myKeyPair, String connectionId) {
+        return p2pService.confidentialSend(message, peerMultiAddress, myKeyPair, connectionId);
     }
 
     public void addMessageListener(MessageListener messageListener) {
@@ -100,16 +99,18 @@ public class NetworkService {
         p2pService.removeMessageListener(messageListener);
     }
 
-    public Optional<SocketFactory> getNetworkProxy(NetworkType networkType) {
-        return p2pService.getNetworkProxy(networkType);
-    }
 
     public CompletableFuture<BaseHttpClient> getHttpClient(String url, String userAgent, NetworkType networkType) {
-        return httpService.getHttpClient(url, userAgent, networkType, getNetworkProxy(networkType), socks5ProxyAddress);
+        return httpService.getHttpClient(url, userAgent, networkType, p2pService.getSocksProxy(), socks5ProxyAddress);
     }
 
     public void shutdown() {
         p2pService.shutdown();
         httpService.shutdown();
     }
+    
+       /*public Set<Address> findMyAddresses() {
+        return p2pService.findMyAddresses();
+    }*/
+
 }

@@ -25,13 +25,13 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pService;
+import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.node.Address;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;
-import network.misq.protocol.MockP2pService;
+import network.misq.protocol.MockP2PServiceNetwork;
 import network.misq.protocol.ProtocolExecutor;
 import network.misq.protocol.bsqBond.BsqBondProtocol;
 import network.misq.protocol.bsqBond.maker.MakerBsqBondProtocol;
@@ -49,25 +49,25 @@ import static org.junit.jupiter.api.Assertions.fail;
 @Slf4j
 public class BsqBondTest {
 
-    private P2pService networkService;
+    private P2pServiceNodesByNetworkType networkService;
 
     @BeforeEach
     public void setup() {
         // We share a network mock to call MessageListeners when sending a msg (e.g. alice send a msg and
         // bob receives the event)
-        networkService = new MockP2pService();
+        networkService = new MockP2PServiceNetwork();
     }
 
     @Test
     public void testBsqBond() {
 
         // create offer
-        NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
 
         Asset askAsset = new Asset(Fiat.of(100, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(90, "EUR"), List.of(FiatTransfer.REVOLUT, FiatTransfer.SEPA), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG, SwapProtocolType.REPUTATION),
-                makerNetworkId, bidAsset, askAsset);
+                makerMultiAddress, bidAsset, askAsset);
 
         // taker takes offer and selects first ProtocolType
         ProtocolType selectedProtocolType = offer.getProtocolTypes().get(0);
@@ -76,8 +76,8 @@ public class BsqBondTest {
         ProtocolExecutor takerSwapTradeProtocolExecutor = new ProtocolExecutor(takerBsqBondProtocol);
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
-        NetworkId takerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
-        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerNetworkId, selectedProtocolType);
+        MultiAddress takerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
+        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerMultiAddress, selectedProtocolType);
         MakerBsqBondProtocol makerBsqBondProtocol = new MakerBsqBondProtocol(makerTrade, networkService);
         ProtocolExecutor makerSwapTradeProtocolExecutor = new ProtocolExecutor(makerBsqBondProtocol);
 

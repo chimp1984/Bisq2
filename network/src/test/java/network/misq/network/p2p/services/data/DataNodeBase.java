@@ -18,36 +18,30 @@
 package network.misq.network.p2p.services.data;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.P2pService;
-
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class DataNodeBase {
-    protected P2pService p2pServiceSeed, p2pService1, p2pService2;
+    protected P2pServiceNodesByNetworkType p2pServiceSeed, p2pService1, p2pService2;
 
-    protected void bootstrap(Set<NetworkConfig> networkConfigsSeed,
-                             Set<NetworkConfig> networkConfigsNode1,
-                             Set<NetworkConfig> networkConfigsNode2) throws InterruptedException {
+   /* protected void bootstrap(Set<NetworkServiceConfig> networkServiceConfigsSeed,
+                             Set<NetworkServiceConfig> networkServiceConfigsNode1,
+                             Set<NetworkServiceConfig> networkServiceConfigsNode2) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(3);
-        getP2pServiceFuture(networkConfigsSeed).whenComplete((p2pService, e) -> {
+        getP2pServiceFuture(networkServiceConfigsSeed).whenComplete((p2pService, e) -> {
             assertNotNull(p2pService);
             this.p2pServiceSeed = p2pService;
             latch.countDown();
         });
-        getP2pServiceFuture(networkConfigsNode1).whenComplete((p2pService, e) -> {
+        getP2pServiceFuture(networkServiceConfigsNode1).whenComplete((p2pService, e) -> {
             assertNotNull(p2pService);
             this.p2pService1 = p2pService;
             latch.countDown();
         });
-        getP2pServiceFuture(networkConfigsNode2).whenComplete((p2pService, e) -> {
+        getP2pServiceFuture(networkServiceConfigsNode2).whenComplete((p2pService, e) -> {
             assertNotNull(p2pService);
             this.p2pService2 = p2pService;
             latch.countDown();
@@ -57,8 +51,8 @@ public class DataNodeBase {
     }
 
 
-    protected CompletableFuture<P2pService> getP2pServiceFuture(Set<NetworkConfig> networkConfigs) {
-        P2pService p2pService = new P2pService("", networkConfigs, null);
+    protected CompletableFuture<P2pServiceNodesByType> getP2pServiceFuture(Set<NetworkServiceConfig> networkServiceConfigs) {
+        P2pServiceNodesByType p2pService = new P2pServiceNodesByType("", networkServiceConfigs, null);
         return p2pService.initializeOverlay().thenApply(result -> p2pService);
-    }
+    }*/
 }

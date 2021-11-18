@@ -17,5 +17,5 @@
 
 package network.misq.network.p2p.message;
 
-public class Envelope implements Message {
+public record Envelope(Message payload) implements Message {
 }

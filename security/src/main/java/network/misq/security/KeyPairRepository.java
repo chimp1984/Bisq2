@@ -33,9 +33,9 @@ public class KeyPairRepository {
     public static record Options(String baseDirPath) {
     }
 
-    // Key is an arbitrary tag, but usually associated with interaction like offer ID. 
-    // Throws when attempting to use an already existing tag at add method.
-    private final Map<String, KeyPair> keyPairsByTag = new ConcurrentHashMap<>();
+    // Key is an arbitrary keyId, but usually associated with interaction like offer ID. 
+    // Throws when attempting to use an already existing keyId at add method.
+    private final Map<String, KeyPair> keyPairsById = new ConcurrentHashMap<>();
 
     public KeyPairRepository(Options options) {
         baseDirPath = options.baseDirPath;
@@ -57,9 +57,9 @@ public class KeyPairRepository {
     public void shutdown() {
     }
 
-    public void add(KeyPair keyPair, String tag) {
-        checkArgument(!keyPairsByTag.containsKey(tag));
-        keyPairsByTag.put(tag, keyPair);
+    public void add(KeyPair keyPair, String keyId) {
+        checkArgument(!keyPairsById.containsKey(keyId));
+        keyPairsById.put(keyId, keyPair);
         persist();
     }
 
@@ -67,9 +67,9 @@ public class KeyPairRepository {
         // todo persist
     }
 
-    public Optional<KeyPair> findKeyPair(String tag) {
-        if (keyPairsByTag.containsKey(tag)) {
-            return Optional.of(keyPairsByTag.get(tag));
+    public Optional<KeyPair> findKeyPair(String keyId) {
+        if (keyPairsById.containsKey(keyId)) {
+            return Optional.of(keyPairsById.get(keyId));
         } else {
             return Optional.empty();
         }

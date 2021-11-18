@@ -23,7 +23,7 @@ import network.misq.common.monetary.Fiat;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.INetworkService;
-import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.node.Address;
 import network.misq.wallets.Wallet;
 
@@ -51,11 +51,11 @@ public class OpenOfferRepository {
     }
 
     public void createNewOffer(long askAmount) {
-        NetworkId makerNetworkId = new NetworkId(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
         Asset askAsset = new Asset(Coin.asBtc(askAmount), List.of(), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
-                makerNetworkId, bidAsset, askAsset);
+                makerMultiAddress, bidAsset, askAsset);
         networkService.addData(offer);
     }
 

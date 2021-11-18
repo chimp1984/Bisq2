@@ -31,7 +31,7 @@ import network.misq.common.util.MathUtils;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.NetworkService;
 import network.misq.network.http.common.BaseHttpClient;
-import network.misq.network.p2p.node.socket.NetworkType;
+import network.misq.network.p2p.node.proxy.NetworkType;
 
 import java.io.IOException;
 import java.util.*;

@@ -20,8 +20,7 @@ package network.misq.network.p2p;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.node.proxy.NetworkType;
 import network.misq.security.KeyGeneration;
 import network.misq.security.KeyPairRepository;
 
@@ -30,7 +29,7 @@ import java.security.KeyPair;
 
 @Slf4j
 public abstract class Config {
-    protected static KeyPair keyPairAlice1, keyPairBob1, keyPairAlice2, keyPairBob2;
+   /* protected static KeyPair keyPairAlice1, keyPairBob1, keyPairAlice2, keyPairBob2;
 
     static {
         try {
@@ -61,28 +60,28 @@ public abstract class Config {
         bobKeyPairSupplier2.add(keyPairBob2, "default");
     }
 
-    static NetworkConfig getI2pNetworkConfig(Role role) {
-        // Session in I2P need to be unique even if we use 2 diff SAM instances. So we add role name to default server id.
+    static NetworkServiceConfig getI2pNetworkConfig(Role role) {
+        // Session in I2P need to be unique even if we use 2 diff SAM instances. So we add role name to default server nodeId.
         return getI2pNetworkConfig(role, "default" + role);
     }
 
-    static NetworkConfig getI2pNetworkConfig(Role role, String id) {
+    static NetworkServiceConfig getI2pNetworkConfig(Role role, String id) {
         String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_" + role.name();
         NodeId nodeId = new NodeId(id, -1, Sets.newHashSet(NetworkType.I2P));
-        return new NetworkConfig(baseDirName, nodeId, NetworkType.I2P);
+        return new NetworkServiceConfig(baseDirName, nodeId, NetworkType.I2P);
     }
 
-    static NetworkConfig getTorNetworkConfig(Role role) {
+    static NetworkServiceConfig getTorNetworkConfig(Role role) {
         return getTorNetworkConfig(role, "default", 9999);
     }
 
-    static NetworkConfig getTorNetworkConfig(Role role, String id, int serverPort) {
+    static NetworkServiceConfig getTorNetworkConfig(Role role, String id, int serverPort) {
         String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_" + role.name();
         NodeId nodeId = new NodeId(id, serverPort, Sets.newHashSet(NetworkType.TOR));
-        return new NetworkConfig(baseDirName, nodeId, NetworkType.TOR);
+        return new NetworkServiceConfig(baseDirName, nodeId, NetworkType.TOR);
     }
 
-    static NetworkConfig getClearNetNetworkConfig(Role role) {
+    static NetworkServiceConfig getClearNetNetworkConfig(Role role) {
         int serverPort;
         switch (role) {
             case Alice:
@@ -99,9 +98,9 @@ public abstract class Config {
         return getClearNetNetworkConfig(role, "default", serverPort);
     }
 
-    static NetworkConfig getClearNetNetworkConfig(Role role, String id, int serverPort) {
+    static NetworkServiceConfig getClearNetNetworkConfig(Role role, String id, int serverPort) {
         String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_" + role.name();
         NodeId nodeId = new NodeId(id, serverPort, Sets.newHashSet(NetworkType.CLEAR));
-        return new NetworkConfig(baseDirName, nodeId, NetworkType.CLEAR);
-    }
+        return new NetworkServiceConfig(baseDirName, nodeId, NetworkType.CLEAR);
+    }*/
 }

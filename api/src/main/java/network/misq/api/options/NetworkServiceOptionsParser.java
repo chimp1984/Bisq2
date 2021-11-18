@@ -17,16 +17,17 @@
 
 package network.misq.api.options;
 
-import com.google.common.collect.Sets;
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
-import network.misq.network.p2p.NetworkConfig;
-import network.misq.network.p2p.P2pService;
-import network.misq.network.p2p.node.socket.NetworkType;
-import network.misq.network.p2p.node.socket.NodeId;
+import network.misq.network.p2p.P2pServiceNode;
+import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.peers.PeerConfig;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,18 +36,27 @@ import java.util.Set;
  */
 public class NetworkServiceOptionsParser {
     @Getter
-    private final NetworkService.Options options;
+    private final NetworkService.Config config;
 
     public NetworkServiceOptionsParser(ApplicationOptions applicationOptions, String[] args) {
-        //todo NetworkService options structure is preliminary
-        NodeId nodeId = new NodeId("default", 7777, Sets.newHashSet(NetworkType.CLEAR));
-        Set<NetworkConfig> networkConfigs = new HashSet<>();
-        networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.CLEAR));
+        String baseDirPath = applicationOptions.appDir();
 
-        // nodeId = new NodeId("default", 8888, Sets.newHashSet(NetworkType.TOR));
-        // networkConfigs.add(new NetworkConfig(applicationOptions.appDir(), nodeId, NetworkType.TOR));
+        Set<NetworkType> supportedNetworkTypes = Set.of(NetworkType.CLEAR, NetworkType.TOR, NetworkType.I2P);
 
-        P2pService.Option p2pServiceOption = new P2pService.Option(applicationOptions.appDir(), networkConfigs);
-        options = new NetworkService.Options(p2pServiceOption, Optional.empty());
+        P2pServiceNode.Config p2pServiceNodeConfig = new P2pServiceNode.Config(Set.of(
+                P2pServiceNode.Service.CONFIDENTIAL,
+                P2pServiceNode.Service.OVERLAY,
+                P2pServiceNode.Service.DATA,
+                P2pServiceNode.Service.RELAY));
+
+        List<Address> seedNodes = List.of(Address.localHost(1111));
+        PeerConfig peerConfig = new PeerConfig(new PeerExchangeConfig(), seedNodes);
+        MeshService.Config overlayServiceConfig = new MeshService.Config(peerConfig);
+
+        config = new NetworkService.Config(baseDirPath,
+                supportedNetworkTypes,
+                p2pServiceNodeConfig,
+                overlayServiceConfig,
+                Optional.empty());
     }
 }

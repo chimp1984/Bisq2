@@ -17,14 +17,13 @@
 
 package network.misq.network.p2p.node.connection;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
+import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Capability;
-import network.misq.network.p2p.node.MessageListener;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -48,30 +48,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public abstract class Connection implements Closeable {
 
-    @Getter
-    @EqualsAndHashCode
-    public static class MisqMessage implements Message {
-        private final Message payload;
-
-        public MisqMessage(Message payload) {
-            this.payload = payload;
-        }
-
-        @Override
-        public String toString() {
-            return "MisqMessage{" +
-                    ",\r\n     message=" + payload +
-                    "\r\n}";
-        }
-    }
-
     protected final String id = UUID.randomUUID().toString();
     private final Socket socket;
     @Getter
     private final Capability peersCapability;
 
-    private final MessageListener messageListener;
-
+    private final BiConsumer<Message, Connection> messageHandler;
     private ExecutorService writeExecutor;
     private ExecutorService readExecutor;
     private ObjectInputStream objectInputStream;
@@ -79,14 +61,13 @@ public abstract class Connection implements Closeable {
 
     private volatile boolean isStopped;
 
-    protected Connection(Socket socket, Capability peersCapability, MessageListener messageListener) {
+    protected Connection(Socket socket, Capability peersCapability, BiConsumer<Message, Connection> messageHandler) {
         this.socket = socket;
         this.peersCapability = peersCapability;
-        this.messageListener = messageListener;
+        this.messageHandler = messageHandler;
     }
 
-   public void startListen(Consumer<Exception> errorHandler) throws IOException {
-        //todo use global pool
+    public void startListen(Consumer<Exception> errorHandler) throws IOException {
         writeExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
         readExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
 
@@ -102,11 +83,11 @@ public abstract class Connection implements Closeable {
             while (!isStopped && !Thread.currentThread().isInterrupted()) {
                 try {
                     Object object = objectInputStream.readObject();
-                    checkArgument(object instanceof MisqMessage,
+                    checkArgument(object instanceof Envelope,
                             "Received object is not of type MisqMessage: " + object.getClass().getName());
-                    MisqMessage misqMessage = (MisqMessage) object;
-                    log.debug("Received message: {} at connection: {}", misqMessage, this);
-                    messageListener.onMessage(misqMessage.getPayload(), this);
+                    Envelope envelope = (Envelope) object;
+                    log.debug("Received message: {} at connection: {}", envelope, this);
+                    messageHandler.accept(envelope.payload(), this);
                 } catch (Exception exception) {
                     //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
                     close();
@@ -120,10 +101,10 @@ public abstract class Connection implements Closeable {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         writeExecutor.execute(() -> {
             try {
-                MisqMessage misqMessage = new MisqMessage(message);
-                objectOutputStream.writeObject(misqMessage);
+                Envelope envelope = new Envelope(message);
+                objectOutputStream.writeObject(envelope);
                 objectOutputStream.flush();
-                log.debug("Message sent: {} at connection: {}", misqMessage, this);
+                log.debug("Message sent: {} at connection: {}", envelope, this);
                 future.complete(this);
             } catch (IOException exception) {
                 if (!isStopped) {
@@ -141,8 +122,11 @@ public abstract class Connection implements Closeable {
         }
 
         isStopped = true;
-        ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
-        ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
+      //  ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
+      //  ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
+
+        readExecutor.shutdownNow();
+        writeExecutor.shutdownNow();
         try {
             socket.close();
         } catch (IOException ignore) {

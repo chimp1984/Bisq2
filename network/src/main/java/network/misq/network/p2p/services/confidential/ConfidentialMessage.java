@@ -26,18 +26,18 @@ import network.misq.security.ConfidentialData;
 @Getter
 public class ConfidentialMessage implements Message {
     private final ConfidentialData confidentialData;
-    private final String tag;
+    private final String keyId;
 
-    public ConfidentialMessage(ConfidentialData confidentialData, String tag) {
+    public ConfidentialMessage(ConfidentialData confidentialData, String keyId) {
         this.confidentialData = confidentialData;
-        this.tag = tag;
+        this.keyId = keyId;
     }
 
     @Override
     public String toString() {
         return "ConfidentialMessage{" +
                 "\r\n     sealed=" + confidentialData +
-                "\r\n     tag=" + tag +
+                "\r\n     keyId=" + keyId +
                 "\r\n}";
     }
 }
