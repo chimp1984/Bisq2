@@ -23,7 +23,7 @@ import network.misq.common.monetary.Fiat;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.SwapProtocolType;
 import network.misq.network.p2p.INetworkService;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.security.PubKey;
@@ -31,7 +31,6 @@ import network.misq.wallets.Wallet;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -56,11 +55,11 @@ public class OpenOfferRepository {
 
     public void createNewOffer(long askAmount) {
         Map<TransportType, Address> map = Map.of(TransportType.CLEAR_NET, Address.localHost(3333));
-        MultiAddress makerMultiAddress = new MultiAddress(map, new PubKey(null, "default"));
+        NetworkId makerNetworkId = new NetworkId(map, new PubKey(null, "default"));
         Asset askAsset = new Asset(Coin.asBtc(askAmount), List.of(), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
-                makerMultiAddress, bidAsset, askAsset);
+                makerNetworkId, bidAsset, askAsset);
         networkService.addData(offer);
     }
 

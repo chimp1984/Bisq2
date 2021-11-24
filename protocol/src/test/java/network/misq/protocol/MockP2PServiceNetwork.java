@@ -18,7 +18,7 @@
 package network.misq.protocol;
 
 
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
@@ -57,7 +57,7 @@ public class MockP2PServiceNetwork extends P2pServiceNodesByNetworkType {
         return CompletableFuture.completedFuture(true);
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress peerMultiAddress, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         new Thread(() -> {
             try {

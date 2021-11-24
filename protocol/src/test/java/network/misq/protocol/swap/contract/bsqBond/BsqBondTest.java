@@ -25,7 +25,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.TransportType;
@@ -65,12 +65,12 @@ public class BsqBondTest {
     public void testBsqBond() {
 
         // create offer
-        MultiAddress makerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
+        NetworkId makerNetworkId = new NetworkId(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
 
         Asset askAsset = new Asset(Fiat.of(100, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(90, "EUR"), List.of(FiatTransfer.REVOLUT, FiatTransfer.SEPA), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG, SwapProtocolType.REPUTATION),
-                makerMultiAddress, bidAsset, askAsset);
+                makerNetworkId, bidAsset, askAsset);
 
         // taker takes offer and selects first ProtocolType
         ProtocolType selectedProtocolType = offer.getProtocolTypes().get(0);
@@ -80,8 +80,8 @@ public class BsqBondTest {
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
         //todo is takerMultiAddress correct?
-        MultiAddress takerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
-        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerMultiAddress, selectedProtocolType);
+        NetworkId takerNetworkId = new NetworkId(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
+        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerNetworkId, selectedProtocolType);
         MakerBsqBondProtocol makerBsqBondProtocol = new MakerBsqBondProtocol(makerTrade, networkService);
         ProtocolExecutor makerSwapTradeProtocolExecutor = new ProtocolExecutor(makerBsqBondProtocol);
 

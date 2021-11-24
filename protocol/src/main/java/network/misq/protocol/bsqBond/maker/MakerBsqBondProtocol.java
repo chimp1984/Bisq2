@@ -45,7 +45,7 @@ public class MakerBsqBondProtocol extends BsqBondProtocol {
                     .whenComplete((success, t) -> setState(State.COMMITMENT_RECEIVED))
                     .thenCompose(isValid -> transport.sendFunds(contract))
                     .thenCompose(isSent -> p2pService.confidentialSend(new MakerFundsSentMessage(),
-                            counterParty.getMakerMultiAddress(),
+                            counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((connection1, t) -> setState(State.FUNDS_SENT));
         }
@@ -65,7 +65,7 @@ public class MakerBsqBondProtocol extends BsqBondProtocol {
         setState(State.START);
         security.getCommitment(contract)
                 .thenCompose(commitment -> p2pService.confidentialSend(new MakerCommitmentMessage(commitment),
-                        counterParty.getMakerMultiAddress(),
+                        counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((success, t) -> setState(State.COMMITMENT_SENT));
         return CompletableFuture.completedFuture(true);

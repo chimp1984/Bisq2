@@ -18,13 +18,13 @@
 package network.misq.contract;
 
 import lombok.Getter;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 
 @Getter
 public class Party {
-    private final MultiAddress makerMultiAddress;
+    private final NetworkId makerNetworkId;
 
-    public Party(MultiAddress makerMultiAddress) {
-        this.makerMultiAddress = makerMultiAddress;
+    public Party(NetworkId makerNetworkId) {
+        this.makerNetworkId = makerNetworkId;
     }
 }

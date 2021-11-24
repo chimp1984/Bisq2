@@ -21,14 +21,13 @@ package network.misq.network;
 import lombok.Getter;
 import network.misq.network.http.HttpService;
 import network.misq.network.http.common.BaseHttpClient;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pServiceNode;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.transport.TransportType;
-import network.misq.network.p2p.services.confidential.ConfMsgService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.security.KeyPairRepository;
@@ -87,8 +86,8 @@ public class NetworkService {
         return bootstrap;
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress peerMultiAddress, KeyPair myKeyPair, String connectionId) {
-        return p2pService.confidentialSend(message, peerMultiAddress, myKeyPair, connectionId);
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair, String connectionId) {
+        return p2pService.confidentialSend(message, peerNetworkId, myKeyPair, connectionId);
     }
 
     public void addMessageListener(MessageListener messageListener) {

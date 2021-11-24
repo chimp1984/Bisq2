@@ -24,5 +24,5 @@ import network.misq.security.PubKey;
 import java.security.PublicKey;
 import java.util.Map;
 
-public record MultiAddress(Map<TransportType, Address> addressByNetworkType, PubKey pubKey) {
+public record NetworkId(Map<TransportType, Address> addressByNetworkType, PubKey pubKey) {
 }

@@ -26,7 +26,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.TransportType;
@@ -75,11 +75,11 @@ public abstract class MultiSigTest {
     protected void run() {
         P2pServiceNodesByNetworkType networkService = new MockP2PServiceNetwork();
         // create offer
-        MultiAddress makerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
+        NetworkId makerNetworkId = new NetworkId(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Coin.asBtc(100000), List.of(), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG),
-                makerMultiAddress, bidAsset, askAsset);
+                makerNetworkId, bidAsset, askAsset);
 
         // taker takes offer and selects first ProtocolType
         ProtocolType selectedProtocolType = offer.getProtocolTypes().get(0);
@@ -89,8 +89,8 @@ public abstract class MultiSigTest {
         ProtocolExecutor takerSwapTradeProtocolExecutor = new ProtocolExecutor(takerMultiSigProtocol);
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
-        MultiAddress takerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(2222)), new PubKey(null, "default"));
-        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerMultiAddress, selectedProtocolType);
+        NetworkId takerNetworkId = new NetworkId(Map.of(TransportType.CLEAR_NET, Address.localHost(2222)), new PubKey(null, "default"));
+        TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerNetworkId, selectedProtocolType);
         MultiSig makerMultiSig = new MultiSig(getMakerWallet(), getChain());
         MakerMultiSigProtocol makerMultiSigProtocol = new MakerMultiSigProtocol(makerTrade, networkService, makerMultiSig);
         ProtocolExecutor makerSwapTradeProtocolExecutor = new ProtocolExecutor(makerMultiSigProtocol);

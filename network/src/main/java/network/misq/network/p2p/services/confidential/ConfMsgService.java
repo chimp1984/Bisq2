@@ -19,7 +19,7 @@ package network.misq.network.p2p.services.confidential;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.ObjectSerializer;
-import network.misq.network.p2p.MultiAddress;
+import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
@@ -98,7 +98,7 @@ public class ConfMsgService implements MessageListener {
         return nodesById.send(nodeId, getConfidentialMessage(message, pubKey, myKeyPair), connection);
     }
 
-    public CompletableFuture<Connection> relay(Message message, MultiAddress multiAddress, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> relay(Message message, NetworkId networkId, KeyPair myKeyPair) {
        /*   Set<Connection> connections = getConnectionsWithSupportedNetwork(peerAddress.getNetworkType());
       Connection outboundConnection = CollectionUtil.getRandomElement(connections);
         if (outboundConnection != null) {

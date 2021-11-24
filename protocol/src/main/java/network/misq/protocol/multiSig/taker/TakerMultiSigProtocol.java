@@ -48,7 +48,7 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
                     .thenCompose(multiSig::broadcastDepositTx)
                     .whenComplete((depositTx, t) -> setState(State.DEPOSIT_TX_BROADCAST))
                     .thenCompose(depositTx -> p2pService.confidentialSend(new DepositTxBroadcastMessage(depositTx),
-                            counterParty.getMakerMultiAddress(),
+                            counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((connection1, t) -> setState(State.DEPOSIT_TX_BROADCAST_MSG_SENT));
         } else if (message instanceof FundsSentMessage) {
@@ -79,7 +79,7 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         multiSig.broadcastPayoutTx()
                 .whenComplete((payoutTx, t) -> setState(State.PAYOUT_TX_BROADCAST))
                 .thenCompose(payoutTx -> p2pService.confidentialSend(new PayoutTxBroadcastMessage(payoutTx),
-                        counterParty.getMakerMultiAddress(),
+                        counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((isValid, t) -> setState(State.PAYOUT_TX_BROADCAST_MSG_SENT));
     }

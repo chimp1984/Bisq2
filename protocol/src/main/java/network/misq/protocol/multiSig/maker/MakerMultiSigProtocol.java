@@ -68,7 +68,7 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         setState(State.START);
         multiSig.getTxInputs()
                 .thenCompose(txInputs -> p2pService.confidentialSend(new TxInputsMessage(txInputs),
-                        counterParty.getMakerMultiAddress(),
+                        counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((success, t) -> setState(State.TX_INPUTS_SENT));
         return CompletableFuture.completedFuture(true);
@@ -79,7 +79,7 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         return multiSig.createPartialPayoutTx()
                 .thenCompose(multiSig::getPayoutTxSignature)
                 .thenCompose(sig -> p2pService.confidentialSend(new FundsSentMessage(sig),
-                        counterParty.getMakerMultiAddress(),
+                        counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((isValid, t) -> setState(State.FUNDS_SENT_MSG_SENT));
     }
