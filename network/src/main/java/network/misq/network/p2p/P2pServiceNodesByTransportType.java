@@ -28,7 +28,7 @@ import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.confidential.ConfMsgService;
+import network.misq.network.p2p.services.confidential.ConfidentialMessageService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
@@ -73,7 +73,7 @@ public class P2pServiceNodesByTransportType {
                     config,
                     meshServiceConfig,
                     dataServiceConfig,
-                    new ConfMsgService.Config(keyPairRepository));
+                    new ConfidentialMessageService.Config(keyPairRepository));
             p2pServiceNodeByTransportType.put(networkType, p2PServiceNode);
         });
     }

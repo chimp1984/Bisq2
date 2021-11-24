@@ -22,7 +22,7 @@ import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.confidential.ConfMsgService;
+import network.misq.network.p2p.services.confidential.ConfidentialMessageService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
@@ -63,7 +63,7 @@ public class P2pServiceNode {
 
     private final NodesById nodesById;
     private final Node defaultNode;
-    private Optional<ConfMsgService> confidentialMessageService;
+    private Optional<ConfidentialMessageService> confidentialMessageService;
     private Optional<DataService> dataService;
     private Optional<MeshService> overlayNetworkService;
     private Optional<RelayService> relayService;
@@ -72,13 +72,13 @@ public class P2pServiceNode {
                           Node.Config nodeConfig,
                           MeshService.Config meshServiceConfig,
                           DataService.Config dataServiceConfig,
-                          ConfMsgService.Config confMsgServiceConfig) {
+                          ConfidentialMessageService.Config confMsgServiceConfig) {
         nodesById = new NodesById(nodeConfig);
         defaultNode = nodesById.getDefaultNode();
 
         Set<Service> services = config.services();
         if (services.contains(Service.CONFIDENTIAL)) {
-            confidentialMessageService = Optional.of(new ConfMsgService(nodesById, confMsgServiceConfig));
+            confidentialMessageService = Optional.of(new ConfidentialMessageService(nodesById, confMsgServiceConfig));
         }
         if (services.contains(Service.RELAY)) {
             relayService = Optional.of(new RelayService(defaultNode));

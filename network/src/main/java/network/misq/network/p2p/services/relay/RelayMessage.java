@@ -15,12 +15,13 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.confidential;
+package network.misq.network.p2p.services.relay;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.services.confidential.ConfidentialMessage;
 
 @EqualsAndHashCode(callSuper = true)
 @Getter

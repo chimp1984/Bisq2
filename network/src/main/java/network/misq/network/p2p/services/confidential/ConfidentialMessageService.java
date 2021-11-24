@@ -25,6 +25,7 @@ import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.NodesById;
+import network.misq.network.p2p.services.relay.RelayMessage;
 import network.misq.security.ConfidentialData;
 import network.misq.security.HybridEncryption;
 import network.misq.security.KeyPairRepository;
@@ -37,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
-public class ConfMsgService implements MessageListener {
+public class ConfidentialMessageService implements MessageListener {
 
     public static record Config(KeyPairRepository keyPairRepository) {
     }
@@ -46,7 +47,7 @@ public class ConfMsgService implements MessageListener {
     private final NodesById nodesById;
     private final KeyPairRepository keyPairRepository;
 
-    public ConfMsgService(NodesById nodesById, ConfMsgService.Config config) {
+    public ConfidentialMessageService(NodesById nodesById, ConfidentialMessageService.Config config) {
         this.nodesById = nodesById;
         this.keyPairRepository = config.keyPairRepository();
 
