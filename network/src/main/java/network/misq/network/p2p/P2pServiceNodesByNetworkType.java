@@ -138,13 +138,13 @@ public class P2pServiceNodesByNetworkType {
                 .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress peerMultiAddress, KeyPair myKeyPair, String connectionId) {
+    public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair, String connectionId) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        peerMultiAddress.addressByNetworkType().forEach((transportType, address) -> {
+        networkId.addressByNetworkType().forEach((transportType, address) -> {
             try {
                 if (map.containsKey(transportType)) {
                     map.get(transportType)
-                            .confidentialSend(message, peerMultiAddress.addressByNetworkType().get(transportType),peerMultiAddress.pubKey(), myKeyPair, connectionId)
+                            .confidentialSend(message, networkId.addressByNetworkType().get(transportType),networkId.pubKey(), myKeyPair, connectionId)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
                                     future.complete(connection);
@@ -155,7 +155,7 @@ public class P2pServiceNodesByNetworkType {
                             });
                 } else {
                     map.values().forEach(networkNode -> {
-                        networkNode.relay(message, peerMultiAddress, myKeyPair)
+                        networkNode.relay(message, networkId, myKeyPair)
                                 .whenComplete((connection, throwable) -> {
                                     if (connection != null) {
                                         future.complete(connection);

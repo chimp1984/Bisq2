@@ -110,9 +110,9 @@ public class P2pServiceNode {
         return confidentialMessageService.get().send(message, address, pubKey, myKeyPair, connectionId);
     }
 
-    public CompletableFuture<Connection> relay(Message message, MultiAddress multiAddress, KeyPair myKeyPair) {
+    public CompletableFuture<Connection> relay(Message message, NetworkId networkId, KeyPair myKeyPair) {
         checkArgument(confidentialMessageService.isPresent());
-        return confidentialMessageService.get().relay(message, multiAddress, myKeyPair);
+        return confidentialMessageService.get().relay(message, networkId, myKeyPair);
     }
 
     public CompletableFuture<GossipResult> requestAddData(Message message) {
