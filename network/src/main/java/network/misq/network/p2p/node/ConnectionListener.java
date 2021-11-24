@@ -17,8 +17,6 @@
 
 package network.misq.network.p2p.node;
 
-import network.misq.network.p2p.node.connection.Connection;
-
 public interface ConnectionListener {
     void onConnection(Connection connection);
 

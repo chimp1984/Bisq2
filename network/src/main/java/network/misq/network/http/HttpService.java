@@ -22,7 +22,7 @@ import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.http.common.ClearNetHttpClient;
 import network.misq.network.http.common.Socks5ProxyProvider;
 import network.misq.network.http.common.TorHttpClient;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.transport.TransportType;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -30,11 +30,11 @@ import java.util.concurrent.CompletableFuture;
 public class HttpService {
     public CompletableFuture<BaseHttpClient> getHttpClient(String url,
                                                            String userAgent,
-                                                           NetworkType networkType,
+                                                           TransportType transportType,
                                                            Optional<Socks5Proxy> socksProxy,
                                                            Optional<String> socks5ProxyAddress) {
         return CompletableFuture.supplyAsync(() -> {
-            switch (networkType) {
+            switch (transportType) {
                 case TOR:
                     // If we have a socks5ProxyAddress defined in options we use that as proxy
                     Socks5ProxyProvider socks5ProxyProvider = socks5ProxyAddress
@@ -45,10 +45,10 @@ public class HttpService {
                 case I2P:
                     // TODO We need to figure out how to get a proxy from i2p or require tor in any case
                     throw new IllegalArgumentException("I2P providers not supported yet.");
-                case CLEAR:
+                case CLEAR_NET:
                     return new ClearNetHttpClient(url, userAgent);
                 default:
-                    throw new IllegalArgumentException("Providers network type not recognized. " + networkType);
+                    throw new IllegalArgumentException("Providers network type not recognized. " + transportType);
             }
         });
     }

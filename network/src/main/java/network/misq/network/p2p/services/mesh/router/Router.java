@@ -20,7 +20,7 @@ package network.misq.network.p2p.services.mesh.router;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
@@ -58,8 +58,8 @@ public class Router implements MessageListener {
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
-        messageListeners.forEach(listener -> listener.onMessage(message, connection));
+    public void onMessage(Message message, Connection connection, String nodeId) {
+        messageListeners.forEach(listener -> listener.onMessage(message, connection, nodeId));
     }
 
     public Address getPeerAddressesForInventoryRequest() {

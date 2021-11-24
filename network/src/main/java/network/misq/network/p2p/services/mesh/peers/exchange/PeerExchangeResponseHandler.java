@@ -22,7 +22,7 @@ import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
@@ -51,7 +51,7 @@ public class PeerExchangeResponseHandler implements MessageListener, Disposable 
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (connectionId.equals(connection.getId()) && message instanceof PeerExchangeRequest) {
             PeerExchangeRequest peerExchangeRequest = (PeerExchangeRequest) message;
             PeerExchangeResponse response = new PeerExchangeResponse(peers);

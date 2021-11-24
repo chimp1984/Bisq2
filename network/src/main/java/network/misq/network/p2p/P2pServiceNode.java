@@ -20,12 +20,8 @@ package network.misq.network.p2p;
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.NodeConfig;
-import network.misq.network.p2p.node.NodeRepository;
-import network.misq.network.p2p.node.connection.Connection;
-import network.misq.network.p2p.node.proxy.ServerSocketResult;
+import network.misq.network.p2p.node.*;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.confidential.ConfMsgService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
@@ -33,6 +29,7 @@ import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.network.p2p.services.relay.RelayService;
+import network.misq.security.PubKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +59,7 @@ public class P2pServiceNode {
         RELAY
     }
 
-    private final NodeRepository nodeRepository;
+    private final NodesById nodesById;
     private final Node defaultNode;
     private Optional<ConfMsgService> confidentialMessageService;
     private Optional<DataService> dataService;
@@ -70,16 +67,16 @@ public class P2pServiceNode {
     private Optional<RelayService> relayService;
 
     public P2pServiceNode(Config config,
-                          NodeConfig nodeConfig,
+                          Node.Config nodeConfig,
                           MeshService.Config meshServiceConfig,
                           DataService.Config dataServiceConfig,
                           ConfMsgService.Config confMsgServiceConfig) {
-        nodeRepository = new NodeRepository(nodeConfig);
-        defaultNode = nodeRepository.getOrCreateNode(Node.DEFAULT_NODE_ID);
+        nodesById = new NodesById(nodeConfig);
+        defaultNode = nodesById.getDefaultNode();
 
         Set<Service> services = config.services();
         if (services.contains(Service.CONFIDENTIAL)) {
-            confidentialMessageService = Optional.of(new ConfMsgService(nodeRepository, confMsgServiceConfig));
+            confidentialMessageService = Optional.of(new ConfMsgService(nodesById, confMsgServiceConfig));
         }
         if (services.contains(Service.RELAY)) {
             relayService = Optional.of(new RelayService(defaultNode));
@@ -98,8 +95,8 @@ public class P2pServiceNode {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<ServerSocketResult> initializeServer(String nodeId, int serverPort) {
-        return nodeRepository.getOrCreateNode(nodeId).initializeServer(serverPort);
+    public CompletableFuture<Transport.ServerSocketResult> initializeServer(String nodeId, int serverPort) {
+        return nodesById.initializeServer(nodeId, serverPort);
     }
 
     public CompletableFuture<Boolean> initializeOverlay() {
@@ -107,10 +104,10 @@ public class P2pServiceNode {
         return overlayNetworkService.get().bootstrap();
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress multiAddress, KeyPair myKeyPair, String connectionId)
+    public CompletableFuture<Connection> confidentialSend(Message message, Address address, PubKey pubKey, KeyPair myKeyPair, String connectionId)
             throws GeneralSecurityException {
         checkArgument(confidentialMessageService.isPresent());
-        return confidentialMessageService.get().send(message, multiAddress, myKeyPair, connectionId);
+        return confidentialMessageService.get().send(message, address, pubKey, myKeyPair, connectionId);
     }
 
     public CompletableFuture<Connection> relay(Message message, MultiAddress multiAddress, KeyPair myKeyPair) {
@@ -138,7 +135,7 @@ public class P2pServiceNode {
     }
 
     public void shutdown() {
-        nodeRepository.shutdown();
+        nodesById.shutdown();
         confidentialMessageService.ifPresent(ConfMsgService::shutdown);
         relayService.ifPresent(RelayService::shutdown);
         overlayNetworkService.ifPresent(MeshService::shutdown);

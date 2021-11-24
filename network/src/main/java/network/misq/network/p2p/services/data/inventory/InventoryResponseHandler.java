@@ -22,7 +22,7 @@ import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 
 import java.util.function.Function;
@@ -51,7 +51,7 @@ public class InventoryResponseHandler implements MessageListener, Disposable {
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (this.connection.getId().equals(connection.getId()) && message instanceof InventoryRequest) {
             InventoryRequest request = (InventoryRequest) message;
             Inventory inventory = inventoryProvider.apply(request.getDataFilter());

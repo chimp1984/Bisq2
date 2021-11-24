@@ -20,7 +20,8 @@ package network.misq.network.p2p.node;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.common.util.NetworkUtils;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.common.util.StringUtils;
+import network.misq.network.p2p.node.transport.TransportType;
 
 import java.io.Serializable;
 import java.util.StringTokenizer;
@@ -63,15 +64,19 @@ public class Address implements Serializable {
         return NetworkUtils.isI2pAddress(host);
     }
 
-    public NetworkType getNetworkType() {
+    public TransportType getNetworkType() {
         if (isTor()) {
-            return NetworkType.TOR;
+            return TransportType.TOR;
         } else if (isClearNet()) {
-            return NetworkType.CLEAR;
+            return TransportType.CLEAR_NET;
         } else if (isI2p()) {
-            return NetworkType.I2P;
+            return TransportType.I2P;
         } else
             throw new IllegalArgumentException("NetworkType cannot be derived from address. " + this);
+    }
+
+    public String toShortString() {
+        return StringUtils.truncate(host) + ":" + port;
     }
 
     @Override

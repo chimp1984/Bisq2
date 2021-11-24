@@ -23,7 +23,7 @@ import network.misq.common.util.MapUtils;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.*;

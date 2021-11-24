@@ -15,14 +15,12 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.connection.authorization;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+package network.misq.network.p2p.node.transport;
 
 import java.io.Serializable;
 
-@EqualsAndHashCode
-@Getter
-public class AuthorizationToken implements Serializable {
+public enum TransportType implements Serializable {
+    TOR,
+    I2P,
+    CLEAR_NET,
 }

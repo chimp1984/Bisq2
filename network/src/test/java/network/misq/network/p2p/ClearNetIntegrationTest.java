@@ -17,14 +17,7 @@
 
 package network.misq.network.p2p;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.NetworkType;
-import org.junit.jupiter.api.Test;
-
-import java.security.GeneralSecurityException;
-import java.util.Set;
 
 @Slf4j
 public class ClearNetIntegrationTest extends BaseTest {

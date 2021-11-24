@@ -31,7 +31,7 @@ import network.misq.common.util.MathUtils;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.NetworkService;
 import network.misq.network.http.common.BaseHttpClient;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.transport.TransportType;
 
 import java.io.IOException;
 import java.util.*;
@@ -54,7 +54,7 @@ public class MarketPriceService {
     public static record Options(Set<Provider> providers) {
     }
 
-    public static record Provider(String url, String operator, NetworkType networkType) {
+    public static record Provider(String url, String operator, TransportType transportType) {
     }
 
     private final List<Provider> providers;
@@ -160,12 +160,12 @@ public class MarketPriceService {
         if (candidates.isEmpty()) {
             // First try to use the clear net candidate if clear net is supported
             candidates.addAll(providers.stream()
-                    .filter(provider -> networkService.getSupportedNetworkTypes().contains(NetworkType.CLEAR))
-                    .filter(provider -> NetworkType.CLEAR == provider.networkType)
+                    .filter(provider -> networkService.getSupportedTransportTypes().contains(TransportType.CLEAR_NET))
+                    .filter(provider -> TransportType.CLEAR_NET == provider.transportType)
                     .toList());
             if (candidates.isEmpty()) {
                 candidates.addAll(providers.stream()
-                        .filter(provider -> networkService.getSupportedNetworkTypes().contains(provider.networkType))
+                        .filter(provider -> networkService.getSupportedTransportTypes().contains(provider.transportType))
                         .toList());
             }
         }
@@ -181,6 +181,6 @@ public class MarketPriceService {
     }
 
     private CompletableFuture<BaseHttpClient> getHttpClient(Provider provider) {
-        return networkService.getHttpClient(provider.url, userAgent, provider.networkType);
+        return networkService.getHttpClient(provider.url, userAgent, provider.transportType);
     }
 }

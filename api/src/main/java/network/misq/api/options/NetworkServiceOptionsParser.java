@@ -22,7 +22,7 @@ import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.P2pServiceNode;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.peers.PeerConfig;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
@@ -41,7 +41,7 @@ public class NetworkServiceOptionsParser {
     public NetworkServiceOptionsParser(ApplicationOptions applicationOptions, String[] args) {
         String baseDirPath = applicationOptions.appDir();
 
-        Set<NetworkType> supportedNetworkTypes = Set.of(NetworkType.CLEAR, NetworkType.TOR, NetworkType.I2P);
+        Set<TransportType> supportedTransportTypes = Set.of(TransportType.CLEAR_NET, TransportType.TOR, TransportType.I2P);
 
         P2pServiceNode.Config p2pServiceNodeConfig = new P2pServiceNode.Config(Set.of(
                 P2pServiceNode.Service.CONFIDENTIAL,
@@ -54,7 +54,7 @@ public class NetworkServiceOptionsParser {
         MeshService.Config overlayServiceConfig = new MeshService.Config(peerConfig);
 
         config = new NetworkService.Config(baseDirPath,
-                supportedNetworkTypes,
+                supportedTransportTypes,
                 p2pServiceNodeConfig,
                 overlayServiceConfig,
                 Optional.empty());

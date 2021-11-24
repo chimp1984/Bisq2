@@ -23,7 +23,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.bsqBond.BsqBond;
 import network.misq.protocol.bsqBond.BsqBondProtocol;
 import network.misq.protocol.bsqBond.maker.MakerCommitmentMessage;
@@ -38,7 +38,7 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof MakerCommitmentMessage) {
             MakerCommitmentMessage bondCommitmentMessage = (MakerCommitmentMessage) message;
             security.verifyBondCommitmentMessage(bondCommitmentMessage)

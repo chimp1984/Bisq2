@@ -17,20 +17,7 @@
 
 package network.misq.network.p2p;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.NetworkType;
-import org.junit.jupiter.api.Test;
-
-import java.security.GeneralSecurityException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;

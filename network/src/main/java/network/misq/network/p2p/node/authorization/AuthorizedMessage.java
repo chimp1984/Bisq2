@@ -15,7 +15,9 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.proxy;
+package network.misq.network.p2p.node.authorization;
 
-public record NetworkProxyConfig(String baseDirPath) {
+import network.misq.network.p2p.message.Message;
+
+public record AuthorizedMessage(Message message, AuthorizationToken authorizationToken) implements Message {
 }

@@ -22,7 +22,7 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.SecurityProvider;
 import network.misq.protocol.multiSig.MultiSig;
 import network.misq.protocol.multiSig.MultiSigProtocol;
@@ -38,7 +38,7 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof DepositTxBroadcastMessage) {
             DepositTxBroadcastMessage depositTxBroadcastMessage = (DepositTxBroadcastMessage) message;
             multiSig.verifyDepositTxBroadcastMessage(depositTxBroadcastMessage)

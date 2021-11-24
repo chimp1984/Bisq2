@@ -19,21 +19,21 @@ package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.connection.authorization.UnrestrictedAuthorizationService;
-import network.misq.network.p2p.node.proxy.NetworkProxyConfig;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
+import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.node.transport.TransportType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 @Slf4j
-public class ClearNetNodeRepositoryTest extends BaseNodeRepositoryTest {
+public class ClearNetNodesByIdTest extends BaseNodeRepositoryTest {
     private static String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
-    private static NetworkProxyConfig networkProxyConfig = new NetworkProxyConfig(baseDirName);
-    private static NodeConfig nodeConfig = new NodeConfig(NetworkType.CLEAR,
-            Set.of(NetworkType.CLEAR),
+    private static Transport.Config transportConfig = new Transport.Config(baseDirName);
+    private static Node.Config nodeConfig = new Node.Config(TransportType.CLEAR_NET,
+            Set.of(TransportType.CLEAR_NET),
             new UnrestrictedAuthorizationService(),
-            networkProxyConfig);
+            transportConfig);
 
     @Test
     void test_messageRoundTrip() throws InterruptedException {

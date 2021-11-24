@@ -21,13 +21,9 @@ package network.misq.network.p2p.node;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.connection.Connection;
-import network.misq.network.p2p.node.connection.ConnectionHandshake;
-import network.misq.network.p2p.node.connection.InboundConnection;
-import network.misq.network.p2p.node.connection.OutboundConnection;
-import network.misq.network.p2p.node.connection.authorization.AuthorizationService;
-import network.misq.network.p2p.node.connection.authorization.AuthorizedMessage;
-import network.misq.network.p2p.node.proxy.*;
+import network.misq.network.p2p.node.authorization.AuthorizationService;
+import network.misq.network.p2p.node.authorization.AuthorizedMessage;
+import network.misq.network.p2p.node.transport.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,19 +43,26 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 
 /**
  * Responsibility:
- * - Creates networkProxy based on networkType
+ * - Creates Transport based on TransportType
  * - Creates 1 Server associated with that server
  * - Creates inbound and outbound connections.
  * - Checks if a connection has been created when sending a message and creates one otherwise.
  * - Performs initial connection handshake for exchanging capability and performing authorization
  * - Notifies ConnectionListeners when a new connection has been created or one has been closed.
+ * - Notifies MessageListeners when a new message has been received.
  */
 public class Node {
     private static final Logger log = LoggerFactory.getLogger(Node.class);
     public static final String DEFAULT_NODE_ID = "default";
 
-    private final NetworkProxy networkProxy;
-    private final Set<NetworkType> supportedNetworkTypes;
+    public static record Config(TransportType transportType,
+                                Set<TransportType> supportedTransportTypes,
+                                AuthorizationService authorizationService,
+                                Transport.Config transportConfig) {
+    }
+
+    private final Transport transport;
+    private final Set<TransportType> supportedTransportTypes;
     private final AuthorizationService authorizationService;
     private final String nodeId;
 
@@ -72,10 +75,10 @@ public class Node {
     private Optional<Capability> myCapability;
     private volatile boolean isStopped;
 
-    public Node(NodeConfig nodeConfig, String nodeId) {
-        networkProxy = getNetworkProxy(nodeConfig.networkType(), nodeConfig.networkProxyConfig());
-        supportedNetworkTypes = nodeConfig.supportedNetworkTypes();
-        authorizationService = nodeConfig.authorizationService();
+    public Node(Config config, String nodeId) {
+        transport = getNetworkProxy(config.transportType(), config.transportConfig());
+        supportedTransportTypes = config.supportedTransportTypes();
+        authorizationService = config.authorizationService();
         this.nodeId = nodeId;
     }
 
@@ -84,15 +87,15 @@ public class Node {
     // Server
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<ServerSocketResult> initializeServer(int port) {
-        return networkProxy.initialize()
+    public CompletableFuture<Transport.ServerSocketResult> initializeServer(int port) {
+        return transport.initialize()
                 .thenCompose(e -> createServerAndListen(port));
     }
 
-    public CompletableFuture<ServerSocketResult> createServerAndListen(int port) {
-        return networkProxy.getServerSocket(port, nodeId)
+    public CompletableFuture<Transport.ServerSocketResult> createServerAndListen(int port) {
+        return transport.getServerSocket(port, nodeId)
                 .thenCompose(serverSocketResult -> {
-                    myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedNetworkTypes));
+                    myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedTransportTypes));
                     server = Optional.of(new Server(serverSocketResult,
                             socket -> onClientSocket(socket, serverSocketResult, myCapability.get()),
                             this::handleException));
@@ -100,7 +103,7 @@ public class Node {
                 });
     }
 
-    private void onClientSocket(Socket socket, ServerSocketResult serverSocketResult, Capability myCapability) {
+    private void onClientSocket(Socket socket, Transport.ServerSocketResult serverSocketResult, Capability myCapability) {
         ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
         connectionHandshake.onSocket()
                 .whenComplete((peersCapability, throwable) -> {
@@ -126,7 +129,7 @@ public class Node {
 
     public CompletableFuture<Connection> send(Message message, Address address) {
         return getConnection(address)
-                .thenCompose(connection ->  send(message, connection));
+                .thenCompose(connection -> send(message, connection));
     }
 
     public CompletableFuture<Connection> send(Message message, Connection connection) {
@@ -160,7 +163,7 @@ public class Node {
     private CompletableFuture<Connection> createOutboundConnection(Address address, Capability myCapability) {
         Socket socket;
         try {
-            socket = networkProxy.getSocket(address);
+            socket = transport.getSocket(address);
         } catch (IOException e) {
             handleException(e);
             return CompletableFuture.failedFuture(e);
@@ -199,7 +202,7 @@ public class Node {
     private void onMessage(Message message, Connection connection) {
         if (!isStopped && message instanceof AuthorizedMessage authorizedMessage) {
             if (authorizationService.isAuthorized(authorizedMessage)) {
-                runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection)));
+                runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
             } else {
                 log.warn("Handling message at onMessage is not permitted by authorizationService");
             }
@@ -213,16 +216,17 @@ public class Node {
         isStopped = true;
 
         server.ifPresent(Server::shutdown);
-        outboundConnectionMap.values().forEach(Connection::close);
+        outboundConnectionMap.values().forEach(Connection::shutdown);
         outboundConnectionMap.clear();
-        inboundConnections.forEach(Connection::close);
+        inboundConnections.forEach(Connection::shutdown);
         inboundConnections.clear();
 
-        networkProxy.close();
+        messageListeners.clear();
+        transport.shutdown();
     }
 
     public Optional<Socks5Proxy> getSocksProxy() throws IOException {
-        return networkProxy.getSocksProxy();
+        return transport.getSocksProxy();
     }
 
     public void addMessageListener(MessageListener messageListener) {
@@ -300,11 +304,11 @@ public class Node {
     }
 
 
-    private NetworkProxy getNetworkProxy(NetworkType networkType, NetworkProxyConfig config) {
-        return switch (networkType) {
-            case TOR -> TorNetworkProxy.getInstance(config);
-            case I2P -> I2PNetworkProxy.getInstance(config);
-            case CLEAR -> ClearNetNetworkProxy.getInstance(config);
+    private Transport getNetworkProxy(TransportType transportType, Transport.Config config) {
+        return switch (transportType) {
+            case TOR -> TorTransport.getInstance(config);
+            case I2P -> I2PTransport.getInstance(config);
+            case CLEAR_NET -> ClearNetTransport.getInstance(config);
         };
     }
 

@@ -15,19 +15,34 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.connection.authorization;
+package network.misq.network.p2p.node.authorization;
 
 import network.misq.network.p2p.message.Message;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface AuthorizationService {
+/**
+ * Dummy implementation. Will be pow based...
+ */
+public class UnrestrictedAuthorizationService implements AuthorizationService {
 
-    boolean isAuthorized(AuthorizedMessage authorizedMessage);
+    @Override
+    public boolean isAuthorized(AuthorizedMessage authorizedMessage) {
+        return true;
+    }
 
-    boolean isAuthorized(AuthorizationToken authorizationToken);
+    @Override
+    public boolean isAuthorized(AuthorizationToken authorizationToken) {
+        return true;
+    }
 
-    CompletableFuture<AuthorizationToken> createToken(Class<? extends Message> message);
 
-    void shutdown();
+    @Override
+    public CompletableFuture<AuthorizationToken> createToken(Class<? extends Message> messageClass) {
+        return CompletableFuture.completedFuture(new AuthorizationToken());
+    }
+
+    @Override
+    public void shutdown() {
+    }
 }

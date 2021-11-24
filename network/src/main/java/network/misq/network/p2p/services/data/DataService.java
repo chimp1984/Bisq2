@@ -23,7 +23,7 @@ import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.InventoryRequestHandler;
 import network.misq.network.p2p.services.data.inventory.InventoryResponseHandler;
@@ -84,7 +84,7 @@ public class DataService implements MessageListener, ConnectionListener {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof AddDataRequest) {
             AddDataRequest addDataRequest = (AddDataRequest) message;
             if (canAdd(addDataRequest)) {

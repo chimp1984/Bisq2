@@ -1,4 +1,4 @@
-package network.misq.network.p2p.node.proxy;
+package network.misq.network.p2p.node.transport;
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import lombok.extern.slf4j.Slf4j;
@@ -19,21 +19,21 @@ import static java.io.File.separator;
 
 
 @Slf4j
-public class TorNetworkProxy implements NetworkProxy {
+public class TorTransport implements Transport {
     public final static int DEFAULT_PORT = 9999;
-    private static TorNetworkProxy INSTANCE;
+    private static TorTransport INSTANCE;
 
     private final String torDirPath;
     private final Tor tor;
 
-    public static TorNetworkProxy getInstance(NetworkProxyConfig config) {
+    public static TorTransport getInstance(Config config) {
         if (INSTANCE == null) {
-            INSTANCE = new TorNetworkProxy(config);
+            INSTANCE = new TorTransport(config);
         }
         return INSTANCE;
     }
 
-    private TorNetworkProxy(NetworkProxyConfig config) {
+    private TorTransport(Config config) {
         torDirPath = config.baseDirPath() + separator + "tor";
 
         // We get a singleton instance per application (torDirPath)
@@ -92,7 +92,7 @@ public class TorNetworkProxy implements NetworkProxy {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         if (tor != null) {
             tor.shutdown();
         }
@@ -105,7 +105,7 @@ public class TorNetworkProxy implements NetworkProxy {
         if (new File(fileName).exists()) {
             try {
                 String host = FileUtils.readAsString(fileName);
-                return Optional.of(new Address(host, TorNetworkProxy.DEFAULT_PORT));
+                return Optional.of(new Address(host, TorTransport.DEFAULT_PORT));
             } catch (IOException e) {
                 log.error(e.toString(), e);
             }

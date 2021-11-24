@@ -18,10 +18,11 @@
 package network.misq.network.p2p;
 
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.security.PubKey;
 
 import java.security.PublicKey;
 import java.util.Map;
 
-public record MultiAddress(Map<NetworkType, Address> addressByNetworkType, PublicKey publicKey, String keyId) {
+public record MultiAddress(Map<TransportType, Address> addressByNetworkType, PubKey pubKey) {
 }

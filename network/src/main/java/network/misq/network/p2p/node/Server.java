@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
 import network.misq.common.util.ThreadingUtils;
-import network.misq.network.p2p.node.proxy.ServerSocketResult;
+import network.misq.network.p2p.node.transport.Transport;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -37,7 +37,7 @@ public class Server {
     private final Address address;
     private volatile boolean isStopped;
 
-    public Server(ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
+    Server(Transport.ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
         this.serverSocket = serverSocketResult.serverSocket();
 
         address = serverSocketResult.address();
@@ -63,11 +63,7 @@ public class Server {
         });
     }
 
-    private boolean isNotStopped() {
-        return !isStopped && !Thread.currentThread().isInterrupted();
-    }
-
-    public void shutdown() {
+    void shutdown() {
         //log.error("shutdown {}", address);
         if (isStopped) {
             return;
@@ -78,5 +74,9 @@ public class Server {
             executorService.shutdownNow();
         } catch (IOException ignore) {
         }
+    }
+
+    private boolean isNotStopped() {
+        return !isStopped && !Thread.currentThread().isInterrupted();
     }
 }

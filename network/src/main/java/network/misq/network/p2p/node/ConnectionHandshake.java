@@ -15,15 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.connection;
+package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Capability;
-import network.misq.network.p2p.node.connection.authorization.AuthorizationService;
-import network.misq.network.p2p.node.connection.authorization.AuthorizationToken;
+import network.misq.network.p2p.node.authorization.AuthorizationService;
+import network.misq.network.p2p.node.authorization.AuthorizationToken;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,8 +30,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * At initial connection we exchange capabilities and require a valid AuthorizationToken (e.g. PoW).

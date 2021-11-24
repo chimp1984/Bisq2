@@ -15,12 +15,9 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.proxy;
+package network.misq.security;
 
-import java.io.Serializable;
+import java.security.PublicKey;
 
-public enum NetworkType implements Serializable {
-    TOR,
-    I2P,
-    CLEAR,
+public record PubKey(PublicKey publicKey, String id) {
 }

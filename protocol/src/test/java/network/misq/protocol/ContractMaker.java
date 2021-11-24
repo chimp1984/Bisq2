@@ -20,7 +20,9 @@ package network.misq.protocol;
 import network.misq.contract.*;
 import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.offer.Listing;
+import network.misq.security.PubKey;
 
 import java.util.Map;
 
@@ -50,6 +52,6 @@ public class ContractMaker {
     }
 
     private static Party self() {
-        return new Party(new MultiAddress(Address.localHost(1000), null, "default"));
+        return new Party(new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(1000)), new PubKey(null, "default")));
     }
 }

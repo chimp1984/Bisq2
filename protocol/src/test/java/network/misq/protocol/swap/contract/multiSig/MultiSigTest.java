@@ -29,6 +29,7 @@ import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;
@@ -38,11 +39,13 @@ import network.misq.protocol.multiSig.MultiSig;
 import network.misq.protocol.multiSig.MultiSigProtocol;
 import network.misq.protocol.multiSig.maker.MakerMultiSigProtocol;
 import network.misq.protocol.multiSig.taker.TakerMultiSigProtocol;
+import network.misq.security.PubKey;
 import network.misq.wallets.Chain;
 import network.misq.wallets.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -72,7 +75,7 @@ public abstract class MultiSigTest {
     protected void run() {
         P2pServiceNodesByNetworkType networkService = new MockP2PServiceNetwork();
         // create offer
-        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Coin.asBtc(100000), List.of(), AssetTransfer.Type.MANUAL);
         Offer offer = new Offer(List.of(SwapProtocolType.MULTISIG),
@@ -86,7 +89,7 @@ public abstract class MultiSigTest {
         ProtocolExecutor takerSwapTradeProtocolExecutor = new ProtocolExecutor(takerMultiSigProtocol);
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
-        MultiAddress takerMultiAddress = new MultiAddress(Address.localHost(2222), null, "default");
+        MultiAddress takerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(2222)), new PubKey(null, "default"));
         TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerMultiAddress, selectedProtocolType);
         MultiSig makerMultiSig = new MultiSig(getMakerWallet(), getChain());
         MakerMultiSigProtocol makerMultiSigProtocol = new MakerMultiSigProtocol(makerTrade, networkService, makerMultiSig);

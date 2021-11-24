@@ -29,7 +29,9 @@ import network.misq.network.p2p.INetworkService;
 import network.misq.network.p2p.MockNetworkService;
 import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.offer.options.*;
+import network.misq.security.PubKey;
 
 import java.io.Serializable;
 import java.util.*;
@@ -90,7 +92,7 @@ public class OfferRepository {
     }
 
     public Offer createOffer(long askAmount) {
-        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET,Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Coin.asBtc(askAmount), List.of(), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         return new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
@@ -198,7 +200,8 @@ public class OfferRepository {
                 SwapProtocolType swapProtocolType = SwapProtocolType.values()[new Random().nextInt(SwapProtocolType.values().length)];
                 protocolTypes.add(swapProtocolType);
             }
-            MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(1000 + new Random().nextInt(1000)), null, "default");
+            Map<TransportType, Address> map = Map.of(TransportType.CLEAR_NET, Address.localHost(1000 + new Random().nextInt(1000)));
+            MultiAddress makerMultiAddress = new MultiAddress(map, new PubKey(null, "default"));
 
             Set<OfferOption> options = new HashSet<>();
             ReputationProof accountCreationDateProof = new AccountCreationDateProof("hashOfAccount", "otsProof)");

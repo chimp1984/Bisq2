@@ -29,46 +29,49 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 public abstract class BaseNodeRepositoryTest {
-    void test_messageRoundTrip(NodeConfig nodeConfig) throws InterruptedException {
-        NodeRepository nodeRepository = new NodeRepository(nodeConfig);
+    protected int numNodes;
+
+    void test_messageRoundTrip(Node.Config config) throws InterruptedException {
+        NodesById nodesById = new NodesById(config);
         long ts = System.currentTimeMillis();
         // Thread.sleep(6000);
-        int numNodes = 100;
+        numNodes = 100;
         int numRepeats = 1;
         for (int i = 0; i < numRepeats; i++) {
             log.error("Iteration {}", i);
-            messageRoundTrip(numNodes, nodeRepository);
+            messageRoundTrip(numNodes, nodesById);
         }
         log.error("MessageRoundTrip for {} nodes repeated {} times took {} ms", numNodes, numRepeats, System.currentTimeMillis() - ts);
         // Thread.sleep(6000000);
     }
 
-    private void messageRoundTrip(int numNodes, NodeRepository nodeRepository) throws InterruptedException {
+    private void messageRoundTrip(int numNodes, NodesById nodesById) throws InterruptedException {
         long ts = System.currentTimeMillis();
         CountDownLatch initializeServerLatch = new CountDownLatch(numNodes);
         CountDownLatch sendPongLatch = new CountDownLatch(numNodes);
         CountDownLatch receivedPongLatch = new CountDownLatch(numNodes);
         for (int i = 0; i < numNodes; i++) {
-            Node node = nodeRepository.getOrCreateNode("node_" + i);
+            String nodeId = "node_" + i;
             int finalI = i;
-            node.initializeServer(1000 + i).whenComplete((serverSocketResult, t) -> {
+            int serverPort = 1000 + i;
+            nodesById.initializeServer(nodeId, serverPort).whenComplete((serverSocketResult, t) -> {
                 if (t != null) {
                     fail(t);
                 }
                 initializeServerLatch.countDown();
-                node.addMessageListener((message, connection) -> {
+                nodesById.addMessageListener(nodeId, (message, connection, id) -> {
                     log.info("Received " + message.toString());
-                    if (message instanceof ClearNetNodeRepositoryTest.Ping) {
-                        ClearNetNodeRepositoryTest.Pong pong = new ClearNetNodeRepositoryTest.Pong("Pong from " + finalI + " to " + connection.getPeerAddress().getPort());
+                    if (message instanceof ClearNetNodesByIdTest.Ping) {
+                        ClearNetNodesByIdTest.Pong pong = new ClearNetNodesByIdTest.Pong("Pong from " + finalI + " to " + connection.getPeerAddress().getPort());
                         log.info("Send pong " + pong);
-                        node.send(pong, connection).whenComplete((r2, t2) -> {
+                        nodesById.send(nodeId, pong, connection).whenComplete((r2, t2) -> {
                             if (t2 != null) {
                                 fail(t2);
                             }
                             log.info("Send pong completed " + pong);
                             sendPongLatch.countDown();
                         });
-                    } else if (message instanceof ClearNetNodeRepositoryTest.Pong) {
+                    } else if (message instanceof ClearNetNodesByIdTest.Pong) {
                         receivedPongLatch.countDown();
                     }
                 });
@@ -83,13 +86,13 @@ public abstract class BaseNodeRepositoryTest {
         ts = System.currentTimeMillis();
         CountDownLatch sendPingLatch = new CountDownLatch(numNodes);
         for (int i = 0; i < numNodes; i++) {
-            Node node = nodeRepository.getOrCreateNode("node_" + i);
+            String nodeId = "node_" + i;
             int receiverIndex = (i + 1) % numNodes;
-            Node receiverNode = nodeRepository.getOrCreateNode("node_" + receiverIndex);
-            Address receiverNodeAddress = receiverNode.getMyAddress().get();
-            ClearNetNodeRepositoryTest.Ping ping = new ClearNetNodeRepositoryTest.Ping("Ping from " + node.getMyAddress().get() + " to " + receiverNodeAddress);
+            String receiverNodeId = "node_" + receiverIndex;
+            Address receiverNodeAddress = nodesById.getMyAddress(receiverNodeId).get();
+            ClearNetNodesByIdTest.Ping ping = new ClearNetNodesByIdTest.Ping("Ping from " + nodesById.getMyAddress(nodeId) + " to " + receiverNodeAddress);
             log.info("Send ping " + ping);
-            node.send(ping, receiverNodeAddress).whenComplete((r, t) -> {
+            nodesById.send(nodeId, ping, receiverNodeAddress).whenComplete((r, t) -> {
                 if (t != null) {
                     fail(t);
                 }
@@ -114,24 +117,25 @@ public abstract class BaseNodeRepositoryTest {
 
 
         ts = System.currentTimeMillis();
-        nodeRepository.shutdown();
+        nodesById.shutdown();
         log.error("shutdown took {} ms", System.currentTimeMillis() - ts);
     }
 
-    void test_initializeServer(NodeConfig nodeConfig) throws InterruptedException {
-        NodeRepository nodeRepository = new NodeRepository(nodeConfig);
+    void test_initializeServer(Node.Config nodeConfig) throws InterruptedException {
+        NodesById nodesById = new NodesById(nodeConfig);
         //Thread.sleep(6000);
         for (int i = 0; i < 2; i++) {
-            initializeNodes(2, nodeRepository);
+            initializeNodes(2, nodesById);
         }
         //Thread.sleep(6000000);
     }
 
-    private void initializeNodes(int numNodes, NodeRepository nodeRepository) throws InterruptedException {
+    private void initializeNodes(int numNodes, NodesById nodesById) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(numNodes);
         for (int i = 0; i < numNodes; i++) {
-            Node node = nodeRepository.getOrCreateNode("node_" + i);
-            node.initializeServer(1000 + i).whenComplete((r, t) -> {
+            String nodeId = "node_" + i;
+            int serverPort = 1000 + i;
+            nodesById.initializeServer(nodeId, serverPort).whenComplete((r, t) -> {
                 if (t != null) {
                     fail(t);
                 }
@@ -139,7 +143,7 @@ public abstract class BaseNodeRepositoryTest {
             });
         }
         boolean result = latch.await(getTimeout(), TimeUnit.SECONDS);
-        nodeRepository.shutdown();
+        nodesById.shutdown();
         assertTrue(result);
     }
 

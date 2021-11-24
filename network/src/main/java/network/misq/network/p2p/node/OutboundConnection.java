@@ -15,19 +15,15 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.connection;
+package network.misq.network.p2p.node;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.Capability;
-import network.misq.network.p2p.node.MessageListener;
 
 import java.net.Socket;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @Slf4j
 public class OutboundConnection extends Connection {
@@ -35,7 +31,7 @@ public class OutboundConnection extends Connection {
     @Getter
     private final Address address;
 
-    public OutboundConnection(Socket socket,
+    OutboundConnection(Socket socket,
                               Address address,
                               Capability capability,
                               BiConsumer<Message, Connection> messageHandler) {

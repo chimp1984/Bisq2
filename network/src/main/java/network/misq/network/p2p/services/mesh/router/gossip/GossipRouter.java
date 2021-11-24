@@ -21,7 +21,7 @@ import network.misq.common.util.CollectionUtil;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
@@ -52,10 +52,10 @@ public class GossipRouter implements MessageListener {
     }
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof GossipMessage) {
             GossipMessage gossipMessage = (GossipMessage) message;
-            messageListeners.forEach(listener -> listener.onMessage(gossipMessage.getMessage(), connection));
+            messageListeners.forEach(listener -> listener.onMessage(gossipMessage.getMessage(), connection, nodeId));
         }
     }
 

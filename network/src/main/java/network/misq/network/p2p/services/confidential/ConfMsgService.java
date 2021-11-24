@@ -22,12 +22,13 @@ import network.misq.common.ObjectSerializer;
 import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.NodeRepository;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.NodesById;
 import network.misq.security.ConfidentialData;
 import network.misq.security.HybridEncryption;
 import network.misq.security.KeyPairRepository;
+import network.misq.security.PubKey;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -37,18 +38,19 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 public class ConfMsgService implements MessageListener {
+
     public static record Config(KeyPairRepository keyPairRepository) {
     }
 
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
-    private final NodeRepository nodeRepository;
+    private final NodesById nodesById;
     private final KeyPairRepository keyPairRepository;
 
-    public ConfMsgService(NodeRepository nodeRepository, ConfMsgService.Config config) {
-        this.nodeRepository = nodeRepository;
+    public ConfMsgService(NodesById nodesById, ConfMsgService.Config config) {
+        this.nodesById = nodesById;
         this.keyPairRepository = config.keyPairRepository();
 
-        nodeRepository.addMessageListener(this);
+        nodesById.addMessageListener(this);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,9 +58,10 @@ public class ConfMsgService implements MessageListener {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onMessage(Message message, Connection connection) {
+    public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof ConfidentialMessage confidentialMessage) {
             if (confidentialMessage instanceof RelayMessage) {
+                //todo
                 RelayMessage relayMessage = (RelayMessage) message;
                 Address targetAddress = relayMessage.getTargetAddress();
                 // send(message, targetAddress);
@@ -68,7 +71,7 @@ public class ConfMsgService implements MessageListener {
                     try {
                         byte[] decrypted = HybridEncryption.decryptAndVerify(confidentialData, receiversKeyPair);
                         Message decryptedMessage = (Message) ObjectSerializer.deserialize(decrypted);
-                        messageListeners.forEach(listener -> listener.onMessage(decryptedMessage, connection));
+                        messageListeners.forEach(listener -> listener.onMessage(decryptedMessage, connection, nodeId));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -78,26 +81,21 @@ public class ConfMsgService implements MessageListener {
     }
 
     public CompletableFuture<Connection> send(Message message,
-                                              MultiAddress multiAddress,
+                                              Address address,
+                                              PubKey pubKey,
                                               KeyPair myKeyPair,
                                               String nodeId)
             throws GeneralSecurityException {
-        ConfidentialData confidentialData = HybridEncryption.encryptAndSign(message.serialize(), multiAddress.publicKey(), myKeyPair);
-        ConfidentialMessage confidentialMessage = new ConfidentialMessage(confidentialData, multiAddress.keyId());
-        //todo
-        Address address = null;//networkId.getAddress(networkServiceConfig.getSelectedNetworkType());
-        return nodeRepository.getOrCreateNode(nodeId).send(confidentialMessage, address);
+        return nodesById.send(nodeId, getConfidentialMessage(message, pubKey, myKeyPair), address);
     }
 
     public CompletableFuture<Connection> send(Message message,
                                               Connection connection,
-                                              MultiAddress multiAddress,
+                                              PubKey pubKey,
                                               KeyPair myKeyPair,
                                               String nodeId)
             throws GeneralSecurityException {
-        ConfidentialData confidentialData = HybridEncryption.encryptAndSign(message.serialize(), multiAddress.publicKey(), myKeyPair);
-        ConfidentialMessage confidentialMessage = new ConfidentialMessage(confidentialData, multiAddress.keyId());
-        return nodeRepository.getOrCreateNode(nodeId).send(confidentialMessage, connection);
+        return nodesById.send(nodeId, getConfidentialMessage(message, pubKey, myKeyPair), connection);
     }
 
     public CompletableFuture<Connection> relay(Message message, MultiAddress multiAddress, KeyPair myKeyPair) {
@@ -114,7 +112,7 @@ public class ConfMsgService implements MessageListener {
     }
 
     public void shutdown() {
-        nodeRepository.removeMessageListener(this);
+        nodesById.removeMessageListener(this);
         messageListeners.clear();
     }
 
@@ -131,6 +129,12 @@ public class ConfMsgService implements MessageListener {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private ConfidentialMessage getConfidentialMessage(Message message, PubKey pubKey, KeyPair myKeyPair)
+            throws GeneralSecurityException {
+        ConfidentialData confidentialData = HybridEncryption.encryptAndSign(message.serialize(), pubKey.publicKey(), myKeyPair);
+        return new ConfidentialMessage(confidentialData, pubKey.id());
+    }
 
 /*
     private Set<Connection> getConnectionsWithSupportedNetwork(NetworkType networkType) {

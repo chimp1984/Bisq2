@@ -19,34 +19,34 @@ package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.connection.authorization.UnrestrictedAuthorizationService;
-import network.misq.network.p2p.node.proxy.NetworkProxyConfig;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
+import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.node.transport.TransportType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 @Slf4j
-public class I2PNodeRepositoryTest extends BaseNodeRepositoryTest {
-    private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
-    private static final NetworkProxyConfig networkProxyConfig = new NetworkProxyConfig(baseDirName);
-    private static final NodeConfig nodeConfig = new NodeConfig(NetworkType.I2P,
-            Set.of(NetworkType.I2P),
+public class TorNodesByIdTest extends BaseNodeRepositoryTest {
+    private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_NodeRepositoryTest";
+    private static final Transport.Config TRANSPORT_CONFIG = new Transport.Config(baseDirName);
+    private static final Node.Config nodeConfig = new Node.Config(TransportType.TOR,
+            Set.of(TransportType.TOR),
             new UnrestrictedAuthorizationService(),
-            networkProxyConfig);
+            TRANSPORT_CONFIG);
 
     @Test
     void test_messageRoundTrip() throws InterruptedException {
         super.test_messageRoundTrip(nodeConfig);
     }
 
-   // @Test
+    // @Test
     void test_initializeServer() throws InterruptedException {
         super.test_initializeServer(nodeConfig);
     }
 
     @Override
     protected long getTimeout() {
-        return 180;
+        return numNodes * 30;
     }
 }

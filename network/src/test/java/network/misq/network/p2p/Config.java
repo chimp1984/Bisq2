@@ -17,15 +17,7 @@
 
 package network.misq.network.p2p;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.proxy.NetworkType;
-import network.misq.security.KeyGeneration;
-import network.misq.security.KeyPairRepository;
-
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
 
 @Slf4j
 public abstract class Config {

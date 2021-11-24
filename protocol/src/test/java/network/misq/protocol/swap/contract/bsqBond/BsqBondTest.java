@@ -28,6 +28,7 @@ import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;
@@ -36,10 +37,12 @@ import network.misq.protocol.ProtocolExecutor;
 import network.misq.protocol.bsqBond.BsqBondProtocol;
 import network.misq.protocol.bsqBond.maker.MakerBsqBondProtocol;
 import network.misq.protocol.bsqBond.taker.TakerBsqBondProtocol;
+import network.misq.security.PubKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +65,7 @@ public class BsqBondTest {
     public void testBsqBond() {
 
         // create offer
-        MultiAddress makerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
+        MultiAddress makerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
 
         Asset askAsset = new Asset(Fiat.of(100, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(90, "EUR"), List.of(FiatTransfer.REVOLUT, FiatTransfer.SEPA), AssetTransfer.Type.MANUAL);
@@ -76,7 +79,8 @@ public class BsqBondTest {
         ProtocolExecutor takerSwapTradeProtocolExecutor = new ProtocolExecutor(takerBsqBondProtocol);
 
         // simulated take offer protocol: Taker sends to maker the selectedProtocolType
-        MultiAddress takerMultiAddress = new MultiAddress(Address.localHost(3333), null, "default");
+        //todo is takerMultiAddress correct?
+        MultiAddress takerMultiAddress = new MultiAddress(Map.of(TransportType.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
         TwoPartyContract makerTrade = ContractMaker.createMakerTrade(takerMultiAddress, selectedProtocolType);
         MakerBsqBondProtocol makerBsqBondProtocol = new MakerBsqBondProtocol(makerTrade, networkService);
         ProtocolExecutor makerSwapTradeProtocolExecutor = new ProtocolExecutor(makerBsqBondProtocol);

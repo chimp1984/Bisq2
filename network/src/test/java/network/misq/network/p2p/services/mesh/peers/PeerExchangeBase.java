@@ -306,7 +306,7 @@ public class PeerExchangeBase {
 
     protected CompletableFuture<Triple<PeerExchangeManager, PeerGroup, Node>> getTuple(NetworkServiceConfig networkServiceConfig) {
         NetworkProxyConfig networkProxyConfig = new NetworkProxyConfig(networkServiceConfig.getBaseDirPath());
-        NodeConfig nodeConfig = new NodeConfig(networkServiceConfig.getSelectedNetworkType(),
+        Node.Config nodeConfig = new Node.Config(networkServiceConfig.getSelectedNetworkType(),
                 networkServiceConfig.getNodeId().getSupportedNetworkTypes(),
                 new UnrestrictedAuthorizationService(),
                 networkProxyConfig);

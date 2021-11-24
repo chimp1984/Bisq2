@@ -23,20 +23,19 @@ import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.NodeConfig;
-import network.misq.network.p2p.node.connection.Connection;
-import network.misq.network.p2p.node.connection.authorization.UnrestrictedAuthorizationService;
-import network.misq.network.p2p.node.proxy.NetworkProxyConfig;
-import network.misq.network.p2p.node.proxy.NetworkType;
-import network.misq.network.p2p.node.proxy.ServerSocketResult;
+import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
+import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.network.p2p.services.confidential.ConfMsgService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
+import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,24 +55,24 @@ import java.util.function.Consumer;
 public class P2pServiceNodesByNetworkType {
     private static final Logger log = LoggerFactory.getLogger(P2pServiceNodesByNetworkType.class);
 
-    private final Map<NetworkType, P2pServiceNode> map = new ConcurrentHashMap<>();
+    private final Map<TransportType, P2pServiceNode> map = new ConcurrentHashMap<>();
 
     public P2pServiceNodesByNetworkType(String baseDirPath,
-                                        Set<NetworkType> supportedNetworkTypes,
+                                        Set<TransportType> supportedTransportTypes,
                                         P2pServiceNode.Config p2pServiceNodeConfig,
                                         MeshService.Config meshServiceConfig,
                                         DataService.Config dataServiceConfig,
-                                        ConfMsgService.Config confMsgServiceConfig) {
-        supportedNetworkTypes.forEach(networkType -> {
-            NodeConfig nodeConfig = new NodeConfig(networkType,
-                    supportedNetworkTypes,
+                                        KeyPairRepository keyPairRepository) {
+        supportedTransportTypes.forEach(networkType -> {
+            Node.Config config = new Node.Config(networkType,
+                    supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
-                    new NetworkProxyConfig(baseDirPath));
+                    new Transport.Config(baseDirPath));
             P2pServiceNode p2PServiceNode = new P2pServiceNode(p2pServiceNodeConfig,
-                    nodeConfig,
+                    config,
                     meshServiceConfig,
                     dataServiceConfig,
-                    confMsgServiceConfig);
+                    new ConfMsgService.Config(keyPairRepository));
             map.put(networkType, p2PServiceNode);
         });
     }
@@ -90,7 +89,7 @@ public class P2pServiceNodesByNetworkType {
      * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
      * otherwise returns false.
      */
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<ServerSocketResult, Throwable> resultHandler) {
+    public CompletableFuture<Boolean> initializeServer(BiConsumer<Transport.ServerSocketResult, Throwable> resultHandler) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         AtomicInteger completed = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
@@ -141,11 +140,11 @@ public class P2pServiceNodesByNetworkType {
 
     public CompletableFuture<Connection> confidentialSend(Message message, MultiAddress peerMultiAddress, KeyPair myKeyPair, String connectionId) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        peerMultiAddress.addressByNetworkType().forEach((networkType, address) -> {
+        peerMultiAddress.addressByNetworkType().forEach((transportType, address) -> {
             try {
-                if (map.containsKey(networkType)) {
-                    map.get(networkType)
-                            .confidentialSend(message, peerMultiAddress, myKeyPair, connectionId)
+                if (map.containsKey(transportType)) {
+                    map.get(transportType)
+                            .confidentialSend(message, peerMultiAddress.addressByNetworkType().get(transportType),peerMultiAddress.pubKey(), myKeyPair, connectionId)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
                                     future.complete(connection);
@@ -214,9 +213,9 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public Optional<Socks5Proxy> getSocksProxy() {
-        if (map.containsKey(NetworkType.TOR)) {
+        if (map.containsKey(TransportType.TOR)) {
             try {
-                return map.get(NetworkType.TOR).getSocksProxy();
+                return map.get(TransportType.TOR).getSocksProxy();
             } catch (IOException e) {
                 return Optional.empty();
             }

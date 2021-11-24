@@ -15,17 +15,14 @@
  * along with Misq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.connection;
+package network.misq.network.p2p.node;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.Capability;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -46,7 +43,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Notifies errorHandler on exceptions from the inputHandlerService executor.
  */
 @Slf4j
-public abstract class Connection implements Closeable {
+public abstract class Connection {
 
     protected final String id = UUID.randomUUID().toString();
     private final Socket socket;
@@ -67,7 +64,7 @@ public abstract class Connection implements Closeable {
         this.messageHandler = messageHandler;
     }
 
-    public void startListen(Consumer<Exception> errorHandler) throws IOException {
+    void startListen(Consumer<Exception> errorHandler) throws IOException {
         writeExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
         readExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
 
@@ -90,14 +87,14 @@ public abstract class Connection implements Closeable {
                     messageHandler.accept(envelope.payload(), this);
                 } catch (Exception exception) {
                     //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
-                    close();
+                    shutdown();
                     errorHandler.accept(exception);
                 }
             }
         });
     }
 
-    public CompletableFuture<Connection> send(Message message) {
+    CompletableFuture<Connection> send(Message message) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         writeExecutor.execute(() -> {
             try {
@@ -108,7 +105,7 @@ public abstract class Connection implements Closeable {
                 future.complete(this);
             } catch (IOException exception) {
                 if (!isStopped) {
-                    close();
+                    shutdown();
                 }
                 future.completeExceptionally(exception);
             }
@@ -116,15 +113,14 @@ public abstract class Connection implements Closeable {
         return future;
     }
 
-    public void close() {
+    void shutdown() {
         if (isStopped) {
             return;
         }
 
         isStopped = true;
-      //  ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
-      //  ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
-
+        //  ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
+        //  ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
         readExecutor.shutdownNow();
         writeExecutor.shutdownNow();
         try {

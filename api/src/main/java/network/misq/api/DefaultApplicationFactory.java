@@ -66,8 +66,8 @@ public class DefaultApplicationFactory implements ApplicationFactory {
         LocaleRepository.setDefaultLocale(locale);
         FiatCurrencyRepository.applyLocale(locale);
 
-        KeyPairRepository.Options keyPairRepositoryOptions = new KeyPairRepositoryOptionsParser(applicationOptions, args).getOptions();
-        keyPairRepository = new KeyPairRepository(keyPairRepositoryOptions);
+        KeyPairRepository.Conf keyPairRepositoryConf = new KeyPairRepositoryOptionsParser(applicationOptions, args).getConf();
+        keyPairRepository = new KeyPairRepository(keyPairRepositoryConf);
 
         NetworkService.Config networkServiceConfig = new NetworkServiceOptionsParser(applicationOptions, args).getConfig();
         networkService = new NetworkService(networkServiceConfig, keyPairRepository);

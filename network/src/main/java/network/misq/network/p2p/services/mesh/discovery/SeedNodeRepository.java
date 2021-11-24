@@ -19,21 +19,21 @@ package network.misq.network.p2p.services.mesh.discovery;
 
 
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.NetworkType;
+import network.misq.network.p2p.node.transport.TransportType;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class SeedNodeRepository {
 
-    public List<Address> getNodes(NetworkType networkType) {
-        switch (networkType) {
+    public List<Address> getNodes(TransportType transportType) {
+        switch (transportType) {
             case TOR:
                 return Arrays.asList(Address.localHost(1000), Address.localHost(1001));//todo
             case I2P:
                 return Arrays.asList(Address.localHost(1000), Address.localHost(1001)); //todo
             default:
-            case CLEAR:
+            case CLEAR_NET:
                 return Arrays.asList(Address.localHost(1000), Address.localHost(1001));
         }
 

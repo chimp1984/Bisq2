@@ -147,7 +147,7 @@ public class AuthenticatedDataStore extends DataStore<AuthenticatedDataRequest> 
         }
 
         if (request.isPublicKeyInvalid(authenticatedDataFromMap)) {
-            // Hash of publicKey of data does not match provided one
+            // Hash of pubKey of data does not match provided one
             return new Result(false).publicKeyInvalid();
         }
 
@@ -185,7 +185,7 @@ public class AuthenticatedDataStore extends DataStore<AuthenticatedDataRequest> 
         }
 
         if (request.isPublicKeyInvalid(entryFromMap)) {
-            // Hash of publicKey of data does not match provided one
+            // Hash of pubKey of data does not match provided one
             return new Result(false).publicKeyInvalid();
         }
 

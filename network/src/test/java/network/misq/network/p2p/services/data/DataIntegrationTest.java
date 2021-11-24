@@ -18,11 +18,6 @@
 package network.misq.network.p2p.services.data;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.proxy.NetworkType;
-import org.junit.jupiter.api.Test;
-
-import java.util.Set;
 
 @Slf4j
 public class DataIntegrationTest extends DataNodeBase {

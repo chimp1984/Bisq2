@@ -15,9 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node;
+package network.misq.network.p2p.node.authorization;
 
-import network.misq.network.p2p.node.Address;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public record OutboundId(Address address, String connectionId) {
+import java.io.Serializable;
+
+@EqualsAndHashCode
+@Getter
+public class AuthorizationToken implements Serializable {
 }

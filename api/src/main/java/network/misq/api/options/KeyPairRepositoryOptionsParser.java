@@ -26,9 +26,9 @@ import network.misq.security.KeyPairRepository;
  */
 public class KeyPairRepositoryOptionsParser {
     @Getter
-    private final KeyPairRepository.Options options;
+    private final KeyPairRepository.Conf conf;
 
     public KeyPairRepositoryOptionsParser(ApplicationOptions applicationOptions, String[] args) {
-        options = new KeyPairRepository.Options(applicationOptions.appDir());
+        conf = new KeyPairRepository.Conf(applicationOptions.appDir());
     }
 }

@@ -30,15 +30,15 @@ public class KeyPairRepository {
     public static final String DEFAULT = "default";
     private final String baseDirPath;
 
-    public static record Options(String baseDirPath) {
+    public static record Conf(String baseDirPath) {
     }
 
     // Key is an arbitrary keyId, but usually associated with interaction like offer ID. 
     // Throws when attempting to use an already existing keyId at add method.
     private final Map<String, KeyPair> keyPairsById = new ConcurrentHashMap<>();
 
-    public KeyPairRepository(Options options) {
-        baseDirPath = options.baseDirPath;
+    public KeyPairRepository(Conf conf) {
+        baseDirPath = conf.baseDirPath;
     }
 
     public CompletableFuture<Boolean> initialize() {
@@ -68,10 +68,6 @@ public class KeyPairRepository {
     }
 
     public Optional<KeyPair> findKeyPair(String keyId) {
-        if (keyPairsById.containsKey(keyId)) {
-            return Optional.of(keyPairsById.get(keyId));
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(keyPairsById.get(keyId));
     }
 }

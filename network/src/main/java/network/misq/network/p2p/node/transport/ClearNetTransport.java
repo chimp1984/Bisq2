@@ -1,4 +1,4 @@
-package network.misq.network.p2p.node.proxy;
+package network.misq.network.p2p.node.transport;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Address;
@@ -8,23 +8,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 @Slf4j
-public class ClearNetNetworkProxy implements NetworkProxy {
-    private static ClearNetNetworkProxy INSTANCE;
+public class ClearNetTransport implements Transport {
+    private static ClearNetTransport INSTANCE;
     private boolean initializeCalled;
 
-    public static ClearNetNetworkProxy getInstance(NetworkProxyConfig config) {
+    public static ClearNetTransport getInstance(Config config) {
         if (INSTANCE == null) {
-            INSTANCE = new ClearNetNetworkProxy(config);
+            INSTANCE = new ClearNetTransport(config);
         }
         return INSTANCE;
     }
 
-    private ClearNetNetworkProxy(NetworkProxyConfig config) {
+    private ClearNetTransport(Config config) {
     }
 
     public CompletableFuture<Boolean> initialize() {
@@ -74,7 +72,7 @@ public class ClearNetNetworkProxy implements NetworkProxy {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
     }
 
     @Override

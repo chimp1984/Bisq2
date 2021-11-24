@@ -15,18 +15,25 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.node.proxy;
+package network.misq.network.p2p.node.transport;
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.network.p2p.node.Address;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public interface NetworkProxy extends Closeable {
+public interface Transport {
+    record Config(String baseDirPath) {
+    }
+
+    record ServerSocketResult(String nodeId, ServerSocket serverSocket, Address address) {
+    }
+
     CompletableFuture<Boolean> initialize();
 
     CompletableFuture<ServerSocketResult> getServerSocket(int port, String nodeId);
@@ -39,6 +46,6 @@ public interface NetworkProxy extends Closeable {
 
     Optional<Address> getServerAddress(String serverId);
 
-    void close();
+    void shutdown();
 
 }

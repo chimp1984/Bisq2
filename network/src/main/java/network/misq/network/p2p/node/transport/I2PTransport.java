@@ -1,4 +1,4 @@
-package network.misq.network.p2p.node.proxy;
+package network.misq.network.p2p.node.transport;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.NetworkUtils;
@@ -20,22 +20,22 @@ import static java.io.File.separator;
 // Enable SAM at http://127.0.0.1:7657/configclients
 // Takes about 1-2 minutes until its ready
 @Slf4j
-public class I2PNetworkProxy implements NetworkProxy {
-    private static I2PNetworkProxy INSTANCE;
+public class I2PTransport implements Transport {
+    private static I2PTransport INSTANCE;
 
     private final String i2pDirPath;
     private SamClient samClient;
     private final ExecutorService serverSocketExecutor = ThreadingUtils.getSingleThreadExecutor("I2pNetworkProxy.ServerSocket");
     private boolean initializeCalled;
 
-    public static I2PNetworkProxy getInstance(NetworkProxyConfig config) {
+    public static I2PTransport getInstance(Config config) {
         if (INSTANCE == null) {
-            INSTANCE = new I2PNetworkProxy(config);
+            INSTANCE = new I2PTransport(config);
         }
         return INSTANCE;
     }
 
-    private I2PNetworkProxy(NetworkProxyConfig config) {
+    private I2PTransport(Config config) {
         i2pDirPath = config.baseDirPath() + separator + "i2p";
     }
 
@@ -90,7 +90,7 @@ public class I2PNetworkProxy implements NetworkProxy {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         if (samClient != null) {
             samClient.shutdown();
         }

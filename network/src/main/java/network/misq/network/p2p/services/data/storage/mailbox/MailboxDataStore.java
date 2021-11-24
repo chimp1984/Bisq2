@@ -140,7 +140,7 @@ public class MailboxDataStore extends DataStore<MailboxRequest> {
         }
 
         if (request.isPublicKeyInvalid(dataFromMap)) {
-            // Hash of publicKey of data does not match provided one
+            // Hash of pubKey of data does not match provided one
             return new Result(false).publicKeyInvalid();
         }
 

@@ -22,9 +22,9 @@ import network.misq.network.p2p.MultiAddress;
 import network.misq.network.p2p.P2pServiceNodesByNetworkType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.connection.Connection;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.proxy.ServerSocketResult;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
@@ -48,7 +48,7 @@ public class MockP2PServiceNetwork extends P2pServiceNodesByNetworkType {
     }
 
     @Override
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<ServerSocketResult, Throwable> resultHandler) {
+    public CompletableFuture<Boolean> initializeServer(BiConsumer<Transport.ServerSocketResult, Throwable> resultHandler) {
         return CompletableFuture.completedFuture(true);
     }
 
@@ -70,7 +70,7 @@ public class MockP2PServiceNetwork extends P2pServiceNodesByNetworkType {
                 Thread.sleep(100);
             } catch (InterruptedException ignore) {
             }
-            messageListeners.forEach(e -> e.onMessage(message, null));
+            messageListeners.forEach(e -> e.onMessage(message, null, "default"));
         }).start();
 
         return future;
