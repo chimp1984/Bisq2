@@ -72,7 +72,8 @@ public class ClearNetTransport implements Transport {
     }
 
     @Override
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -20,7 +20,7 @@ package network.misq.protocol;
 import network.misq.contract.*;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.Listing;
 import network.misq.security.PubKey;
 
@@ -52,6 +52,6 @@ public class ContractMaker {
     }
 
     private static Party self() {
-        return new Party(new NetworkId(Map.of(TransportType.CLEAR_NET, Address.localHost(1000)), new PubKey(null, "default")));
+        return new Party(new NetworkId(Map.of(Transport.Type.CLEAR_NET, Address.localHost(1000)), new PubKey(null, "default")));
     }
 }

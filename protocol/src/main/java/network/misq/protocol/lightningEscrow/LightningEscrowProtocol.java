@@ -2,7 +2,7 @@ package network.misq.protocol.lightningEscrow;
 
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.ManyPartyContract;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 import network.misq.protocol.ManyPartyProtocol;
 import network.misq.protocol.Protocol;
 import network.misq.protocol.SecurityProvider;
@@ -17,7 +17,7 @@ public abstract class LightningEscrowProtocol extends ManyPartyProtocol {
     private final AssetTransfer transport;
     private final LightningEscrow security;
 
-    public LightningEscrowProtocol(ManyPartyContract contract, P2pServiceNodesByNetworkType p2pService, AssetTransfer assetTransfer, SecurityProvider securityProvider) {
+    public LightningEscrowProtocol(ManyPartyContract contract, P2pServiceNodesByTransportType p2pService, AssetTransfer assetTransfer, SecurityProvider securityProvider) {
         super(contract, p2pService);
         transport = assetTransfer;
         security = (LightningEscrow) securityProvider;

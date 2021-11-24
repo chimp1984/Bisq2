@@ -111,9 +111,10 @@ public class ConfMsgService implements MessageListener {
         return CompletableFuture.failedFuture(new Exception("No connection supporting that network type found."));
     }
 
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
         nodesById.removeMessageListener(this);
         messageListeners.clear();
+        return CompletableFuture.completedFuture(null);
     }
 
 

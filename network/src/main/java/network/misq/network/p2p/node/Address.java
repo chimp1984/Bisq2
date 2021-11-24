@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.StringUtils;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 
 import java.io.Serializable;
 import java.util.StringTokenizer;
@@ -64,13 +64,13 @@ public class Address implements Serializable {
         return NetworkUtils.isI2pAddress(host);
     }
 
-    public TransportType getNetworkType() {
+    public Transport.Type getNetworkType() {
         if (isTor()) {
-            return TransportType.TOR;
+            return Transport.Type.TOR;
         } else if (isClearNet()) {
-            return TransportType.CLEAR_NET;
+            return Transport.Type.CLEAR_NET;
         } else if (isI2p()) {
-            return TransportType.I2P;
+            return Transport.Type.I2P;
         } else
             throw new IllegalArgumentException("NetworkType cannot be derived from address. " + this);
     }

@@ -19,13 +19,15 @@ package network.misq.network.p2p.services.relay;
 
 import network.misq.network.p2p.node.Node;
 
+import java.util.concurrent.CompletableFuture;
+
 //TODO
 public class RelayService {
     public RelayService(Node node) {
 
     }
 
-    public void shutdown() {
-
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 }

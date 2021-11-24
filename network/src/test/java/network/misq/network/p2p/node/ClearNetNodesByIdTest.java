@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.node.transport.TransportType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -30,8 +29,8 @@ import java.util.Set;
 public class ClearNetNodesByIdTest extends BaseNodeRepositoryTest {
     private static String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
     private static Transport.Config transportConfig = new Transport.Config(baseDirName);
-    private static Node.Config nodeConfig = new Node.Config(TransportType.CLEAR_NET,
-            Set.of(TransportType.CLEAR_NET),
+    private static Node.Config nodeConfig = new Node.Config(Transport.Type.CLEAR_NET,
+            Set.of(Transport.Type.CLEAR_NET),
             new UnrestrictedAuthorizationService(),
             transportConfig);
 

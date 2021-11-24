@@ -29,7 +29,7 @@ import network.misq.network.p2p.INetworkService;
 import network.misq.network.p2p.MockNetworkService;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.options.*;
 import network.misq.security.PubKey;
 
@@ -92,7 +92,7 @@ public class OfferRepository {
     }
 
     public Offer createOffer(long askAmount) {
-        NetworkId makerNetworkId = new NetworkId(Map.of(TransportType.CLEAR_NET,Address.localHost(3333)), new PubKey(null, "default"));
+        NetworkId makerNetworkId = new NetworkId(Map.of(Transport.Type.CLEAR_NET,Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Coin.asBtc(askAmount), List.of(), AssetTransfer.Type.MANUAL);
         Asset bidAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);
         return new Offer(List.of(SwapProtocolType.REPUTATION, SwapProtocolType.MULTISIG),
@@ -200,7 +200,7 @@ public class OfferRepository {
                 SwapProtocolType swapProtocolType = SwapProtocolType.values()[new Random().nextInt(SwapProtocolType.values().length)];
                 protocolTypes.add(swapProtocolType);
             }
-            Map<TransportType, Address> map = Map.of(TransportType.CLEAR_NET, Address.localHost(1000 + new Random().nextInt(1000)));
+            Map<Transport.Type, Address> map = Map.of(Transport.Type.CLEAR_NET, Address.localHost(1000 + new Random().nextInt(1000)));
             NetworkId makerNetworkId = new NetworkId(map, new PubKey(null, "default"));
 
             Set<OfferOption> options = new HashSet<>();

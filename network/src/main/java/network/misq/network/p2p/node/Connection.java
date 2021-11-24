@@ -29,7 +29,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -77,56 +79,59 @@ public abstract class Connection {
         objectInputStream = new ObjectInputStream(socket.getInputStream());
 
         readExecutor.execute(() -> {
-            while (!isStopped && !Thread.currentThread().isInterrupted()) {
+            while (isNotStopped()) {
                 try {
                     Object object = objectInputStream.readObject();
                     checkArgument(object instanceof Envelope,
                             "Received object is not of type MisqMessage: " + object.getClass().getName());
                     Envelope envelope = (Envelope) object;
                     log.debug("Received message: {} at connection: {}", envelope, this);
-                    messageHandler.accept(envelope.payload(), this);
+                    if (isNotStopped()) {
+                        messageHandler.accept(envelope.payload(), this);
+                    }
                 } catch (Exception exception) {
                     //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
-                    shutdown();
+                    if (!isStopped) {
+                        shutdown();
+                    }
                     errorHandler.accept(exception);
                 }
             }
         });
     }
 
+
     CompletableFuture<Connection> send(Message message) {
-        CompletableFuture<Connection> future = new CompletableFuture<>();
-        writeExecutor.execute(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 Envelope envelope = new Envelope(message);
                 objectOutputStream.writeObject(envelope);
                 objectOutputStream.flush();
                 log.debug("Message sent: {} at connection: {}", envelope, this);
-                future.complete(this);
+                return this;
             } catch (IOException exception) {
                 if (!isStopped) {
                     shutdown();
                 }
-                future.completeExceptionally(exception);
+                throw new CompletionException(exception);
             }
-        });
-        return future;
+        }, writeExecutor);
     }
 
-    void shutdown() {
+    CompletableFuture<Void> shutdown() {
+        log.info("shutdown {}", this);
         if (isStopped) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
-
         isStopped = true;
-        //  ThreadingUtils.shutdownAndAwaitTermination(readExecutor);
-        //  ThreadingUtils.shutdownAndAwaitTermination(writeExecutor);
-        readExecutor.shutdownNow();
-        writeExecutor.shutdownNow();
-        try {
-            socket.close();
-        } catch (IOException ignore) {
-        }
+        return CompletableFuture.runAsync(() -> {
+            ThreadingUtils.shutdownAndAwaitTermination(readExecutor, 1, TimeUnit.SECONDS);
+            ThreadingUtils.shutdownAndAwaitTermination(writeExecutor, 1, TimeUnit.SECONDS);
+            try {
+                socket.close();
+            } catch (IOException ignore) {
+            }
+        });
     }
 
     public String getId() {
@@ -158,5 +163,9 @@ public abstract class Connection {
     @Override
     public String toString() {
         return id;
+    }
+
+    private boolean isNotStopped() {
+        return !isStopped && !Thread.currentThread().isInterrupted();
     }
 }

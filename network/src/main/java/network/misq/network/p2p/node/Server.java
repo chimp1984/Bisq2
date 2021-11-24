@@ -26,11 +26,13 @@ import network.misq.network.p2p.node.transport.Transport;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Slf4j
-public class Server {
+public final class Server {
     private final ServerSocket serverSocket;
     private final ExecutorService executorService = ThreadingUtils.getSingleThreadExecutor("Server");
     @Getter
@@ -38,8 +40,7 @@ public class Server {
     private volatile boolean isStopped;
 
     Server(Transport.ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
-        this.serverSocket = serverSocketResult.serverSocket();
-
+        serverSocket = serverSocketResult.serverSocket();
         address = serverSocketResult.address();
         log.debug("Create server: {}", serverSocketResult);
         executorService.execute(() -> {
@@ -63,17 +64,19 @@ public class Server {
         });
     }
 
-    void shutdown() {
-        //log.error("shutdown {}", address);
+    CompletableFuture<Void> shutdown() {
+        log.info("shutdown {}", address);
         if (isStopped) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         isStopped = true;
-        try {
-            serverSocket.close();
-            executorService.shutdownNow();
-        } catch (IOException ignore) {
-        }
+        return CompletableFuture.runAsync(() -> {
+            ThreadingUtils.shutdownAndAwaitTermination(executorService, 100, TimeUnit.MILLISECONDS);
+            try {
+                serverSocket.close();
+            } catch (IOException ignore) {
+            }
+        });
     }
 
     private boolean isNotStopped() {

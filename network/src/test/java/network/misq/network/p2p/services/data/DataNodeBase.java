@@ -18,14 +18,14 @@
 package network.misq.network.p2p.services.data;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class DataNodeBase {
-    protected P2pServiceNodesByNetworkType p2pServiceSeed, p2pService1, p2pService2;
+    protected P2pServiceNodesByTransportType p2pServiceSeed, p2pService1, p2pService2;
 
    /* protected void bootstrap(Set<NetworkServiceConfig> networkServiceConfigsSeed,
                              Set<NetworkServiceConfig> networkServiceConfigsNode1,

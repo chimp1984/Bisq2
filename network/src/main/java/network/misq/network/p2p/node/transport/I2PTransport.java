@@ -90,11 +90,13 @@ public class I2PTransport implements Transport {
     }
 
     @Override
-    public void shutdown() {
-        if (samClient != null) {
-            samClient.shutdown();
-        }
-        initializeCalled = false;
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.runAsync(()->{
+            if (samClient != null) {
+                samClient.shutdown();
+            }
+            initializeCalled = false;
+        });
     }
 
     @Override

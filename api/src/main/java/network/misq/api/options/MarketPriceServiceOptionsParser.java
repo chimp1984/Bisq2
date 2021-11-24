@@ -19,7 +19,7 @@ package network.misq.api.options;
 
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.MarketPriceService;
 
 import java.util.Set;
@@ -33,11 +33,11 @@ public class MarketPriceServiceOptionsParser {
 
     public MarketPriceServiceOptionsParser(ApplicationOptions applicationOptions, String[] args) {
         options = new MarketPriceService.Options(Set.of(
-                new MarketPriceService.Provider("https://price.bisq.wiz.biz/", "wiz", TransportType.CLEAR_NET),
-                new MarketPriceService.Provider("http://wizpriceje6q5tdrxkyiazsgu7irquiqjy2dptezqhrtu7l2qelqktid.onion/", "wiz", TransportType.TOR),
-                new MarketPriceService.Provider("http://emzypricpidesmyqg2hc6dkwitqzaxrqnpkdg3ae2wef5znncu2ambqd.onion/", "emzy", TransportType.TOR),
-                new MarketPriceService.Provider("http://aprcndeiwdrkbf4fq7iozxbd27dl72oeo76n7zmjwdi4z34agdrnheyd.onion/", "mrosseel", TransportType.TOR),
-                new MarketPriceService.Provider("http://devinpndvdwll4wiqcyq5e7itezmarg7rzicrvf6brzkwxdm374kmmyd.onion/", "devinbileck", TransportType.TOR),
-                new MarketPriceService.Provider("http://ro7nv73awqs3ga2qtqeqawrjpbxwarsazznszvr6whv7tes5ehffopid.onion/", "alexej996", TransportType.TOR)));
+                new MarketPriceService.Provider("https://price.bisq.wiz.biz/", "wiz", Transport.Type.CLEAR_NET),
+                new MarketPriceService.Provider("http://wizpriceje6q5tdrxkyiazsgu7irquiqjy2dptezqhrtu7l2qelqktid.onion/", "wiz", Transport.Type.TOR),
+                new MarketPriceService.Provider("http://emzypricpidesmyqg2hc6dkwitqzaxrqnpkdg3ae2wef5znncu2ambqd.onion/", "emzy", Transport.Type.TOR),
+                new MarketPriceService.Provider("http://aprcndeiwdrkbf4fq7iozxbd27dl72oeo76n7zmjwdi4z34agdrnheyd.onion/", "mrosseel", Transport.Type.TOR),
+                new MarketPriceService.Provider("http://devinpndvdwll4wiqcyq5e7itezmarg7rzicrvf6brzkwxdm374kmmyd.onion/", "devinbileck", Transport.Type.TOR),
+                new MarketPriceService.Provider("http://ro7nv73awqs3ga2qtqeqawrjpbxwarsazznszvr6whv7tes5ehffopid.onion/", "alexej996", Transport.Type.TOR)));
     }
 }

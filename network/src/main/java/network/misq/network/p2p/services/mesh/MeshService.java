@@ -47,7 +47,7 @@ public class MeshService {
         return peerManager.bootstrap();
     }
 
-    public void shutdown() {
-        peerManager.shutdown();
+    public CompletableFuture<Void> shutdown() {
+        return peerManager.shutdown();
     }
 }

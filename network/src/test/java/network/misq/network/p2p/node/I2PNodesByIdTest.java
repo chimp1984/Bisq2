@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.node.transport.TransportType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -30,8 +29,8 @@ import java.util.Set;
 public class I2PNodesByIdTest extends BaseNodeRepositoryTest {
     private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
     private static final Transport.Config TRANSPORT_CONFIG = new Transport.Config(baseDirName);
-    private static final Node.Config nodeConfig = new Node.Config(TransportType.I2P,
-            Set.of(TransportType.I2P),
+    private static final Node.Config nodeConfig = new Node.Config(Transport.Type.I2P,
+            Set.of(Transport.Type.I2P),
             new UnrestrictedAuthorizationService(),
             TRANSPORT_CONFIG);
 

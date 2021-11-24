@@ -20,7 +20,7 @@ package network.misq.protocol.multiSig.maker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.SecurityProvider;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
-    public MakerMultiSigProtocol(TwoPartyContract contract, P2pServiceNodesByNetworkType p2pService, SecurityProvider securityProvider) {
+    public MakerMultiSigProtocol(TwoPartyContract contract, P2pServiceNodesByTransportType p2pService, SecurityProvider securityProvider) {
         super(contract, p2pService, new AssetTransfer.Manual(), securityProvider);
     }
 

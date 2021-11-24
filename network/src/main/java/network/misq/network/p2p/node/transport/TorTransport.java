@@ -51,7 +51,7 @@ public class TorTransport implements Transport {
             }
             initialize();
         }
-        
+
         log.info("Initialize Tor");
         long ts = System.currentTimeMillis();
         return tor.startAsync()
@@ -92,10 +92,12 @@ public class TorTransport implements Transport {
     }
 
     @Override
-    public void shutdown() {
-        if (tor != null) {
-            tor.shutdown();
-        }
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.runAsync(() -> {
+            if (tor != null) {
+                tor.shutdown();
+            }
+        });
     }
 
     //todo move to torify lib

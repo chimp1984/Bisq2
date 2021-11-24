@@ -39,6 +39,8 @@ import java.security.KeyPair;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -134,12 +136,25 @@ public class P2pServiceNode {
         return defaultNode.getSocksProxy();
     }
 
-    public void shutdown() {
-        nodesById.shutdown();
-        confidentialMessageService.ifPresent(ConfMsgService::shutdown);
-        relayService.ifPresent(RelayService::shutdown);
-        overlayNetworkService.ifPresent(MeshService::shutdown);
-        dataService.ifPresent(DataService::shutdown);
+    public CompletableFuture<Void> shutdown() {
+        CountDownLatch latch = new CountDownLatch(1 + // For nodesById
+                ((int) confidentialMessageService.stream().count()) +
+                ((int) relayService.stream().count()) +
+                ((int) overlayNetworkService.stream().count()) +
+                ((int) dataService.stream().count()));
+        return CompletableFuture.runAsync(() -> {
+            nodesById.shutdown().whenComplete((v, t) -> latch.countDown());
+            confidentialMessageService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            relayService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            overlayNetworkService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            dataService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+
+            try {
+                latch.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Shutdown interrupted by timeout");
+            }
+        });
     }
 
     public void addMessageListener(MessageListener messageListener) {

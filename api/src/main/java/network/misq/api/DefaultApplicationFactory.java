@@ -105,13 +105,15 @@ public class DefaultApplicationFactory implements ApplicationFactory {
     }
 
     @Override
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
+        //todo maybe chain async shutdown calls
         keyPairRepository.shutdown();
         identityRepository.shutdown();
-        networkService.shutdown();
         marketPriceService.shutdown();
         offerRepository.shutdown();
         openOfferRepository.shutdown();
         offerEntityRepository.shutdown();
+
+        return networkService.shutdown();
     }
 }

@@ -75,13 +75,15 @@ public class PeerManager {
                 .thenCompose(completed -> peerGroupHealth.bootstrap());
     }
 
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
         if (isStopped) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         isStopped = true;
+        //todo
         peerExchangeManager.shutdown();
         peerGroupHealth.shutdown();
+        return CompletableFuture.completedFuture(null);
     }
 
     public boolean sufficientPeersAtPeerExchange() {

@@ -21,7 +21,7 @@ package network.misq.protocol.bsqBond.taker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.bsqBond.BsqBond;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class TakerBsqBondProtocol extends BsqBondProtocol {
-    public TakerBsqBondProtocol(TwoPartyContract contract, P2pServiceNodesByNetworkType p2pService) {
+    public TakerBsqBondProtocol(TwoPartyContract contract, P2pServiceNodesByTransportType p2pService) {
         super(contract, p2pService, new AssetTransfer.Automatic(), new BsqBond());
     }
 

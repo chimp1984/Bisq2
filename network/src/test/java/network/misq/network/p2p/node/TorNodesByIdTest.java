@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.OsUtils;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.node.transport.TransportType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -30,8 +29,8 @@ import java.util.Set;
 public class TorNodesByIdTest extends BaseNodeRepositoryTest {
     private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_NodeRepositoryTest";
     private static final Transport.Config TRANSPORT_CONFIG = new Transport.Config(baseDirName);
-    private static final Node.Config nodeConfig = new Node.Config(TransportType.TOR,
-            Set.of(TransportType.TOR),
+    private static final Node.Config nodeConfig = new Node.Config(Transport.Type.TOR,
+            Set.of(Transport.Type.TOR),
             new UnrestrictedAuthorizationService(),
             TRANSPORT_CONFIG);
 

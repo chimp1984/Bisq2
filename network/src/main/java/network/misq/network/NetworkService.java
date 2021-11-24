@@ -23,11 +23,11 @@ import network.misq.network.http.HttpService;
 import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.P2pServiceNode;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.security.KeyPairRepository;
@@ -38,6 +38,8 @@ import java.security.KeyPair;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * High level API for network access to p2p network as well to http services (over Tor). If user has only I2P selected
@@ -48,7 +50,7 @@ public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
 
     public static record Config(String baseDirPath,
-                                Set<TransportType> supportedTransportTypes,
+                                Set<Transport.Type> supportedTransportTypes,
                                 P2pServiceNode.Config p2pServiceNodeConfig,
                                 MeshService.Config meshServiceConfig,
                                 Optional<String> socks5ProxyAddress) {
@@ -59,14 +61,14 @@ public class NetworkService {
     @Getter
     private final Optional<String> socks5ProxyAddress; // Optional proxy address of external tor instance 
     @Getter
-    private final Set<TransportType> supportedTransportTypes;
-    private final P2pServiceNodesByNetworkType p2pService;
+    private final Set<Transport.Type> supportedTransportTypes;
+    private final P2pServiceNodesByTransportType p2pService;
 
     public NetworkService(Config config, KeyPairRepository keyPairRepository) {
         httpService = new HttpService();
         socks5ProxyAddress = config.socks5ProxyAddress;
         supportedTransportTypes = config.supportedTransportTypes();
-        p2pService = new P2pServiceNodesByNetworkType(config.baseDirPath(),
+        p2pService = new P2pServiceNodesByTransportType(config.baseDirPath(),
                 supportedTransportTypes,
                 config.p2pServiceNodeConfig(),
                 config.meshServiceConfig(),
@@ -99,14 +101,23 @@ public class NetworkService {
     }
 
 
-    public CompletableFuture<BaseHttpClient> getHttpClient(String url, String userAgent, TransportType transportType) {
+    public CompletableFuture<BaseHttpClient> getHttpClient(String url, String userAgent, Transport.Type transportType) {
         return httpService.getHttpClient(url, userAgent, transportType, p2pService.getSocksProxy(), socks5ProxyAddress);
     }
 
-    public void shutdown() {
-        p2pService.shutdown();
-        httpService.shutdown();
+    public CompletableFuture<Void> shutdown() {
+        CountDownLatch latch = new CountDownLatch(2);
+        return CompletableFuture.runAsync(() -> {
+            p2pService.shutdown().whenComplete((v, t) -> latch.countDown());
+            httpService.shutdown().whenComplete((v, t) -> latch.countDown());
+            try {
+                latch.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Shutdown interrupted by timeout");
+            }
+        });
     }
+
     
        /*public Set<Address> findMyAddresses() {
         return p2pService.findMyAddresses();

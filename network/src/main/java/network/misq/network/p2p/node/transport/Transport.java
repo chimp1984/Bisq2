@@ -20,14 +20,20 @@ package network.misq.network.p2p.node.transport;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.network.p2p.node.Address;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface Transport {
+    enum Type implements Serializable {
+        TOR,
+        I2P,
+        CLEAR_NET,
+    }
+
     record Config(String baseDirPath) {
     }
 
@@ -46,6 +52,5 @@ public interface Transport {
 
     Optional<Address> getServerAddress(String serverId);
 
-    void shutdown();
-
+    CompletableFuture<Void> shutdown();
 }

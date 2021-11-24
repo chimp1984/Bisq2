@@ -52,7 +52,8 @@ public abstract class Executable<T extends ApplicationFactory> {
     abstract protected void onInitializeDomainCompleted();
 
     public void shutdown() {
-        applicationFactory.shutdown();
-        System.exit(0);
+        applicationFactory.shutdown().whenComplete((v, t) -> {
+            System.exit(0);
+        });
     }
 }

@@ -19,14 +19,14 @@ package network.misq.network.p2p.services.mesh.discovery;
 
 
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class SeedNodeRepository {
 
-    public List<Address> getNodes(TransportType transportType) {
+    public List<Address> getNodes(Transport.Type transportType) {
         switch (transportType) {
             case TOR:
                 return Arrays.asList(Address.localHost(1000), Address.localHost(1001));//todo

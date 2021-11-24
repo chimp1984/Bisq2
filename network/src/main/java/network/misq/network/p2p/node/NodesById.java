@@ -26,12 +26,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.*;
 
 /**
- * Maintains nodes per nodeId
+ * Maintains nodes per nodeId.
+ * Provides delegate methods to node with given nodeId
  */
 public class NodesById implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(NodesById.class);
@@ -89,9 +88,18 @@ public class NodesById implements MessageListener {
         return Optional.ofNullable(nodesByNodeId.get(nodeId)).flatMap(Node::getMyAddress);
     }
 
-    public void shutdown() {
-        nodesByNodeId.values().forEach(Node::shutdown);
-        nodesByNodeId.clear();
+    public CompletableFuture<Void> shutdown() {
+        CountDownLatch latch = new CountDownLatch(nodesByNodeId.size()); 
+        return CompletableFuture.runAsync(() -> {
+            nodesByNodeId.values().forEach(node -> node.shutdown().whenComplete((v, t) -> latch.countDown()));
+
+            try {
+                latch.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Shutdown interrupted by timeout");
+            }
+            nodesByNodeId.clear();
+        });
     }
 
 

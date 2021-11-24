@@ -28,7 +28,6 @@ import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.node.transport.TransportType;
 import network.misq.network.p2p.services.confidential.ConfMsgService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
@@ -45,6 +44,8 @@ import java.security.KeyPair;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -52,17 +53,17 @@ import java.util.function.Consumer;
 /**
  * Maintains P2pServiceNode per NetworkType
  */
-public class P2pServiceNodesByNetworkType {
-    private static final Logger log = LoggerFactory.getLogger(P2pServiceNodesByNetworkType.class);
+public class P2pServiceNodesByTransportType {
+    private static final Logger log = LoggerFactory.getLogger(P2pServiceNodesByTransportType.class);
 
-    private final Map<TransportType, P2pServiceNode> map = new ConcurrentHashMap<>();
+    private final Map<Transport.Type, P2pServiceNode> p2pServiceNodeByTransportType = new ConcurrentHashMap<>();
 
-    public P2pServiceNodesByNetworkType(String baseDirPath,
-                                        Set<TransportType> supportedTransportTypes,
-                                        P2pServiceNode.Config p2pServiceNodeConfig,
-                                        MeshService.Config meshServiceConfig,
-                                        DataService.Config dataServiceConfig,
-                                        KeyPairRepository keyPairRepository) {
+    public P2pServiceNodesByTransportType(String baseDirPath,
+                                          Set<Transport.Type> supportedTransportTypes,
+                                          P2pServiceNode.Config p2pServiceNodeConfig,
+                                          MeshService.Config meshServiceConfig,
+                                          DataService.Config dataServiceConfig,
+                                          KeyPairRepository keyPairRepository) {
         supportedTransportTypes.forEach(networkType -> {
             Node.Config config = new Node.Config(networkType,
                     supportedTransportTypes,
@@ -73,11 +74,11 @@ public class P2pServiceNodesByNetworkType {
                     meshServiceConfig,
                     dataServiceConfig,
                     new ConfMsgService.Config(keyPairRepository));
-            map.put(networkType, p2PServiceNode);
+            p2pServiceNodeByTransportType.put(networkType, p2PServiceNode);
         });
     }
 
-    public P2pServiceNodesByNetworkType() {
+    public P2pServiceNodesByTransportType() {
     }
 
 
@@ -93,8 +94,8 @@ public class P2pServiceNodesByNetworkType {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         AtomicInteger completed = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
-        int numNodes = map.size();
-        map.values().forEach(networkNode -> {
+        int numNodes = p2pServiceNodeByTransportType.size();
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             networkNode.initializeServer(Node.DEFAULT_NODE_ID, NetworkUtils.findFreeSystemPort())
                     .whenComplete((serverInfo, throwable) -> {
                         if (serverInfo != null) {
@@ -121,7 +122,7 @@ public class P2pServiceNodesByNetworkType {
      */
     public CompletableFuture<Boolean> initializeOverlay() {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        map.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             allFutures.add(future);
             networkNode.initializeOverlay()
@@ -142,9 +143,9 @@ public class P2pServiceNodesByNetworkType {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         networkId.addressByNetworkType().forEach((transportType, address) -> {
             try {
-                if (map.containsKey(transportType)) {
-                    map.get(transportType)
-                            .confidentialSend(message, networkId.addressByNetworkType().get(transportType),networkId.pubKey(), myKeyPair, connectionId)
+                if (p2pServiceNodeByTransportType.containsKey(transportType)) {
+                    p2pServiceNodeByTransportType.get(transportType)
+                            .confidentialSend(message, networkId.addressByNetworkType().get(transportType), networkId.pubKey(), myKeyPair, connectionId)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
                                     future.complete(connection);
@@ -154,7 +155,7 @@ public class P2pServiceNodesByNetworkType {
                                 }
                             });
                 } else {
-                    map.values().forEach(networkNode -> {
+                    p2pServiceNodeByTransportType.values().forEach(networkNode -> {
                         networkNode.relay(message, networkId, myKeyPair)
                                 .whenComplete((connection, throwable) -> {
                                     if (connection != null) {
@@ -174,7 +175,7 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public void requestAddData(Message message, Consumer<GossipResult> resultHandler) {
-        map.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             networkNode.requestAddData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -187,7 +188,7 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public void requestRemoveData(Message message, Consumer<GossipResult> resultHandler) {
-        map.values().forEach(dataService -> {
+        p2pServiceNodeByTransportType.values().forEach(dataService -> {
             dataService.requestRemoveData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -200,7 +201,7 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public void requestInventory(DataFilter dataFilter, Consumer<RequestInventoryResult> resultHandler) {
-        map.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             networkNode.requestInventory(dataFilter)
                     .whenComplete((requestInventoryResult, throwable) -> {
                         if (requestInventoryResult != null) {
@@ -213,9 +214,9 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public Optional<Socks5Proxy> getSocksProxy() {
-        if (map.containsKey(TransportType.TOR)) {
+        if (p2pServiceNodeByTransportType.containsKey(Transport.Type.TOR)) {
             try {
-                return map.get(TransportType.TOR).getSocksProxy();
+                return p2pServiceNodeByTransportType.get(Transport.Type.TOR).getSocksProxy();
             } catch (IOException e) {
                 return Optional.empty();
             }
@@ -225,19 +226,29 @@ public class P2pServiceNodesByNetworkType {
     }
 
     public void addMessageListener(MessageListener messageListener) {
-        map.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             networkNode.addMessageListener(messageListener);
         });
     }
 
     public void removeMessageListener(MessageListener messageListener) {
-        map.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
             networkNode.removeMessageListener(messageListener);
         });
     }
 
-    public void shutdown() {
-        map.values().forEach(P2pServiceNode::shutdown);
+    public CompletableFuture<Void> shutdown() {
+        CountDownLatch latch = new CountDownLatch(p2pServiceNodeByTransportType.size());
+        return CompletableFuture.runAsync(() -> {
+            p2pServiceNodeByTransportType.values()
+                    .forEach(p2pServiceNode -> p2pServiceNode.shutdown().whenComplete((v, t) -> latch.countDown()));
+            try {
+                latch.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Shutdown interrupted by timeout");
+            }
+            p2pServiceNodeByTransportType.clear();
+        });
     }
 
 

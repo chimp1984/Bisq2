@@ -19,11 +19,7 @@ package network.misq.network.p2p.services.data;
 
 import network.misq.common.util.MapUtils;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.ConnectionListener;
-import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.Connection;
+import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.InventoryRequestHandler;
 import network.misq.network.p2p.services.data.inventory.InventoryResponseHandler;
@@ -204,13 +200,14 @@ public class DataService implements MessageListener, ConnectionListener {
         return true;
     }
 
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
         dataListeners.clear();
-
+        //todo
         router.shutdown();
         storage.shutdown();
 
         MapUtils.disposeAndRemoveAll(requestHandlerMap);
         MapUtils.disposeAndRemoveAll(requestHandlerMap);
+        return CompletableFuture.completedFuture(null);
     }
 }

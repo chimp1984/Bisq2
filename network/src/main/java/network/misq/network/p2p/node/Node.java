@@ -23,7 +23,10 @@ import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.authorization.AuthorizationService;
 import network.misq.network.p2p.node.authorization.AuthorizedMessage;
-import network.misq.network.p2p.node.transport.*;
+import network.misq.network.p2p.node.transport.ClearNetTransport;
+import network.misq.network.p2p.node.transport.I2PTransport;
+import network.misq.network.p2p.node.transport.TorTransport;
+import network.misq.network.p2p.node.transport.Transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +37,7 @@ import java.net.SocketException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -48,21 +49,22 @@ import static java.util.concurrent.CompletableFuture.runAsync;
  * - Creates inbound and outbound connections.
  * - Checks if a connection has been created when sending a message and creates one otherwise.
  * - Performs initial connection handshake for exchanging capability and performing authorization
- * - Notifies ConnectionListeners when a new connection has been created or one has been closed.
+ * - Performs authorization protocol at sending and receiving messages
+ * - Notifies ConnectionListeners when a new connection has been created or closed.
  * - Notifies MessageListeners when a new message has been received.
  */
 public class Node {
     private static final Logger log = LoggerFactory.getLogger(Node.class);
     public static final String DEFAULT_NODE_ID = "default";
 
-    public static record Config(TransportType transportType,
-                                Set<TransportType> supportedTransportTypes,
+    public static record Config(Transport.Type transportType,
+                                Set<Transport.Type> supportedTransportTypes,
                                 AuthorizationService authorizationService,
                                 Transport.Config transportConfig) {
     }
 
     private final Transport transport;
-    private final Set<TransportType> supportedTransportTypes;
+    private final Set<Transport.Type> supportedTransportTypes;
     private final AuthorizationService authorizationService;
     private final String nodeId;
 
@@ -209,20 +211,32 @@ public class Node {
         }
     }
 
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
+        log.info("shutdown {}", this);
         if (isStopped) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         isStopped = true;
 
-        server.ifPresent(Server::shutdown);
-        outboundConnectionMap.values().forEach(Connection::shutdown);
-        outboundConnectionMap.clear();
-        inboundConnections.forEach(Connection::shutdown);
-        inboundConnections.clear();
+        CountDownLatch latch = new CountDownLatch(outboundConnectionMap.values().size() +
+                inboundConnections.size() +
+                ((int) server.stream().count())
+                + 1); // For transport
+        return CompletableFuture.runAsync(() -> {
+            outboundConnectionMap.values().forEach(connection -> connection.shutdown().whenComplete((v, t) -> latch.countDown()));
+            inboundConnections.forEach(connection -> connection.shutdown().whenComplete((v, t) -> latch.countDown()));
+            server.ifPresent(server -> server.shutdown().whenComplete((v, t) -> latch.countDown()));
+            transport.shutdown().whenComplete((v, t) -> latch.countDown());
 
-        messageListeners.clear();
-        transport.shutdown();
+            try {
+                latch.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Shutdown interrupted by timeout");
+            }
+            outboundConnectionMap.clear();
+            inboundConnections.clear();
+            messageListeners.clear();
+        });
     }
 
     public Optional<Socks5Proxy> getSocksProxy() throws IOException {
@@ -304,7 +318,7 @@ public class Node {
     }
 
 
-    private Transport getNetworkProxy(TransportType transportType, Transport.Config config) {
+    private Transport getNetworkProxy(Transport.Type transportType, Transport.Config config) {
         return switch (transportType) {
             case TOR -> TorTransport.getInstance(config);
             case I2P -> I2PTransport.getInstance(config);

@@ -68,8 +68,8 @@ public class SeedNodeApplicationFactory implements ApplicationFactory {
     }
 
     @Override
-    public void shutdown() {
+    public CompletableFuture<Void>  shutdown() {
         keyPairRepository.shutdown();
-        networkService.shutdown();
+        return networkService.shutdown();
     }
 }

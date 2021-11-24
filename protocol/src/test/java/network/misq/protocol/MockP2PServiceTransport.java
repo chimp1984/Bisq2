@@ -19,11 +19,11 @@ package network.misq.protocol;
 
 
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pServiceNodesByNetworkType;
+import network.misq.network.p2p.P2pServiceNodesByTransportType;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Connection;
+import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
@@ -39,11 +39,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class MockP2PServiceNetwork extends P2pServiceNodesByNetworkType {
-    private static final Logger log = LoggerFactory.getLogger(MockP2PServiceNetwork.class);
+public class MockP2PServiceTransport extends P2pServiceNodesByTransportType {
+    private static final Logger log = LoggerFactory.getLogger(MockP2PServiceTransport.class);
     private final Set<MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
 
-    public MockP2PServiceNetwork() {
+    public MockP2PServiceTransport() {
         super();
     }
 
@@ -101,7 +101,8 @@ public class MockP2PServiceNetwork extends P2pServiceNodesByNetworkType {
     }
 
     @Override
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 
     public Optional<Address> findMyAddress() {

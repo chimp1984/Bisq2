@@ -22,7 +22,7 @@ import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.http.common.ClearNetHttpClient;
 import network.misq.network.http.common.Socks5ProxyProvider;
 import network.misq.network.http.common.TorHttpClient;
-import network.misq.network.p2p.node.transport.TransportType;
+import network.misq.network.p2p.node.transport.Transport;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public class HttpService {
     public CompletableFuture<BaseHttpClient> getHttpClient(String url,
                                                            String userAgent,
-                                                           TransportType transportType,
+                                                           Transport.Type transportType,
                                                            Optional<Socks5Proxy> socksProxy,
                                                            Optional<String> socks5ProxyAddress) {
         return CompletableFuture.supplyAsync(() -> {
@@ -53,7 +53,7 @@ public class HttpService {
         });
     }
 
-    public void shutdown() {
-
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 }

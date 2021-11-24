@@ -20,7 +20,7 @@ package network.misq.application;
 import java.util.concurrent.CompletableFuture;
 
 public interface ApplicationFactory {
-    public CompletableFuture<Boolean> initialize();
+    CompletableFuture<Boolean> initialize();
 
-    void shutdown();
+    CompletableFuture<Void>  shutdown();
 }

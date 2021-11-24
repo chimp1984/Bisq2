@@ -73,10 +73,10 @@ public class DesktopApplication extends Executable<DefaultApplicationFactory> {
 
     @Override
     public void shutdown() {
-        super.shutdown();
-
         if (stageController != null) {
             stageController.shutdown();
         }
+        
+        super.shutdown();
     }
 }
