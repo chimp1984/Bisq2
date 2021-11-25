@@ -17,11 +17,8 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
-import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeManager;
-import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeStrategy;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -49,30 +46,30 @@ import java.util.concurrent.CompletableFuture;
  * (using PeerExchangeSelection).
  */
 @Slf4j
-public class PeerManager {
+public class PeerGroupService {
 
-    private final Node node;
     private final PeerGroup peerGroup;
-    private final PeerConfig peerConfig;
-    private final PeerExchangeManager peerExchangeManager;
     private final PeerGroupHealth peerGroupHealth;
+    private final PeerExchangeService peerExchangeService;
     private volatile boolean isStopped;
 
-    public PeerManager(Node node,
-                       PeerGroup peerGroup,
-                       PeerExchangeStrategy peerExchangeStrategy,
-                       PeerConfig peerConfig) {
-        this.node = node;
+    public PeerGroupService(PeerGroup peerGroup,
+                            PeerGroupHealth peerGroupHealth,
+                            PeerExchangeService peerExchangeService) {
         this.peerGroup = peerGroup;
-        this.peerConfig = peerConfig;
-
-        peerExchangeManager = new PeerExchangeManager(node, peerExchangeStrategy);
-        peerGroupHealth = new PeerGroupHealth(node, peerGroup);
+        this.peerGroupHealth = peerGroupHealth;
+        this.peerExchangeService = peerExchangeService;
     }
 
     public CompletableFuture<Boolean> initialize() {
-        return peerExchangeManager.bootstrap()
-                .thenCompose(completed -> peerGroupHealth.bootstrap());
+        return peerExchangeService.initialize()
+                .thenCompose(sufficientSuccess -> {
+                    if (!sufficientSuccess) {
+                        // If we did not have sufficient successful requests we repeat once and ignore result.
+                        peerExchangeService.initialize();
+                    }
+                    return peerGroupHealth.initialize();
+                });
     }
 
     public CompletableFuture<Void> shutdown() {
@@ -80,10 +77,8 @@ public class PeerManager {
             return CompletableFuture.completedFuture(null);
         }
         isStopped = true;
-        //todo
-        peerExchangeManager.shutdown();
-        peerGroupHealth.shutdown();
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.allOf(peerExchangeService.shutdown(),
+                peerGroupHealth.shutdown());
     }
 
     public boolean sufficientPeersAtPeerExchange() {
@@ -91,20 +86,20 @@ public class PeerManager {
     }
 
     private boolean sufficientReportedPeers() {
-        return peerGroup.getExchangedPeers().size() >= peerConfig.getMinNumReportedPeers();
+        return peerGroup.getReportedPeers().size() >= peerGroup.getConfig().getMinNumReportedPeers();
     }
 
     private boolean sufficientConnections() {
-        return peerGroup.getAllConnectedPeers().size() >= peerConfig.getMinNumConnectedPeers();
+        return peerGroup.getAllConnectedPeers().size() >= peerGroup.getConfig().getMinNumConnectedPeers();
     }
 
-    @VisibleForTesting
+   /* @VisibleForTesting
     public PeerGroup getPeerGroup() {
         return peerGroup;
-    }
+    }*/
 
-    @VisibleForTesting
+  /*  @VisibleForTesting
     public Node getGuard() {
         return node;
-    }
+    }*/
 }

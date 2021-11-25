@@ -34,7 +34,7 @@ import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
-import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;

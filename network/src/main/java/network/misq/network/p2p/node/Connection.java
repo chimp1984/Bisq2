@@ -78,8 +78,8 @@ public abstract class Connection {
         objectInputStream = new ObjectInputStream(socket.getInputStream());
 
         readExecutor.execute(() -> {
-            while (isNotStopped()) {
-                try {
+            try {
+                while (isNotStopped()) {
                     Object msg = objectInputStream.readObject();
                     String simpleName = msg.getClass().getSimpleName();
                     if (!(msg instanceof Envelope envelope)) {
@@ -93,13 +93,13 @@ public abstract class Connection {
                     if (isNotStopped()) {
                         messageHandler.accept(envelope.getPayload(), this);
                     }
-                } catch (Exception exception) {
-                    //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
-                    if (!isStopped) {
-                        shutdown();
-                    }
-                    errorHandler.accept(exception);
                 }
+            } catch (Exception exception) {
+                //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down
+                if (!isStopped) {
+                    shutdown();
+                }
+                errorHandler.accept(exception);
             }
         });
     }

@@ -23,13 +23,5 @@ import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
 
-@Getter
-final class PeerExchangeResponse implements Message {
-    private final int nonce;
-    private final Set<Peer> peers;
-
-    PeerExchangeResponse(int nonce, Set<Peer> peers) {
-        this.nonce = nonce;
-        this.peers = peers;
-    }
+record PeerExchangeResponse(int nonce, Set<Peer> peers) implements Message {
 }

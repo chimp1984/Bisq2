@@ -15,12 +15,11 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange.old;
+package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.mesh.peers.Peer;
-import network.misq.network.p2p.services.mesh.peers.PeerConfig;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
 import java.util.*;
@@ -30,59 +29,52 @@ import java.util.stream.Collectors;
  * Simple implements the strategy how to select the peers for peer exchange.
  */
 @Slf4j
-public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
+public class PeerExchangeStrategy {
     private final PeerGroup peerGroup;
-    private final PeerConfig peerConfig;
     private final PeerExchangeConfig peerExchangeConfig;
     // We keep track of the addresses we contacted so in case we need to make a repeated request round that we do not \
     // pick the same addresses.
     private final Set<Address> usedAddresses = new HashSet<>();
+    private final List<Address> seedNodeAddresses;
 
-    public DefaultPeerExchangeStrategy(PeerGroup peerGroup, PeerConfig peerConfig) {
+    public PeerExchangeStrategy(PeerGroup peerGroup, List<Address> seedNodeAddresses, PeerExchangeConfig peerExchangeConfig) {
         this.peerGroup = peerGroup;
-        this.peerConfig = peerConfig;
-        this.peerExchangeConfig = peerConfig.getPeerExchangeConfig();
+        this.seedNodeAddresses = seedNodeAddresses;
+        this.peerExchangeConfig = peerExchangeConfig;
     }
 
-    @Override
-    public void addPeersFromPeerExchange(Set<Peer> peers, Address senderAddress) {
+    public boolean sufficientSuccess(int numSuccess, int numRequests) {
+        return numSuccess > numRequests / 2;
+    }
+
+    public void addPeersFromPeerExchange(Set<Peer> peers) {
         Set<Peer> collect = peers.stream()
                 .filter(peerGroup::notMyself)
                 .collect(Collectors.toSet());
-        peerGroup.addPeersFromPeerExchange(collect);
-        log.debug("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", peerGroup.serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
-        if (peerGroup.getConnectionsById().size() > 1 && peerGroup.serverPort == 1000 && senderAddress.toString().equals("127.0.0.1:5001")) {
-            int serverPort = peerGroup.serverPort;
-            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
-        }
-        if (peerGroup.getConnectionsById().size() > 1 && peerGroup.serverPort == 5001) {
-            int serverPort = peerGroup.serverPort;
-            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
-        }
+        peerGroup.addReportedPeers(collect);
     }
 
-    @Override
     public Set<Peer> getPeersForPeerExchange(Address peerAddress) {
-        List<Peer> list = peerGroup.getExchangedPeers().stream()
+        List<Peer> list = peerGroup.getReportedPeers().stream()
                 .sorted(Comparator.comparing(Peer::getDate))
                 .limit(100)
                 .collect(Collectors.toList());
         Set<Peer> allConnectedPeers = peerGroup.getAllConnectedPeers();
         list.addAll(allConnectedPeers);
         return list.stream()
-                .filter(peerGroup::notASeed)
-                .filter(peer -> notDirectPeer(peerAddress, peer))
+                .filter(this::notASeed)
+                .filter(peerGroup::notMyself)
+                .filter(peer -> notTargetPeer(peerAddress, peer))
                 .collect(Collectors.toSet());
     }
 
-    @Override
-    public Set<Address> getAddressesForBootstrap() {
+    public List<Address> getAddressesForPeerExchange() {
         int numSeeNodesAtBoostrap = peerExchangeConfig.getNumSeeNodesAtBoostrap();
         int numPersistedPeersAtBoostrap = peerExchangeConfig.getNumPersistedPeersAtBoostrap();
         int numReportedPeersAtBoostrap = peerExchangeConfig.getNumReportedPeersAtBoostrap();
-        int minNumConnectedPeers = peerConfig.getMinNumConnectedPeers();
+        int minNumConnectedPeers = peerGroup.getConfig().getMinNumConnectedPeers();
 
-        Set<Address> seeds = peerGroup.getSeedNodeAddresses().stream()
+        Set<Address> seeds = seedNodeAddresses.stream()
                 .filter(peerGroup::notMyself)
                 .filter(this::notUsedYet)
                 .limit(numSeeNodesAtBoostrap)
@@ -90,7 +82,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
 
         // Usually we don't have reported peers at startup, but in case or repeated bootstrap attempts we likely have
         // as well it could be that other nodes have started peer exchange to ourself before we start the peer exchange.
-        Set<Address> reported = peerGroup.getExchangedPeers().stream()
+        Set<Address> reported = peerGroup.getReportedPeers().stream()
                 .map(Peer::getAddress)
                 .filter(peerGroup::notMyself)
                 /* .filter(this::notUsedYet)
@@ -107,7 +99,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
         Set<Address> connectedPeerAddresses = peerGroup.getConnectedPeerAddresses().stream()
                 .filter(peerGroup::notMyself)
                 /* .filter(this::notUsedYet)
-                 .filter(peerGroup::notASeed)*/
+                 .filter(this::notASeed)*/
                 .collect(Collectors.toSet());
 
         // If we have already connections (at repeated bootstraps) we limit the new set to what is missing to reach out
@@ -126,14 +118,21 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
         all.addAll(persisted);
         all.addAll(connectedPeerAddresses);
 
-        Set<Address> result = all.stream()
+        List<Address> result = all.stream()
                 /*.limit(missingConnections)*/
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         usedAddresses.addAll(result);
         return result;
     }
 
-    @Override
+    public boolean notASeed(Address address) {
+        return seedNodeAddresses.stream().noneMatch(seedAddress -> seedAddress.equals(address));
+    }
+
+    public boolean notASeed(Peer peer) {
+        return notASeed(peer.getAddress());
+    }
+
     public boolean repeatBootstrap(long numSuccess, int numFutures) {
         long failures = numFutures - numSuccess;
         boolean moreThenHalfFailed = failures > numFutures / 2;
@@ -143,17 +142,16 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
                 !sufficientReportedPeers();
     }
 
-    @Override
     public long getRepeatBootstrapDelay() {
         return peerExchangeConfig.getRepeatPeerExchangeDelay();
     }
 
     private boolean sufficientReportedPeers() {
-        return peerGroup.getExchangedPeers().size() >= peerConfig.getMinNumReportedPeers();
+        return peerGroup.getReportedPeers().size() >= peerGroup.getConfig().getMinNumReportedPeers();
     }
 
     private boolean sufficientConnections() {
-        return peerGroup.getAllConnectedPeers().size() >= peerConfig.getMinNumConnectedPeers();
+        return peerGroup.getAllConnectedPeers().size() >= peerGroup.getConfig().getMinNumConnectedPeers();
     }
 
     private boolean notUsedYet(Address address) {
@@ -161,7 +159,14 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
         return true || !usedAddresses.contains(address);
     }
 
-    private boolean notDirectPeer(Address peerAddress, Peer peer) {
+    private boolean notTargetPeer(Address peerAddress, Peer peer) {
         return !peer.getAddress().equals(peerAddress);
     }
+
+    private List<Address> getShuffled(Collection<Address> addresses) {
+        List<Address> list = new ArrayList<>(addresses);
+        Collections.shuffle(list);
+        return list;
+    }
+
 }

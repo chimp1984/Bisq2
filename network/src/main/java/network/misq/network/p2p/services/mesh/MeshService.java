@@ -20,10 +20,12 @@ package network.misq.network.p2p.services.mesh;
 import lombok.Getter;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.peers.PeerConfig;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
+import network.misq.network.p2p.services.mesh.peers.PeerGroupHealth;
+import network.misq.network.p2p.services.mesh.peers.PeerGroupService;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
-import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,29 +34,26 @@ import java.util.concurrent.CompletableFuture;
 @Getter
 public class MeshService {
     private final PeerGroup peerGroup;
-    private final PeerExchangeService peerExchangeService;
+    private final PeerGroupService peerGroupService;
 
     public static record Config(PeerExchangeConfig peerExchangeConfig, List<Address> seedNodeAddresses) {
     }
 
-    /* private final PeerManager peerManager;
-     */
-
-    public MeshService(Node node, MeshService.Config config) {
+    public MeshService(Node node, Config config) {
         List<Address> seedNodeAddresses = config.seedNodeAddresses();
-        PeerConfig peerConfig = new PeerConfig(config.peerExchangeConfig(), seedNodeAddresses);
-        peerGroup = new PeerGroup(node, peerConfig);
-        peerExchangeService = new PeerExchangeService(node, peerGroup, config.seedNodeAddresses());
-    
-       /*  DefaultPeerExchangeStrategy peerExchangeStrategy = new DefaultPeerExchangeStrategy(peerGroup, peerConfig);
-        peerManager = new PeerManager(node, peerGroup, peerExchangeStrategy, peerConfig);*/
+        PeerGroup.Config peerGroupConfig = new PeerGroup.Config();
+        peerGroup = new PeerGroup(node, peerGroupConfig);
+        PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(peerGroup, seedNodeAddresses, config.peerExchangeConfig());
+        PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
+        PeerGroupHealth peerGroupHealth = new PeerGroupHealth(node, peerGroup);
+        peerGroupService = new PeerGroupService(peerGroup, peerGroupHealth, peerExchangeService);
     }
 
     public CompletableFuture<Boolean> initialize() {
-        return peerExchangeService.initialize();
+        return peerGroupService.initialize();
     }
 
     public CompletableFuture<Void> shutdown() {
-        return peerExchangeService.shutdown();
+        return peerGroupService.shutdown();
     }
 }

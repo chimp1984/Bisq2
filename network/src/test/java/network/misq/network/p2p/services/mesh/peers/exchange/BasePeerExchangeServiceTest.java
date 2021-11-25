@@ -21,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.BaseNetworkTest;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.peers.PeerConfig;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +29,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
     void test_peerExchange(Node.Config nodeConfig) throws InterruptedException, ExecutionException {
-        int numSeeds = 4;
-        int numNodes = 1;
+        int numSeeds = 7;
+        int numNodes = 3;
 
         List<Address> seedNodeAddresses = new ArrayList<>();
         for (int i = 0; i < numSeeds; i++) {
@@ -45,7 +44,6 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
             Address address = Address.localHost(port);
             seedNodeAddresses.add(address);
         }
-        PeerConfig peerConfig = new PeerConfig(new PeerExchangeConfig(), seedNodeAddresses);
 
         CountDownLatch initSeedsLatch = new CountDownLatch(numNodes);
         List<Node> seeds = new ArrayList<>();
@@ -56,7 +54,9 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
             seed.initializeServer(port).whenComplete((r, t) -> {
                 initSeedsLatch.countDown();
             });
-            new PeerExchangeService(seed, new PeerGroup(seed, peerConfig), seedNodeAddresses);
+
+            PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(new PeerGroup(seed, new PeerGroup.Config()), seedNodeAddresses, new PeerExchangeConfig());
+            new PeerExchangeService(seed, peerExchangeStrategy);
         }
         assertTrue(initSeedsLatch.await(getTimeout(), TimeUnit.SECONDS));
 
@@ -75,14 +75,17 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
         }
         assertTrue(initNodesLatch.await(getTimeout(), TimeUnit.SECONDS));
 
-        nodes.forEach(node -> {
-            PeerGroup peerGroup = new PeerGroup(node, peerConfig);
-            PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerGroup, seedNodeAddresses);
-            peerExchangeService.doPeerExchange(new ArrayList<>(seedNodeAddresses), numHandshakes).whenComplete((result, throwable) -> {
+        for (int i = 0; i < numNodes; i++) {
+            Node node = nodes.get(i);
+            int index = (i + 1) % numNodes;
+            PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(new PeerGroup(node, new PeerGroup.Config()), seedNodeAddresses, new PeerExchangeConfig());
+            PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
+
+            peerExchangeService.initialize().whenComplete((result, throwable) -> {
                 assertNull(throwable);
                 assertTrue(result);
             }).join();
-        });
+        }
 
         // close some seeds and check if we get the fault handler called
         int numSeedsClosed = Math.max(0, numSeeds - numHandshakes + 1);
@@ -91,15 +94,18 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
                 seeds.get(i).shutdown().get();
             }
 
-            nodes.forEach(node -> {
-                PeerGroup peerGroup = new PeerGroup(node, peerConfig);
-                PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerGroup, seedNodeAddresses);
-                peerExchangeService.doPeerExchange(new ArrayList<>(seedNodeAddresses), numHandshakes)
-                        .whenComplete((result, throwable) -> {
-                            assertNull(throwable);
-                            assertFalse(result);
-                        }).join();
-            });
+            for (int i = 0; i < numNodes; i++) {
+                Node node = nodes.get(i);
+                int index = (i + 1) % numNodes;
+                Address peerAddress = nodes.get(index).getMyAddress().get();
+                PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(new PeerGroup(node, new PeerGroup.Config()), seedNodeAddresses, new PeerExchangeConfig());
+                PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
+
+                peerExchangeService.doPeerExchange(peerAddress).whenComplete((result, throwable) -> {
+                    assertNull(throwable);
+                    assertTrue(result);
+                }).join();
+            }
         }
     }
 }

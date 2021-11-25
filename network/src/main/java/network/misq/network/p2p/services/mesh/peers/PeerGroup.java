@@ -24,27 +24,48 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.stream.Collectors;
 
 /**
  * Maintains different collections of peers and connections
  */
 @Slf4j
 public class PeerGroup implements ConnectionListener {
+    @Getter
+    public static class Config {
+        private final int minNumConnectedPeers;
+        private final int maxNumConnectedPeers;
+        private final int minNumReportedPeers;
+
+        public Config() {
+            this(8, 12, 1);
+        }
+
+        public Config(int minNumConnectedPeers,
+                      int maxNumConnectedPeers,
+                      int minNumReportedPeers) {
+            this.minNumConnectedPeers = minNumConnectedPeers;
+            this.maxNumConnectedPeers = maxNumConnectedPeers;
+            this.minNumReportedPeers = minNumReportedPeers;
+        }
+    }
+
+
     private final Node node;
     @Getter
-    private final Map<Address, Peer> connectedPeerByAddress = new ConcurrentHashMap<>();
-    public final int serverPort;
+    private final Config config;
     @Getter
-    private final List<Address> seedNodeAddresses;
+    private final Map<Address, Peer> connectedPeerByAddress = new ConcurrentHashMap<>();
     @Getter
     private final Map<String, Connection> connectionsById = new ConcurrentHashMap<>();
 
     @Getter
-    private final Set<Peer> exchangedPeers = new CopyOnWriteArraySet<>();
+    private final Set<Peer> reportedPeers = new CopyOnWriteArraySet<>();
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
 
@@ -53,11 +74,10 @@ public class PeerGroup implements ConnectionListener {
     @Getter
     private final Set<Connection> outboundConnections = new CopyOnWriteArraySet<>();
 
-    public PeerGroup(Node node, PeerConfig peerConfig) {
-        this.serverPort = 1111; //todo
+    public PeerGroup(Node node, Config config) {
         this.node = node;
+        this.config = config;
         node.addConnectionListener(this);
-        seedNodeAddresses = peerConfig.getSeedNodeAddresses();
     }
 
     @Override
@@ -73,30 +93,9 @@ public class PeerGroup implements ConnectionListener {
         connectionsById.remove(connection.getId());
     }
 
-    // Most recent 100 reported + all connected excluding seeds
-    public Set<Peer> getPeersForPeerExchange() {
-        List<Peer> list = exchangedPeers.stream()
-                .sorted(Comparator.comparing(Peer::getDate))
-                .limit(100)
-                .collect(Collectors.toList());
-        Set<Peer> allConnectedPeers = getAllConnectedPeers();
-        list.addAll(allConnectedPeers);
-        return list.stream()
-                .filter(this::notASeed)
-                .filter(this::notMyself)
-                .collect(Collectors.toSet());
+    public void addReportedPeers(Set<Peer> peers) {
+        reportedPeers.addAll(peers);
     }
-
-    public Set<Peer> getPeersForPeerExchange(Address peersAddress) {
-        return getPeersForPeerExchange().stream()
-                .filter(peer -> !peersAddress.equals(peer.getAddress()))
-                .collect(Collectors.toSet());
-    }
-
-    public void addPeersFromPeerExchange(Set<Peer> peers) {
-        exchangedPeers.addAll(peers);
-    }
-
 
     public Set<Address> getConnectedPeerAddresses() {
         return connectedPeerByAddress.keySet();
@@ -117,14 +116,5 @@ public class PeerGroup implements ConnectionListener {
     public boolean notMyself(Peer peer) {
         return notMyself(peer.getAddress());
     }
-
-    public boolean notASeed(Address address) {
-        return seedNodeAddresses.stream().noneMatch(seedAddress -> seedAddress.equals(address));
-    }
-
-    public boolean notASeed(Peer peer) {
-        return notASeed(peer.getAddress());
-    }
-
 
 }

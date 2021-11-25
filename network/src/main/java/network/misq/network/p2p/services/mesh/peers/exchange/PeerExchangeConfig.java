@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange.old;
+package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.Getter;
 

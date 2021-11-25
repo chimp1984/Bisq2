@@ -17,19 +17,10 @@
 
 package network.misq.network.p2p.services.mesh.peers.exchange;
 
-import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
 
-@Getter
-final class PeerExchangeRequest implements Message {
-    private final int nonce;
-    private final Set<Peer> peers;
-
-    PeerExchangeRequest(int nonce, Set<Peer> peers) {
-        this.nonce = nonce;
-        this.peers = peers;
-    }
+record PeerExchangeRequest(int nonce, Set<Peer> peers) implements Message {
 }

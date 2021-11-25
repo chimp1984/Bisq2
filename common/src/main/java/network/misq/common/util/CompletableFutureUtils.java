@@ -15,6 +15,7 @@ package network.misq.common.util;/*
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -22,27 +23,37 @@ import java.util.stream.Stream;
 
 public class CompletableFutureUtils {
     /**
-     * @param list List of futures
-     * @param <T>  The generic type of the future
+     * @param collection Collection of futures
+     * @param <T>        The generic type of the future
      * @return Returns a CompletableFuture with a list of the futures we got as parameter once all futures
      * are completed (incl. exceptionally completed).
      */
-    public static <T> CompletableFuture<List<T>> allOf(List<CompletableFuture<T>> list) {
-        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(list.toArray(new CompletableFuture[list.size()]));
-        return allFuturesResult.thenApply(v ->
-                list.stream().
-                        map(CompletableFuture::join).
-                        collect(Collectors.<T>toList())
+    public static <T> CompletableFuture<List<T>> allOf(Collection<CompletableFuture<T>> collection) {
+        //noinspection unchecked
+        return allOf(collection.toArray(new CompletableFuture[0]));
+    }
+
+    @SafeVarargs
+    public static <T> CompletableFuture<List<T>> allOf(CompletableFuture<T>... list) {
+        return CompletableFuture.allOf(list).thenApply(v ->
+                Stream.of(list)
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.<T>toList())
         );
     }
 
-    public static <T> CompletableFuture<List<T>> allOf(CompletableFuture<T>... list) {
-        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(list);
-        return allFuturesResult.thenApply(v ->
-                Stream.of(list).
-                        map(CompletableFuture::join).
-                        collect(Collectors.<T>toList())
-        );
+    public static <T> CompletableFuture<List<T>> anyOf(Collection<CompletableFuture<T>> collection) {
+        //noinspection unchecked
+        return anyOf(collection.toArray(new CompletableFuture[0]));
+    }
+
+    @SafeVarargs
+    public static <T> CompletableFuture<T> anyOf(CompletableFuture<T>... list) {
+        return CompletableFuture.anyOf(list).thenCompose(res ->
+                Stream.of(list)
+                        .filter(CompletableFuture::isDone)
+                        .findAny()
+                        .get());
     }
 
     // CompletableFuture.applyToEither has some undesired error handling behavior (if first fail result fails).

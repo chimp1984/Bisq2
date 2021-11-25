@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Slf4j
 public final class Server {
@@ -47,18 +49,18 @@ public final class Server {
             Thread.currentThread().setName("Server-" +
                     StringUtils.truncate(serverSocketResult.nodeId()) + "-" +
                     StringUtils.truncate(serverSocketResult.address().toString()));
-            while (isNotStopped()) {
-                try {
+            try {
+                while (isNotStopped()) {
                     Socket socket = serverSocket.accept();
                     log.debug("Accepted new connection on server: {}", serverSocketResult);
                     if (isNotStopped()) {
-                        socketHandler.accept(socket);
+                        socketHandler.accept(socket);  Stream.of("").map(e->e).sequential();
                     }
-                } catch (IOException e) {
-                    if (!isStopped) {
-                        exceptionHandler.accept(e);
-                        shutdown();
-                    }
+                }
+            } catch (IOException e) {
+                if (!isStopped) {
+                    exceptionHandler.accept(e); 
+                    shutdown();
                 }
             }
         });

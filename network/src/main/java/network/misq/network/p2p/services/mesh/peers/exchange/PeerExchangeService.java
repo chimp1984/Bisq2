@@ -17,6 +17,7 @@
 
 package network.misq.network.p2p.services.mesh.peers.exchange;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.CompletableFutureUtils;
@@ -26,109 +27,90 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.Peer;
-import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Responsible for executing the peer exchange protocol with the given peer.
+ * We use the PeerExchangeStrategy for the selection of nodes and strategy for bootstrap.
+ * We could use a set of different strategies and select randomly one. This could increase network resilience.
+ */
 @Slf4j
 @Getter
 public class PeerExchangeService implements MessageListener {
     private final Node node;
-    private final PeerGroup peerGroup;
-    private final List<Address> seedNodeAddresses;
-    private final Set<Address> successCandidates = new CopyOnWriteArraySet<>();
+    private final PeerExchangeStrategy peerExchangeStrategy;
     private final Map<Address, PeerExchangeRequestHandler> requestHandlerMap = new ConcurrentHashMap<>();
 
-    public PeerExchangeService(Node node, PeerGroup peerGroup, List<Address> seedNodeAddresses) {
+    public PeerExchangeService(Node node, PeerExchangeStrategy peerExchangeStrategy) {
         this.node = node;
-        this.peerGroup = peerGroup;
-        this.seedNodeAddresses = seedNodeAddresses;
-        node.addMessageListener(this);
+        this.peerExchangeStrategy = peerExchangeStrategy;
+        this.node.addMessageListener(this);
     }
 
-    /**
-     * We start a peer exchange with 2 seed nodes and
-     */
     public CompletableFuture<Boolean> initialize() {
-        return CompletableFutureUtils.either(doPeerExchange(getShuffled(seedNodeAddresses), 2),
-                doPeerExchange(getAddressesForPeerExchange(), 5));
-    }
-
-    CompletableFuture<Boolean> doPeerExchange(List<Address> addressList,
-                                              int numRequests) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-        checkArgument(numRequests <= addressList.size(),
-                "numRequests must not be larger as seedNodeAddresses");
-
-        // We set up all requestHandlers for parallel executions
-        for (int i = 0; i < numRequests; i++) {
-            Address candidate = addressList.remove(0);
-            if (requestHandlerMap.containsKey(candidate)) {
-                continue;
-            }
-            PeerExchangeRequestHandler requestHandler = new PeerExchangeRequestHandler(node, candidate);
-            requestHandlerMap.put(candidate, requestHandler);
-            log.debug("Create requestHandler for candidate {}", candidate);
-            requestHandler.getFuture().whenComplete((peers, throwable) -> {
-                Address requestHandlerAddress = requestHandler.getAddress();
-                if (throwable == null) {
-                    peerGroup.addPeersFromPeerExchange(peers);
-                    requestHandlerMap.remove(requestHandlerAddress);
-                    successCandidates.add(requestHandlerAddress);
-                    log.debug("RequestHandler completed for {}. peers={}", candidate, peers);
-                    if (requestHandlerMap.isEmpty()) {
-                        log.info("All requestHandlers completed");
-                        future.complete(true);
-                    }
-                } else {
-                    log.info("RequestHandler failed for {}", candidate);
-                    if (!addressList.isEmpty()) {
-                        requestHandlerMap.remove(requestHandlerAddress);
-                        log.info("We try again with addressList {}", addressList);
-                        doPeerExchange(addressList, 1);
-                    } else {
-                        log.warn("We did not get sufficient successful responses.");
-                        future.complete(false);
-                    }
-                }
-            });
-            requestHandlerMap.put(candidate, requestHandler);
-        }
-        requestHandlerMap.values().forEach(e -> e.start(peerGroup.getPeersForPeerExchange(e.getAddress())));
-        return future;
-    }
-
-    public List<Address> getAddressesForPeerExchange() {
-        return peerGroup.getExchangedPeers().stream()
-                .sorted(Comparator.comparing(Peer::getDate))
-                .map(Peer::getAddress)
+        List<Address> addresses = peerExchangeStrategy.getAddressesForPeerExchange();
+        checkArgument(!addresses.isEmpty(),
+                "addresses must not be empty. We expect at least seed nodes.");
+        List<CompletableFuture<Boolean>> allFutures = addresses.stream()
+                .map(this::doPeerExchange)
                 .collect(Collectors.toList());
+        return CompletableFutureUtils.allOf(allFutures)
+                .orTimeout(300, TimeUnit.SECONDS)
+                .thenCompose(resultList -> {
+                    int numSuccess = (int) resultList.stream().filter(e -> e).count();
+                    log.info("Peer exchange with {} peers completed. {} requests successfully completed.",
+                            addresses.size(), numSuccess);
+                    boolean sufficientSuccess = peerExchangeStrategy.sufficientSuccess(numSuccess, addresses.size());
+                    return CompletableFuture.completedFuture(sufficientSuccess);
+                });
+    }
+@VisibleForTesting
+     CompletableFuture<Boolean> doPeerExchange(Address address) {
+        return node.getConnection(address)
+                .orTimeout(60, TimeUnit.SECONDS)
+                .thenCompose(connection -> {
+                    PeerExchangeRequestHandler handler = new PeerExchangeRequestHandler(node);
+                    requestHandlerMap.put(address, handler);
+                    Set<Peer> peers = peerExchangeStrategy.getPeersForPeerExchange(address);
+                    return handler.request(connection, peers);
+                })
+                .orTimeout(60, TimeUnit.SECONDS)
+                .handle((peers, throwable) -> {
+                    requestHandlerMap.remove(address);
+                    if (throwable == null) {
+                        peerExchangeStrategy.addPeersFromPeerExchange(peers);
+                        return true;
+                    } else {
+                        log.error("doPeerExchange failed", throwable);
+                        return false;
+                    }
+                });
     }
 
     public CompletableFuture<Void> shutdown() {
+        requestHandlerMap.values().forEach(PeerExchangeRequestHandler::dispose);
+        requestHandlerMap.clear();
         return CompletableFuture.completedFuture(null);
     }
-
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof PeerExchangeRequest request) {
-            log.debug("Node {} received PeerExchangeRequest with peers {}", node.getMyAddress(), request.getPeers());
-            peerGroup.addPeersFromPeerExchange(request.getPeers());
-            node.send(new PeerExchangeResponse(request.getNonce(), peerGroup.getPeersForPeerExchange(connection.getPeerAddress())), connection);
-            log.debug("Node {} send PeerExchangeResponse with my peers {}", node.getMyAddress(), peerGroup.getPeersForPeerExchange(connection.getPeerAddress()));
+            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.getMyAddress(), request.peers());
+            peerExchangeStrategy.addPeersFromPeerExchange(request.peers());
+            Set<Peer> myPeers = peerExchangeStrategy.getPeersForPeerExchange(connection.getPeerAddress());
+            node.send(new PeerExchangeResponse(request.nonce(), myPeers), connection);
+            log.debug("Node {} send PeerExchangeResponse with my myPeers {}", node.getMyAddress(), myPeers);
         }
     }
 
-    private List<Address> getShuffled(Collection<Address> addresses) {
-        List<Address> list = new ArrayList<>(addresses);
-        Collections.shuffle(list);
-        return list;
-    }
 }

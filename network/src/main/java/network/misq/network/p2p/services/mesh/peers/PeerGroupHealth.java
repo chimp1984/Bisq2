@@ -30,10 +30,11 @@ public class PeerGroupHealth {
         this.peerGroup = peerGroup;
     }
 
-    public CompletableFuture<Boolean> bootstrap() {
+    public CompletableFuture<Boolean> initialize() {
         return CompletableFuture.completedFuture(true);
     }
 
-    public void shutdown() {
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 }
