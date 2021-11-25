@@ -29,7 +29,7 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
-import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class NetworkService {
     public static record Config(String baseDirPath,
                                 Set<Transport.Type> supportedTransportTypes,
                                 P2pServiceNode.Config p2pServiceNodeConfig,
-                                MeshService.Config meshServiceConfig,
+                                SeedNodeRepository seedNodeRepository,
                                 Optional<String> socks5ProxyAddress) {
     }
 
@@ -71,7 +71,7 @@ public class NetworkService {
         p2pService = new P2pServiceNodesByTransportType(config.baseDirPath(),
                 supportedTransportTypes,
                 config.p2pServiceNodeConfig(),
-                config.meshServiceConfig(),
+                config.seedNodeRepository(),
                 new DataService.Config(config.baseDirPath()),
                 keyPairRepository);
     }
@@ -82,7 +82,7 @@ public class NetworkService {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public CompletableFuture<Boolean> initialize() {
-        CompletableFuture<Boolean> bootstrap = p2pService.initializeOverlay();
+        CompletableFuture<Boolean> bootstrap = p2pService.initializeMesh();
         // For now we dont want to wait for bootstrap done at startup
         // return CompletableFuture.completedFuture(true);
         return bootstrap;

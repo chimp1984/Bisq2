@@ -17,31 +17,19 @@
 
 package network.misq.network.p2p.services.mesh.peers.exchange;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
-import java.util.UUID;
 
-@EqualsAndHashCode
 @Getter
-class PeerExchangeRequest implements Message {
+final class PeerExchangeRequest implements Message {
+    private final int nonce;
     private final Set<Peer> peers;
-    private final String uid;
 
-    public PeerExchangeRequest(Set<Peer> peers) {
+    PeerExchangeRequest(int nonce, Set<Peer> peers) {
+        this.nonce = nonce;
         this.peers = peers;
-        uid = UUID.randomUUID().toString();
-    }
-
-
-    @Override
-    public String toString() {
-        return "PeerExchangeRequest{" +
-                "\r\n     peers=" + peers +
-                ",\r\n     uid='" + uid + '\'' +
-                "\r\n}";
     }
 }

@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
 import network.misq.common.data.Pair;
 import network.misq.network.p2p.node.Address;

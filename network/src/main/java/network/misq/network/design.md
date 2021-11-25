@@ -1,5 +1,7 @@
 # P2P Network
 
+// todo update with recent changes
+
 ## Features
 
 - Support multiple privacy overlay networks (Tor, I2P) as well as clear net

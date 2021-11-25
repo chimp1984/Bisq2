@@ -23,13 +23,9 @@ import network.misq.network.NetworkService;
 import network.misq.network.p2p.P2pServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.mesh.MeshService;
-import network.misq.network.p2p.services.mesh.peers.PeerConfig;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
+import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Parses the program arguments which are relevant for that domain and stores it in the options field.
@@ -45,18 +41,21 @@ public class NetworkServiceOptionsParser {
 
         P2pServiceNode.Config p2pServiceNodeConfig = new P2pServiceNode.Config(Set.of(
                 P2pServiceNode.Service.CONFIDENTIAL,
-                P2pServiceNode.Service.OVERLAY,
+                P2pServiceNode.Service.MESH,
                 P2pServiceNode.Service.DATA,
                 P2pServiceNode.Service.RELAY));
 
         List<Address> seedNodes = List.of(Address.localHost(1111));
-        PeerConfig peerConfig = new PeerConfig(new PeerExchangeConfig(), seedNodes);
-        MeshService.Config overlayServiceConfig = new MeshService.Config(peerConfig);
+
+        Map<Transport.Type, List<Address>> addressByTransportType = Map.of(Transport.Type.TOR, Arrays.asList(Address.localHost(1000), Address.localHost(1001)),
+                Transport.Type.I2P, Arrays.asList(Address.localHost(1000), Address.localHost(1001)),
+                Transport.Type.CLEAR_NET, Arrays.asList(Address.localHost(1000), Address.localHost(1001)));
+        SeedNodeRepository seedNodeRepository = new SeedNodeRepository(addressByTransportType);
 
         config = new NetworkService.Config(baseDirPath,
                 supportedTransportTypes,
                 p2pServiceNodeConfig,
-                overlayServiceConfig,
+                seedNodeRepository,
                 Optional.empty());
     }
 }

@@ -20,6 +20,7 @@ package network.misq.network.p2p.node;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.BaseNetworkTest;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
-public abstract class BaseNodeRepositoryTest {
+public abstract class BaseNodesByIdTest extends BaseNetworkTest {
     protected int numNodes;
 
     void test_messageRoundTrip(Node.Config config) throws InterruptedException {
@@ -39,13 +40,13 @@ public abstract class BaseNodeRepositoryTest {
         int numRepeats = 1;
         for (int i = 0; i < numRepeats; i++) {
             log.error("Iteration {}", i);
-            messageRoundTrip(numNodes, nodesById);
+            doMessageRoundTrip(numNodes, nodesById);
         }
         log.error("MessageRoundTrip for {} nodes repeated {} times took {} ms", numNodes, numRepeats, System.currentTimeMillis() - ts);
         // Thread.sleep(6000000);
     }
 
-    private void messageRoundTrip(int numNodes, NodesById nodesById) throws InterruptedException {
+    private void doMessageRoundTrip(int numNodes, NodesById nodesById) throws InterruptedException {
         long ts = System.currentTimeMillis();
         CountDownLatch initializeServerLatch = new CountDownLatch(numNodes);
         CountDownLatch sendPongLatch = new CountDownLatch(numNodes);
@@ -125,12 +126,12 @@ public abstract class BaseNodeRepositoryTest {
         NodesById nodesById = new NodesById(nodeConfig);
         //Thread.sleep(6000);
         for (int i = 0; i < 2; i++) {
-            initializeNodes(2, nodesById);
+            initializeServers(2, nodesById);
         }
         //Thread.sleep(6000000);
     }
 
-    private void initializeNodes(int numNodes, NodesById nodesById) throws InterruptedException {
+    private void initializeServers(int numNodes, NodesById nodesById) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(numNodes);
         for (int i = 0; i < numNodes; i++) {
             String nodeId = "node_" + i;
@@ -146,8 +147,6 @@ public abstract class BaseNodeRepositoryTest {
         nodesById.shutdown();
         assertTrue(result);
     }
-
-    protected abstract long getTimeout();
 
     @ToString
     public static class Ping implements Message {

@@ -17,5 +17,16 @@
 
 package network.misq.network.p2p.message;
 
-public record Envelope(Message payload) implements Message {
+import lombok.Data;
+import lombok.Getter;
+
+@Data
+public class Envelope implements Message {
+    private final Message payload;
+    private final int version;
+
+    public Envelope(Message payload) {
+        this.payload = payload;
+        version = Version.VERSION;
+    }
 }

@@ -26,22 +26,16 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 @Slf4j
-public class ClearNetNodesByIdTest extends BaseNodeRepositoryTest {
-    private static String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
-    private static Transport.Config transportConfig = new Transport.Config(baseDirName);
-    private static Node.Config nodeConfig = new Node.Config(Transport.Type.CLEAR_NET,
-            Set.of(Transport.Type.CLEAR_NET),
-            new UnrestrictedAuthorizationService(),
-            transportConfig);
-
+public class ClearNetNodesByIdTest extends BaseNodesByIdTest {
+    
     @Test
     void test_messageRoundTrip() throws InterruptedException {
-        super.test_messageRoundTrip(nodeConfig);
+        super.test_messageRoundTrip(getConfig(Transport.Type.CLEAR_NET));
     }
 
     @Test
     void test_initializeServer() throws InterruptedException {
-        super.test_initializeServer(nodeConfig);
+        super.test_initializeServer( getConfig(Transport.Type.CLEAR_NET));
     }
 
     @Override

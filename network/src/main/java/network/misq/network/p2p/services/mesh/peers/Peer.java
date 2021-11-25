@@ -17,17 +17,20 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import network.misq.network.p2p.node.Capability;
+import lombok.ToString;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Capability;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 @Getter
+@ToString
 public class Peer implements Serializable {
     private final Capability capability;
-
     private final long created;
 
     public Peer(Capability capability) {
@@ -46,22 +49,13 @@ public class Peer implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Peer)) return false;
-
+        if (o == null || getClass() != o.getClass()) return false;
         Peer peer = (Peer) o;
-        return capability != null ? capability.equals(peer.capability) : peer.capability == null;
+        return Objects.equals(capability.address(), peer.capability.address());
     }
 
     @Override
     public int hashCode() {
-        return capability != null ? capability.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "Peer{" +
-                "\r\n     capability=" + capability +
-                ",\r\n     created=" + created +
-                "\r\n}";
+        return Objects.hash(capability.address());
     }
 }

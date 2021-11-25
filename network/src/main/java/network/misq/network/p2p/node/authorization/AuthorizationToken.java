@@ -17,12 +17,10 @@
 
 package network.misq.network.p2p.node.authorization;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 
 import java.io.Serializable;
 
-@EqualsAndHashCode
-@Getter
+@Data
 public class AuthorizationToken implements Serializable {
 }

@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Address;
@@ -49,21 +49,21 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
         Set<Peer> collect = peers.stream()
                 .filter(peerGroup::notMyself)
                 .collect(Collectors.toSet());
-        peerGroup.addReportedPeers(collect);
-        log.debug("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", peerGroup.serverPort, senderAddress, peers, collect, peerGroup.getReportedPeers().size());
-        if (peerGroup.getConnections().size() > 1 && peerGroup.serverPort == 1000 && senderAddress.toString().equals("127.0.0.1:5001")) {
+        peerGroup.addPeersFromPeerExchange(collect);
+        log.debug("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", peerGroup.serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
+        if (peerGroup.getConnectionsById().size() > 1 && peerGroup.serverPort == 1000 && senderAddress.toString().equals("127.0.0.1:5001")) {
             int serverPort = peerGroup.serverPort;
-            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getReportedPeers().size());
+            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
         }
-        if (peerGroup.getConnections().size() > 1 && peerGroup.serverPort == 5001) {
+        if (peerGroup.getConnectionsById().size() > 1 && peerGroup.serverPort == 5001) {
             int serverPort = peerGroup.serverPort;
-            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getReportedPeers().size());
+            log.error("addPeersFromPeerExchange at {} from {} peers={}, collect={} ## {}", serverPort, senderAddress, peers, collect, peerGroup.getExchangedPeers().size());
         }
     }
 
     @Override
     public Set<Peer> getPeersForPeerExchange(Address peerAddress) {
-        List<Peer> list = peerGroup.getReportedPeers().stream()
+        List<Peer> list = peerGroup.getExchangedPeers().stream()
                 .sorted(Comparator.comparing(Peer::getDate))
                 .limit(100)
                 .collect(Collectors.toList());
@@ -82,7 +82,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
         int numReportedPeersAtBoostrap = peerExchangeConfig.getNumReportedPeersAtBoostrap();
         int minNumConnectedPeers = peerConfig.getMinNumConnectedPeers();
 
-        Set<Address> seeds = peerGroup.getSeedNodes().stream()
+        Set<Address> seeds = peerGroup.getSeedNodeAddresses().stream()
                 .filter(peerGroup::notMyself)
                 .filter(this::notUsedYet)
                 .limit(numSeeNodesAtBoostrap)
@@ -90,7 +90,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
 
         // Usually we don't have reported peers at startup, but in case or repeated bootstrap attempts we likely have
         // as well it could be that other nodes have started peer exchange to ourself before we start the peer exchange.
-        Set<Address> reported = peerGroup.getReportedPeers().stream()
+        Set<Address> reported = peerGroup.getExchangedPeers().stream()
                 .map(Peer::getAddress)
                 .filter(peerGroup::notMyself)
                 /* .filter(this::notUsedYet)
@@ -149,7 +149,7 @@ public class DefaultPeerExchangeStrategy implements PeerExchangeStrategy {
     }
 
     private boolean sufficientReportedPeers() {
-        return peerGroup.getReportedPeers().size() >= peerConfig.getMinNumReportedPeers();
+        return peerGroup.getExchangedPeers().size() >= peerConfig.getMinNumReportedPeers();
     }
 
     private boolean sufficientConnections() {

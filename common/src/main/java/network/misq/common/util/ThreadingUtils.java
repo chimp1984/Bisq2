@@ -20,6 +20,8 @@ package network.misq.common.util;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.*;
 
 public class ThreadingUtils {
@@ -60,5 +62,20 @@ public class ThreadingUtils {
                 TimeUnit.SECONDS, workQueue, threadFactory);
         executor.allowCoreThreadTimeOut(true);
         return executor;
+    }
+
+    public static Timer runAfter(Runnable runnable, int delay) {
+        return runAfter(runnable, delay, TimeUnit.SECONDS);
+    }
+
+    public static Timer runAfter(Runnable runnable, int delay, TimeUnit timeUnit) {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, timeUnit.toMillis(delay));
+        return timer;
     }
 }

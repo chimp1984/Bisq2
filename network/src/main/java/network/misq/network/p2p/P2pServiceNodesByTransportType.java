@@ -33,6 +33,8 @@ import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
@@ -61,20 +63,22 @@ public class P2pServiceNodesByTransportType {
     public P2pServiceNodesByTransportType(String baseDirPath,
                                           Set<Transport.Type> supportedTransportTypes,
                                           P2pServiceNode.Config p2pServiceNodeConfig,
-                                          MeshService.Config meshServiceConfig,
+                                          SeedNodeRepository seedNodeRepository,
                                           DataService.Config dataServiceConfig,
                                           KeyPairRepository keyPairRepository) {
-        supportedTransportTypes.forEach(networkType -> {
-            Node.Config config = new Node.Config(networkType,
+        supportedTransportTypes.forEach(transportType -> {
+            Node.Config config = new Node.Config(transportType,
                     supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
                     new Transport.Config(baseDirPath));
+            MeshService.Config meshServiceConfig = new MeshService.Config(new PeerExchangeConfig(),
+                    seedNodeRepository.getAddressesByTransportType().get(transportType));
             P2pServiceNode p2PServiceNode = new P2pServiceNode(p2pServiceNodeConfig,
                     config,
                     meshServiceConfig,
                     dataServiceConfig,
                     new ConfidentialMessageService.Config(keyPairRepository));
-            p2pServiceNodeByTransportType.put(networkType, p2PServiceNode);
+            p2pServiceNodeByTransportType.put(transportType, p2PServiceNode);
         });
     }
 
@@ -120,14 +124,14 @@ public class P2pServiceNodesByTransportType {
      * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
      * and at least one has been successful.
      */
-    public CompletableFuture<Boolean> initializeOverlay() {
+    public CompletableFuture<Boolean> initializeMesh() {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
+        p2pServiceNodeByTransportType.values().forEach(p2pServiceNode -> {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             allFutures.add(future);
-            networkNode.initializeOverlay()
-                    .whenComplete((success, e) -> {
-                        if (e == null) {
+            p2pServiceNode.initializeMesh()
+                    .whenComplete((success, throwable) -> {
+                        if (throwable == null) {
                             future.complete(success); // Can be still false
                         } else {
                             future.complete(false);

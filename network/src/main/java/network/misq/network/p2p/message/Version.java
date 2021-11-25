@@ -15,24 +15,8 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.discovery;
+package network.misq.network.p2p.message;
 
-
-import com.google.common.collect.ImmutableList;
-import lombok.Getter;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.Transport;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-public class SeedNodeRepository {
-    @Getter
-    private final Map<Transport.Type, List<Address>> addressesByTransportType;
-
-    public SeedNodeRepository(Map<Transport.Type, List<Address>> addressesByTransportType) {
-        this.addressesByTransportType = addressesByTransportType;
-    }
+public class Version {
+    public static final int VERSION = 1;
 }

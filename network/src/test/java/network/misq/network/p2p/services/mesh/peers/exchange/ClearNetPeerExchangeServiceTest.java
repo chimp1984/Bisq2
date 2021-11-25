@@ -15,24 +15,24 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.discovery;
+package network.misq.network.p2p.services.mesh.peers.exchange;
 
-
-import com.google.common.collect.ImmutableList;
-import lombok.Getter;
-import network.misq.network.p2p.node.Address;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.transport.Transport;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-public class SeedNodeRepository {
-    @Getter
-    private final Map<Transport.Type, List<Address>> addressesByTransportType;
+@Slf4j
+public class ClearNetPeerExchangeServiceTest extends BasePeerExchangeServiceTest {
 
-    public SeedNodeRepository(Map<Transport.Type, List<Address>> addressesByTransportType) {
-        this.addressesByTransportType = addressesByTransportType;
+    @Test
+    void test_peerExchange() throws InterruptedException, ExecutionException {
+        super.test_peerExchange(getConfig(Transport.Type.CLEAR_NET));
+    }
+
+    @Override
+    protected long getTimeout() {
+        return 10;
     }
 }

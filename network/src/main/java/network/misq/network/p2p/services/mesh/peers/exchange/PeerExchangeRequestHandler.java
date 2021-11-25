@@ -17,50 +17,64 @@
 
 package network.misq.network.p2p.services.mesh.peers.exchange;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+@Getter
 @Slf4j
-public class PeerExchangeRequestHandler implements MessageListener, Disposable {
+class PeerExchangeRequestHandler implements MessageListener {
     private static final long TIMEOUT_SEC = 90;
 
     private final Node node;
-    private final String connectionId;
-    private final CompletableFuture<Set<Peer>> future = new CompletableFuture<>();
+    private final Address address;
+    private final CompletableFuture<Set<Peer>> future;
+    private final int nonce;
 
-    public PeerExchangeRequestHandler(Node node, String connectionId) {
+    PeerExchangeRequestHandler(Node node, Address address) {
         this.node = node;
-        this.connectionId = connectionId;
-    }
-
-    public CompletableFuture<Set<Peer>> request(Set<Peer> peers, Address peerAddress) {
-        future.orTimeout(TIMEOUT_SEC, TimeUnit.SECONDS);
+        this.address = address;
+        future = new CompletableFuture<Set<Peer>>().orTimeout(TIMEOUT_SEC, TimeUnit.SECONDS);
+        nonce = new Random().nextInt();
         node.addMessageListener(this);
-        node.send(new PeerExchangeRequest(peers), peerAddress);
-        return future;
-    }
-
-    public void dispose() {
-        node.removeMessageListener(this);
-        future.cancel(true);
     }
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        if (connectionId.equals(connection.getId()) && message instanceof PeerExchangeResponse) {
-            PeerExchangeResponse peerExchangeResponse = (PeerExchangeResponse) message;
-            node.removeMessageListener(this);
-            future.complete(peerExchangeResponse.getPeers());
+        if (message instanceof PeerExchangeResponse response) {
+            if (response.getNonce() == nonce) {
+                future.complete(response.getPeers());
+                dispose();
+                log.debug("Node {} received PeerExchangeResponse with peers {}", node.getMyAddress(), response.getPeers());
+            }
+        }
+    }
+
+    void start(Set<Peer> peersForPeerExchange) {
+        log.debug("Node {} send PeerExchangeRequest to {} with my peers {}", node.getMyAddress(), address, peersForPeerExchange);
+        node.send(new PeerExchangeRequest(nonce, peersForPeerExchange), address)
+                .whenComplete((connection, throwable) -> {
+                    if (throwable != null) {
+                        future.completeExceptionally(throwable);
+                        dispose();
+                    }
+                });
+    }
+
+    void dispose() {
+        node.removeMessageListener(this);
+        if (!future.isDone()) {
+            future.cancel(true);
         }
     }
 }

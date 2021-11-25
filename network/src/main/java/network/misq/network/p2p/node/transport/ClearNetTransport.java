@@ -59,7 +59,7 @@ public class ClearNetTransport implements Transport {
             log.debug("ServerSocket created at port {}", port);
             future.complete(new ServerSocketResult(nodeId, serverSocket, address));
         } catch (IOException e) {
-            log.error(e + ". Server port" + port, e);
+            log.error("{}. Server port {}", e, port);
             future.completeExceptionally(e);
         }
         return future;

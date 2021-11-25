@@ -20,6 +20,7 @@ package network.misq.network.p2p.node;
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import network.misq.common.util.NetworkUtils;
+import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.authorization.AuthorizationService;
 import network.misq.network.p2p.node.authorization.AuthorizedMessage;
@@ -206,7 +207,7 @@ public class Node {
             if (authorizationService.isAuthorized(authorizedMessage)) {
                 runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
             } else {
-                log.warn("Handling message at onMessage is not permitted by authorizationService");
+                log.warn("Message authorization failed. authorizedMessage={}", StringUtils.truncate(authorizedMessage.toString()));
             }
         }
     }

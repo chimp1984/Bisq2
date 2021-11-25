@@ -20,8 +20,8 @@ package network.misq.network.p2p.services.mesh.peers;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeManager;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeManager;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeStrategy;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -70,7 +70,7 @@ public class PeerManager {
         peerGroupHealth = new PeerGroupHealth(node, peerGroup);
     }
 
-    public CompletableFuture<Boolean> bootstrap() {
+    public CompletableFuture<Boolean> initialize() {
         return peerExchangeManager.bootstrap()
                 .thenCompose(completed -> peerGroupHealth.bootstrap());
     }
@@ -91,7 +91,7 @@ public class PeerManager {
     }
 
     private boolean sufficientReportedPeers() {
-        return peerGroup.getReportedPeers().size() >= peerConfig.getMinNumReportedPeers();
+        return peerGroup.getExchangedPeers().size() >= peerConfig.getMinNumReportedPeers();
     }
 
     private boolean sufficientConnections() {

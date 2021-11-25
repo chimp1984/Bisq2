@@ -68,7 +68,8 @@ public class DataService implements MessageListener, ConnectionListener {
 
         this.storage = new Storage(config.baseDirPath());
 
-        router = new Router(node, meshService.getPeerGroup());
+       // router = new Router(node, meshService.getPeerGroup());
+        router = new Router(node, null);
 
         router.addMessageListener(this);
         node.addConnectionListener(this);

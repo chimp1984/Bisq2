@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.message.Version;
 import network.misq.network.p2p.node.authorization.AuthorizationService;
 import network.misq.network.p2p.node.authorization.AuthorizationToken;
 
@@ -29,7 +30,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * At initial connection we exchange capabilities and require a valid AuthorizationToken (e.g. PoW).
@@ -41,20 +41,11 @@ public class ConnectionHandshake {
     private final Socket socket;
     private final Capability capability;
     private final AuthorizationService authorizationService;
+
     public static record Request(AuthorizationToken token, Capability capability) implements Message {
     }
 
     public static record Response(AuthorizationToken token, Capability capability) implements Message {
-    }
-
-    public static class HandShakeException extends CompletionException {
-        public HandShakeException(String message) {
-            super(message);
-        }
-
-        public HandShakeException(Exception exception) {
-            super(exception);
-        }
     }
 
     public ConnectionHandshake(Socket socket, Capability capability, AuthorizationService authorizationService) {
@@ -70,26 +61,28 @@ public class ConnectionHandshake {
                 log.info("Start using {}", socket);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
-                Envelope message = new Envelope(new Request(token, capability));
-                log.info("Client sends {}", message);
-                objectOutputStream.writeObject(message);
+                Envelope requestEnvelope = new Envelope(new Request(token, capability));
+                log.info("Client sends {}", requestEnvelope);
+                objectOutputStream.writeObject(requestEnvelope);
                 objectOutputStream.flush();
 
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
                 log.info("Client received {}", msg);
-                if (!(msg instanceof Envelope envelope)) {
-                    throw new HandShakeException("Received message not type of Envelope. " +
-                            msg.getClass().getSimpleName());
+                String simpleName = msg.getClass().getSimpleName();
+                if (!(msg instanceof Envelope responseEnvelope)) {
+                    throw new ConnectionException("Received message not type of Envelope. " + simpleName);
                 }
-                if (!(envelope.payload() instanceof Response response)) {
-                    throw new HandShakeException("Received envelope.payload not type of Response. " +
-                            msg.getClass().getSimpleName());
+                if (responseEnvelope.getVersion() != Version.VERSION) {
+                    throw new ConnectionException("Invalid network version. " + simpleName);
+                }
+                if (!(responseEnvelope.getPayload() instanceof Response response)) {
+                    throw new ConnectionException("Received envelope.payload not type of Response. " + simpleName);
                 }
                 if (!authorizationService.isAuthorized(response.token())) {
-                    throw new HandShakeException("authorizationService.isAuthorized failed");
+                    throw new ConnectionException("Response authorization failed. " + simpleName);
                 }
-
+                
                 Capability serversCapability = response.capability();
                 log.info("Servers capability {}", serversCapability);
                 return serversCapability;
@@ -98,10 +91,10 @@ public class ConnectionHandshake {
                     socket.close();
                 } catch (IOException ignore) {
                 }
-                if (e instanceof HandShakeException handShakeException) {
+                if (e instanceof ConnectionException handShakeException) {
                     throw handShakeException;
                 } else {
-                    throw new HandShakeException(e);
+                    throw new ConnectionException(e);
                 }
             }
         }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-client"));
@@ -114,16 +107,18 @@ public class ConnectionHandshake {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
                 log.info("Server received {}", msg);
-                if (!(msg instanceof Envelope envelope)) {
-                    throw new HandShakeException("Received message not type of Envelope. " +
-                            msg.getClass().getSimpleName());
+                String simpleName = msg.getClass().getSimpleName();
+                if (!(msg instanceof Envelope requestEnvelope)) {
+                    throw new ConnectionException("Received message not type of Envelope. " + simpleName);
                 }
-                if (!(envelope.payload() instanceof Request request)) {
-                    throw new HandShakeException("Received envelope.payload not type of Request. " +
-                            msg.getClass().getSimpleName());
+                if (requestEnvelope.getVersion() != Version.VERSION) {
+                    throw new ConnectionException("Invalid network version. " + simpleName);
+                }
+                if (!(requestEnvelope.getPayload() instanceof Request request)) {
+                    throw new ConnectionException("Received envelope.payload not type of Request. " + simpleName);
                 }
                 if (!authorizationService.isAuthorized(request.token())) {
-                    throw new HandShakeException("authorizationService.isAuthorized failed");
+                    throw new ConnectionException("Request authorization failed. " + simpleName);
                 }
 
                 Capability clientCapability = request.capability();
@@ -138,10 +133,10 @@ public class ConnectionHandshake {
                     socket.close();
                 } catch (IOException ignore) {
                 }
-                if (e instanceof HandShakeException handShakeException) {
+                if (e instanceof ConnectionException handShakeException) {
                     throw handShakeException;
                 } else {
-                    throw new HandShakeException(e);
+                    throw new ConnectionException(e);
                 }
             }
         }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-server"));

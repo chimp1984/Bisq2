@@ -53,7 +53,7 @@ public class MockP2PServiceTransport extends P2pServiceNodesByTransportType {
     }
 
     @Override
-    public CompletableFuture<Boolean> initializeOverlay() {
+    public CompletableFuture<Boolean> initializeMesh() {
         return CompletableFuture.completedFuture(true);
     }
 

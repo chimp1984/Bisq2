@@ -18,30 +18,19 @@
 package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
 @Slf4j
-public class TorNodesByIdTest extends BaseNodeRepositoryTest {
-    private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_NodeRepositoryTest";
-    private static final Transport.Config TRANSPORT_CONFIG = new Transport.Config(baseDirName);
-    private static final Node.Config nodeConfig = new Node.Config(Transport.Type.TOR,
-            Set.of(Transport.Type.TOR),
-            new UnrestrictedAuthorizationService(),
-            TRANSPORT_CONFIG);
-
+public class TorNodesByIdTest extends BaseNodesByIdTest {
     @Test
     void test_messageRoundTrip() throws InterruptedException {
-        super.test_messageRoundTrip(nodeConfig);
+        super.test_messageRoundTrip(getConfig(Transport.Type.TOR));
     }
 
     // @Test
     void test_initializeServer() throws InterruptedException {
-        super.test_initializeServer(nodeConfig);
+        super.test_initializeServer(getConfig(Transport.Type.TOR));
     }
 
     @Override

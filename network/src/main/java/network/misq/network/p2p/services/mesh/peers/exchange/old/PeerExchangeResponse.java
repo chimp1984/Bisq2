@@ -15,21 +15,32 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
+import java.util.UUID;
 
-@Getter
-final class PeerExchangeResponse implements Message {
-    private final int nonce;
+@Data
+class PeerExchangeResponse implements Message {
     private final Set<Peer> peers;
+    private final String uid;
 
-    PeerExchangeResponse(int nonce, Set<Peer> peers) {
-        this.nonce = nonce;
+    public PeerExchangeResponse(Set<Peer> peers) {
         this.peers = peers;
+        uid = UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String toString() {
+        return "PeerExchangeResponse{" +
+                "\r\n     peers=" + peers +
+                ",\r\n     uid='" + uid + '\'' +
+                "\r\n}";
     }
 }

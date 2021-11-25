@@ -18,6 +18,7 @@ package network.misq.common.util;/*
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CompletableFutureUtils {
     /**
@@ -33,5 +34,31 @@ public class CompletableFutureUtils {
                         map(CompletableFuture::join).
                         collect(Collectors.<T>toList())
         );
+    }
+
+    public static <T> CompletableFuture<List<T>> allOf(CompletableFuture<T>... list) {
+        CompletableFuture<Void> allFuturesResult = CompletableFuture.allOf(list);
+        return allFuturesResult.thenApply(v ->
+                Stream.of(list).
+                        map(CompletableFuture::join).
+                        collect(Collectors.<T>toList())
+        );
+    }
+
+    // CompletableFuture.applyToEither has some undesired error handling behavior (if first fail result fails).
+    // This method provides the expected behaviour that if one of the 2 futures completes we complete our
+    // result future. If both fail the result fail as well.
+    // Borrowed from https://4comprehension.com/be-careful-with-completablefuture-applytoeither/
+    public static <T> CompletableFuture<T> either(CompletableFuture<T> f1, CompletableFuture<T> f2) {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        CompletableFuture.allOf(f1, f2).whenComplete((__, throwable) -> {
+            if (f1.isCompletedExceptionally() && f2.isCompletedExceptionally()) {
+                result.completeExceptionally(throwable);
+            }
+        });
+
+        f1.thenAccept(result::complete);
+        f2.thenAccept(result::complete);
+        return result;
     }
 }

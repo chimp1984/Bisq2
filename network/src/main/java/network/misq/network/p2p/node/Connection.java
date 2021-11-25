@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.message.Version;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -34,8 +35,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Represents an inbound or outbound connection to a peer node.
@@ -81,13 +80,18 @@ public abstract class Connection {
         readExecutor.execute(() -> {
             while (isNotStopped()) {
                 try {
-                    Object object = objectInputStream.readObject();
-                    checkArgument(object instanceof Envelope,
-                            "Received object is not of type MisqMessage: " + object.getClass().getName());
-                    Envelope envelope = (Envelope) object;
+                    Object msg = objectInputStream.readObject();
+                    String simpleName = msg.getClass().getSimpleName();
+                    if (!(msg instanceof Envelope envelope)) {
+                        throw new ConnectionException("Received message not type of Envelope. " + simpleName);
+                    }
+                    if (envelope.getVersion() != Version.VERSION) {
+                        throw new ConnectionException("Invalid network version. " + simpleName);
+                    }
+
                     log.debug("Received message: {} at connection: {}", envelope, this);
                     if (isNotStopped()) {
-                        messageHandler.accept(envelope.payload(), this);
+                        messageHandler.accept(envelope.getPayload(), this);
                     }
                 } catch (Exception exception) {
                     //todo StreamCorruptedException from i2p at shutdown. prob it send some text data at shut down

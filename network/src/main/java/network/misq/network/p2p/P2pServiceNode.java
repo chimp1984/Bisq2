@@ -55,7 +55,7 @@ public class P2pServiceNode {
     }
 
     public enum Service {
-        OVERLAY,
+        MESH,
         DATA,
         CONFIDENTIAL,
         RELAY
@@ -65,7 +65,7 @@ public class P2pServiceNode {
     private final Node defaultNode;
     private Optional<ConfidentialMessageService> confidentialMessageService;
     private Optional<DataService> dataService;
-    private Optional<MeshService> overlayNetworkService;
+    private Optional<MeshService> meshService;
     private Optional<RelayService> relayService;
 
     public P2pServiceNode(Config config,
@@ -80,14 +80,16 @@ public class P2pServiceNode {
         if (services.contains(Service.CONFIDENTIAL)) {
             confidentialMessageService = Optional.of(new ConfidentialMessageService(nodesById, confMsgServiceConfig));
         }
-        if (services.contains(Service.RELAY)) {
-            relayService = Optional.of(new RelayService(defaultNode));
-        }
-        if (services.contains(Service.OVERLAY)) {
-            overlayNetworkService = Optional.of(new MeshService(defaultNode, meshServiceConfig));
+       
+        if (services.contains(Service.MESH)) {
+            meshService = Optional.of(new MeshService(defaultNode, meshServiceConfig));
 
             if (services.contains(Service.DATA)) {
-                dataService = Optional.of(new DataService(defaultNode, overlayNetworkService.get(), dataServiceConfig));
+                dataService = Optional.of(new DataService(defaultNode, meshService.get(), dataServiceConfig));
+            }
+
+            if (services.contains(Service.RELAY)) {
+                relayService = Optional.of(new RelayService(defaultNode));
             }
         }
     }
@@ -101,9 +103,9 @@ public class P2pServiceNode {
         return nodesById.initializeServer(nodeId, serverPort);
     }
 
-    public CompletableFuture<Boolean> initializeOverlay() {
-        checkArgument(overlayNetworkService.isPresent());
-        return overlayNetworkService.get().bootstrap();
+    public CompletableFuture<Boolean> initializeMesh() {
+        checkArgument(meshService.isPresent());
+        return meshService.get().initialize();
     }
 
     public CompletableFuture<Connection> confidentialSend(Message message, Address address, PubKey pubKey, KeyPair myKeyPair, String connectionId)
@@ -140,13 +142,13 @@ public class P2pServiceNode {
         CountDownLatch latch = new CountDownLatch(1 + // For nodesById
                 ((int) confidentialMessageService.stream().count()) +
                 ((int) relayService.stream().count()) +
-                ((int) overlayNetworkService.stream().count()) +
+                ((int) meshService.stream().count()) +
                 ((int) dataService.stream().count()));
         return CompletableFuture.runAsync(() -> {
             nodesById.shutdown().whenComplete((v, t) -> latch.countDown());
             confidentialMessageService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             relayService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
-            overlayNetworkService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            meshService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             dataService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
 
             try {

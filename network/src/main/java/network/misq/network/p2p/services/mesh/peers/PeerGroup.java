@@ -17,17 +17,17 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.ConnectionListener;
-import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Node;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
 /**
  * Maintains different collections of peers and connections
@@ -36,44 +36,67 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class PeerGroup implements ConnectionListener {
     private final Node node;
     @Getter
-    private final ImmutableList<Address> seedNodes;
     private final Map<Address, Peer> connectedPeerByAddress = new ConcurrentHashMap<>();
     public final int serverPort;
+    @Getter
+    private final List<Address> seedNodeAddresses;
+    @Getter
+    private final Map<String, Connection> connectionsById = new ConcurrentHashMap<>();
 
-
-    public Set<Peer> getReportedPeers() {
-        return reportedPeers;
-    }
-
-    // @Getter
-    private final Set<Peer> reportedPeers = new CopyOnWriteArraySet<>();
+    @Getter
+    private final Set<Peer> exchangedPeers = new CopyOnWriteArraySet<>();
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
+
     @Getter
-    private final Set<Connection> connections = new CopyOnWriteArraySet<>();
+    private final Set<Connection> inboundConnections = new CopyOnWriteArraySet<>();
+    @Getter
+    private final Set<Connection> outboundConnections = new CopyOnWriteArraySet<>();
 
     public PeerGroup(Node node, PeerConfig peerConfig) {
         this.serverPort = 1111; //todo
         this.node = node;
-
-        List<Address> seeds = new ArrayList<>(peerConfig.getSeedNodes());
-        Collections.shuffle(seeds);
-        seedNodes = ImmutableList.copyOf(seeds);
-
         node.addConnectionListener(this);
+        seedNodeAddresses = peerConfig.getSeedNodeAddresses();
     }
 
     @Override
     public void onConnection(Connection connection) {
         Peer peer = new Peer(connection.getPeersCapability());
-        connectedPeerByAddress.put(peer.getAddress(), peer);
-        connections.add(connection);
+        connectedPeerByAddress.put(peer.getAddress(), peer); //todo inbound and outbound could conflict
+        connectionsById.put(connection.getId(), connection);
     }
 
     @Override
     public void onDisconnect(Connection connection) {
-        connectedPeerByAddress.remove(connection.getPeerAddress());
+        connectedPeerByAddress.remove(connection.getPeerAddress());//todo inbound and outbound could conflict
+        connectionsById.remove(connection.getId());
     }
+
+    // Most recent 100 reported + all connected excluding seeds
+    public Set<Peer> getPeersForPeerExchange() {
+        List<Peer> list = exchangedPeers.stream()
+                .sorted(Comparator.comparing(Peer::getDate))
+                .limit(100)
+                .collect(Collectors.toList());
+        Set<Peer> allConnectedPeers = getAllConnectedPeers();
+        list.addAll(allConnectedPeers);
+        return list.stream()
+                .filter(this::notASeed)
+                .filter(this::notMyself)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<Peer> getPeersForPeerExchange(Address peersAddress) {
+        return getPeersForPeerExchange().stream()
+                .filter(peer -> !peersAddress.equals(peer.getAddress()))
+                .collect(Collectors.toSet());
+    }
+
+    public void addPeersFromPeerExchange(Set<Peer> peers) {
+        exchangedPeers.addAll(peers);
+    }
+
 
     public Set<Address> getConnectedPeerAddresses() {
         return connectedPeerByAddress.keySet();
@@ -83,17 +106,12 @@ public class PeerGroup implements ConnectionListener {
         return connectedPeerByAddress.values();
     }
 
-    public void addReportedPeers(Set<Peer> peers) {
-        reportedPeers.addAll(peers);
-    }
-
     public Set<Peer> getAllConnectedPeers() {
         return new HashSet<>(connectedPeerByAddress.values());
     }
 
     public boolean notMyself(Address address) {
-        Optional<Address> optionalMyAddress =Optional.empty();// node.findMyAddress(); //todo
-        return optionalMyAddress.isEmpty() || !optionalMyAddress.get().equals(address);
+        return node.getMyAddress().stream().noneMatch(myAddress -> myAddress.equals(address));
     }
 
     public boolean notMyself(Peer peer) {
@@ -101,10 +119,12 @@ public class PeerGroup implements ConnectionListener {
     }
 
     public boolean notASeed(Address address) {
-        return seedNodes.stream().noneMatch(e -> e.equals(address));
+        return seedNodeAddresses.stream().noneMatch(seedAddress -> seedAddress.equals(address));
     }
 
     public boolean notASeed(Peer peer) {
         return notASeed(peer.getAddress());
     }
+
+
 }

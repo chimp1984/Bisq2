@@ -15,24 +15,16 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.discovery;
+package network.misq.network.p2p.node;
 
+import java.util.concurrent.CompletionException;
 
-import com.google.common.collect.ImmutableList;
-import lombok.Getter;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.Transport;
+public class ConnectionException extends CompletionException {
+    public ConnectionException(String message) {
+        super(message);
+    }
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-public class SeedNodeRepository {
-    @Getter
-    private final Map<Transport.Type, List<Address>> addressesByTransportType;
-
-    public SeedNodeRepository(Map<Transport.Type, List<Address>> addressesByTransportType) {
-        this.addressesByTransportType = addressesByTransportType;
+    public ConnectionException(Exception exception) {
+        super(exception);
     }
 }

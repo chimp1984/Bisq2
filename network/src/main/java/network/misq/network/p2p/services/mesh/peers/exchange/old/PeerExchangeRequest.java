@@ -15,24 +15,34 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
-import network.misq.network.p2p.node.Address;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Value;
+import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Set;
+import java.util.UUID;
 
-/**
- * Strategy how to select the peers used in peer management and exchange.
- */
-public interface PeerExchangeStrategy {
-    void addPeersFromPeerExchange(Set<Peer> peers, Address senderAddress);
+@Data
+class PeerExchangeRequest implements Message {
+    private final Set<Peer> peers;
+    private final String uid;
 
-    Set<Peer> getPeersForPeerExchange(Address peerAddress);
+    public PeerExchangeRequest(Set<Peer> peers) {
+        this.peers = peers;
+        uid = UUID.randomUUID().toString();
+    }
 
-    Set<Address> getAddressesForBootstrap();
 
-    boolean repeatBootstrap(long numSuccess, int numFutures);
-
-    long getRepeatBootstrapDelay();
+    @Override
+    public String toString() {
+        return "PeerExchangeRequest{" +
+                "\r\n     peers=" + peers +
+                ",\r\n     uid='" + uid + '\'' +
+                "\r\n}";
+    }
 }

@@ -19,29 +19,29 @@ package network.misq.network.p2p.services.mesh.peers;
 
 import lombok.Getter;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
 
 import java.util.List;
 
 @Getter
 public class PeerConfig {
     private final PeerExchangeConfig peerExchangeConfig;
-    private final List<Address> seedNodes;
+    private final List<Address> seedNodeAddresses;
     private final int minNumConnectedPeers;
     private final int maxNumConnectedPeers;
     private final int minNumReportedPeers;
 
-    public PeerConfig(PeerExchangeConfig peerExchangeConfig, List<Address> seedNodes) {
-        this(peerExchangeConfig, seedNodes, 8, 12, 1);
+    public PeerConfig(PeerExchangeConfig peerExchangeConfig, List<Address> seedNodeAddresses) {
+        this(peerExchangeConfig, seedNodeAddresses, 8, 12, 1);
     }
 
     public PeerConfig(PeerExchangeConfig peerExchangeConfig,
-                      List<Address> seedNodes,
+                      List<Address> seedNodeAddresses,
                       int minNumConnectedPeers,
                       int maxNumConnectedPeers,
                       int minNumReportedPeers) {
         this.peerExchangeConfig = peerExchangeConfig;
-        this.seedNodes = seedNodes;
+        this.seedNodeAddresses = seedNodeAddresses;
         this.minNumConnectedPeers = minNumConnectedPeers;
         this.maxNumConnectedPeers = maxNumConnectedPeers;
         this.minNumReportedPeers = minNumReportedPeers;

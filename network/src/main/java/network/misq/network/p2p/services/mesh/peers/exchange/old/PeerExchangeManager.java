@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.CompletableFutureUtils;
@@ -25,6 +25,10 @@ import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.mesh.peers.Peer;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeGraph;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeRequestHandler;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeResponseHandler;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeStrategy;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

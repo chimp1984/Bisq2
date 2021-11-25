@@ -18,36 +18,43 @@
 package network.misq.network.p2p.services.mesh;
 
 import lombok.Getter;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.PeerConfig;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import network.misq.network.p2p.services.mesh.peers.PeerManager;
-import network.misq.network.p2p.services.mesh.peers.exchange.DefaultPeerExchangeStrategy;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
+import network.misq.network.p2p.services.mesh.peers.exchange.old.PeerExchangeConfig;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
 @Getter
 public class MeshService {
-    public static record Config(PeerConfig peerConfig) {
-    }
-
-    private final PeerManager peerManager;
     private final PeerGroup peerGroup;
+    private final PeerExchangeService peerExchangeService;
 
-    public MeshService(Node node, Config config) {
-        PeerConfig peerConfig = config.peerConfig();
-        peerGroup = new PeerGroup(node, peerConfig);
-        DefaultPeerExchangeStrategy peerExchangeStrategy = new DefaultPeerExchangeStrategy(peerGroup, peerConfig);
-        peerManager = new PeerManager(node, peerGroup, peerExchangeStrategy, peerConfig);
-
+    public static record Config(PeerExchangeConfig peerExchangeConfig, List<Address> seedNodeAddresses) {
     }
 
-    public CompletableFuture<Boolean> bootstrap() {
-        return peerManager.bootstrap();
+    /* private final PeerManager peerManager;
+     */
+
+    public MeshService(Node node, MeshService.Config config) {
+        List<Address> seedNodeAddresses = config.seedNodeAddresses();
+        PeerConfig peerConfig = new PeerConfig(config.peerExchangeConfig(), seedNodeAddresses);
+        peerGroup = new PeerGroup(node, peerConfig);
+        peerExchangeService = new PeerExchangeService(node, peerGroup, config.seedNodeAddresses());
+    
+       /*  DefaultPeerExchangeStrategy peerExchangeStrategy = new DefaultPeerExchangeStrategy(peerGroup, peerConfig);
+        peerManager = new PeerManager(node, peerGroup, peerExchangeStrategy, peerConfig);*/
+    }
+
+    public CompletableFuture<Boolean> initialize() {
+        return peerExchangeService.initialize();
     }
 
     public CompletableFuture<Void> shutdown() {
-        return peerManager.shutdown();
+        return peerExchangeService.shutdown();
     }
 }

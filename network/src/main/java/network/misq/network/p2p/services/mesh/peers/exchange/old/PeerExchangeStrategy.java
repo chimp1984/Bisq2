@@ -15,24 +15,24 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.discovery;
+package network.misq.network.p2p.services.mesh.peers.exchange.old;
 
-
-import com.google.common.collect.ImmutableList;
-import lombok.Getter;
 import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.services.mesh.peers.Peer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-public class SeedNodeRepository {
-    @Getter
-    private final Map<Transport.Type, List<Address>> addressesByTransportType;
+/**
+ * Strategy how to select the peers used in peer management and exchange.
+ */
+public interface PeerExchangeStrategy {
+    void addPeersFromPeerExchange(Set<Peer> peers, Address senderAddress);
 
-    public SeedNodeRepository(Map<Transport.Type, List<Address>> addressesByTransportType) {
-        this.addressesByTransportType = addressesByTransportType;
-    }
+    Set<Peer> getPeersForPeerExchange(Address peerAddress);
+
+    Set<Address> getAddressesForBootstrap();
+
+    boolean repeatBootstrap(long numSuccess, int numFutures);
+
+    long getRepeatBootstrapDelay();
 }

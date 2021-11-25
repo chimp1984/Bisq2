@@ -26,22 +26,16 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 @Slf4j
-public class I2PNodesByIdTest extends BaseNodeRepositoryTest {
-    private static final String baseDirName = OsUtils.getUserDataDir().getAbsolutePath() + "/misq_test_testServerSetup";
-    private static final Transport.Config TRANSPORT_CONFIG = new Transport.Config(baseDirName);
-    private static final Node.Config nodeConfig = new Node.Config(Transport.Type.I2P,
-            Set.of(Transport.Type.I2P),
-            new UnrestrictedAuthorizationService(),
-            TRANSPORT_CONFIG);
+public class I2PNodesByIdTest extends BaseNodesByIdTest {
 
     @Test
     void test_messageRoundTrip() throws InterruptedException {
-        super.test_messageRoundTrip(nodeConfig);
+        super.test_messageRoundTrip(getConfig(Transport.Type.I2P));
     }
 
-   // @Test
+    // @Test
     void test_initializeServer() throws InterruptedException {
-        super.test_initializeServer(nodeConfig);
+        super.test_initializeServer(getConfig(Transport.Type.I2P));
     }
 
     @Override
