@@ -52,6 +52,8 @@ public abstract class Connection {
     private final Capability peersCapability;
 
     private final BiConsumer<Message, Connection> messageHandler;
+    @Getter
+    private final Metrics metrics;
     private ExecutorService writeExecutor;
     private ExecutorService readExecutor;
     private ObjectInputStream objectInputStream;
@@ -63,6 +65,7 @@ public abstract class Connection {
         this.socket = socket;
         this.peersCapability = peersCapability;
         this.messageHandler = messageHandler;
+        metrics = new Metrics();
     }
 
     void startListen(Consumer<Exception> errorHandler) throws IOException {

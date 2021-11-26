@@ -29,7 +29,7 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
-import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

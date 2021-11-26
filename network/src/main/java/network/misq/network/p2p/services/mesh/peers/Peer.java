@@ -17,7 +17,6 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import network.misq.network.p2p.node.Address;
@@ -57,5 +56,9 @@ public class Peer implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(capability.address());
+    }
+
+    public long getAge() {
+        return new Date().getTime() - created;
     }
 }

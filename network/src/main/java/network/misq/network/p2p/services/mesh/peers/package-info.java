@@ -18,9 +18,9 @@
  * The peers package holds classes responsible for bootstrapping the network and maintaining a
  * healthy network of neighbor peers.
  * <p>
- * PeerManager: The main class coordinating more specialized managers.
+ * PeerGroupService: The main class coordinating more specialized managers.
  * <p>
- * PeerExchange: Responsible for the PeerExchange protocol.
+ * PeerExchangeService: Responsible for the PeerExchange protocol.
  * <p>
  * PeerGroupHealth: Responsible for maintaining a healthy composition of peers after the initial network setup.
  * <p>

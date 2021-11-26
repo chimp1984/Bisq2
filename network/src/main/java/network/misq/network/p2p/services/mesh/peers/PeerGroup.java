@@ -25,17 +25,17 @@ import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Maintains different collections of peers and connections
  */
 @Slf4j
 public class PeerGroup implements ConnectionListener {
+
     @Getter
     public static class Config {
         private final int minNumConnectedPeers;
@@ -55,20 +55,14 @@ public class PeerGroup implements ConnectionListener {
         }
     }
 
-
     private final Node node;
-    @Getter
     private final Config config;
     @Getter
-    private final Map<Address, Peer> connectedPeerByAddress = new ConcurrentHashMap<>();
-    @Getter
-    private final Map<String, Connection> connectionsById = new ConcurrentHashMap<>();
-
-    @Getter
     private final Set<Peer> reportedPeers = new CopyOnWriteArraySet<>();
+    
+    //todo persist
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
-
     @Getter
     private final Set<Connection> inboundConnections = new CopyOnWriteArraySet<>();
     @Getter
@@ -77,36 +71,63 @@ public class PeerGroup implements ConnectionListener {
     public PeerGroup(Node node, Config config) {
         this.node = node;
         this.config = config;
-        node.addConnectionListener(this);
+        this.node.addConnectionListener(this);
     }
 
     @Override
     public void onConnection(Connection connection) {
         Peer peer = new Peer(connection.getPeersCapability());
-        connectedPeerByAddress.put(peer.getAddress(), peer); //todo inbound and outbound could conflict
-        connectionsById.put(connection.getId(), connection);
+        if (connection.isOutboundConnection()) {
+            outboundConnections.add(connection);
+        } else {
+            inboundConnections.add(connection);
+        }
     }
 
     @Override
     public void onDisconnect(Connection connection) {
-        connectedPeerByAddress.remove(connection.getPeerAddress());//todo inbound and outbound could conflict
-        connectionsById.remove(connection.getId());
+        if (connection.isOutboundConnection()) {
+            outboundConnections.remove(connection);
+        } else {
+            inboundConnections.remove(connection);
+        }
     }
 
     public void addReportedPeers(Set<Peer> peers) {
         reportedPeers.addAll(peers);
     }
 
-    public Set<Address> getConnectedPeerAddresses() {
-        return connectedPeerByAddress.keySet();
+    public void removeReportedPeers(Collection<Peer> peers) {
+        reportedPeers.removeAll(peers);
     }
 
-    public Collection<Peer> getConnectedPeerByAddress() {
-        return connectedPeerByAddress.values();
+    public void removePersistedPeers(Collection<Peer> peers) {
+        persistedPeers.removeAll(peers);
+    }
+
+    public Set<Address> getConnectedPeerAddresses() {
+        return getAllConnectedPeers().stream().map(Peer::getAddress).collect(Collectors.toSet());
     }
 
     public Set<Peer> getAllConnectedPeers() {
-        return new HashSet<>(connectedPeerByAddress.values());
+        return getAllConnectionsAsStream().map(connection -> new Peer(connection.getPeersCapability()))
+                .collect(Collectors.toSet());
+    }
+
+    Stream<Connection> getAllConnectionsAsStream() {
+        return Stream.concat(outboundConnections.stream(), inboundConnections.stream());
+    }
+
+    public int getMinNumReportedPeers() {
+        return config.getMinNumReportedPeers();
+    }
+
+    public int getMinNumConnectedPeers() {
+        return config.getMinNumConnectedPeers();
+    }
+
+    public int getMaxNumConnectedPeers() {
+        return config.getMaxNumConnectedPeers();
     }
 
     public boolean notMyself(Address address) {
@@ -116,5 +137,4 @@ public class PeerGroup implements ConnectionListener {
     public boolean notMyself(Peer peer) {
         return notMyself(peer.getAddress());
     }
-
 }

@@ -23,7 +23,7 @@ import network.misq.network.NetworkService;
 import network.misq.network.p2p.P2pServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
 
 import java.util.*;
 

@@ -15,11 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.router.gossip;
+package network.misq.network.p2p.services.mesh.peers;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import network.misq.network.p2p.message.Message;
 
-public record GossipMessage(Message message) implements Message {
+import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.transport.Transport;
+
+import java.util.List;
+import java.util.Map;
+
+public record SeedNodeRepository(Map<Transport.Type, List<Address>> addressesByTransportType) {
 }

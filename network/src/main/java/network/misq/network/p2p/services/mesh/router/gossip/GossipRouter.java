@@ -53,9 +53,8 @@ public class GossipRouter implements MessageListener {
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        if (message instanceof GossipMessage) {
-            GossipMessage gossipMessage = (GossipMessage) message;
-            messageListeners.forEach(listener -> listener.onMessage(gossipMessage.getMessage(), connection, nodeId));
+        if (message instanceof GossipMessage gossipMessage) {
+            messageListeners.forEach(listener -> listener.onMessage(gossipMessage.message(), connection, nodeId));
         }
     }
 

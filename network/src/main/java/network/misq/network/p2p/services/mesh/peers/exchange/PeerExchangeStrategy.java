@@ -17,150 +17,167 @@
 
 package network.misq.network.p2p.services.mesh.peers.exchange;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * Simple implements the strategy how to select the peers for peer exchange.
- */
 @Slf4j
 public class PeerExchangeStrategy {
-    private final PeerGroup peerGroup;
-    private final PeerExchangeConfig peerExchangeConfig;
-    // We keep track of the addresses we contacted so in case we need to make a repeated request round that we do not \
-    // pick the same addresses.
-    private final Set<Address> usedAddresses = new HashSet<>();
-    private final List<Address> seedNodeAddresses;
+    private static final long REPORTED_PEERS_LIMIT = 100;
+    private static final long MAX_AGE = TimeUnit.DAYS.toMillis(10);
 
-    public PeerExchangeStrategy(PeerGroup peerGroup, List<Address> seedNodeAddresses, PeerExchangeConfig peerExchangeConfig) {
+    @Getter
+    public static class Config {
+        private final int numSeeNodesAtBoostrap;
+        private final int numPersistedPeersAtBoostrap;
+        private final int numReportedPeersAtBoostrap;
+        private final int repeatPeerExchangeDelay;
+
+        public Config() {
+            this(2, 8, 4, 300);
+        }
+
+        public Config(int numSeeNodesAtBoostrap,
+                      int numPersistedPeersAtBoostrap,
+                      int numReportedPeersAtBoostrap,
+                      int repeatPeerExchangeDelay) {
+            this.numSeeNodesAtBoostrap = numSeeNodesAtBoostrap;
+            this.numPersistedPeersAtBoostrap = numPersistedPeersAtBoostrap;
+            this.numReportedPeersAtBoostrap = numReportedPeersAtBoostrap;
+            this.repeatPeerExchangeDelay = repeatPeerExchangeDelay;
+        }
+    }
+
+    private final PeerGroup peerGroup;
+    private final List<Address> seedNodeAddresses;
+    private final Config config;
+    private final Set<Address> usedAddresses = new CopyOnWriteArraySet<>();
+
+    public PeerExchangeStrategy(PeerGroup peerGroup, List<Address> seedNodeAddresses, Config config) {
         this.peerGroup = peerGroup;
         this.seedNodeAddresses = seedNodeAddresses;
-        this.peerExchangeConfig = peerExchangeConfig;
+        this.config = config;
     }
 
-    public boolean sufficientSuccess(int numSuccess, int numRequests) {
-        return numSuccess > numRequests / 2;
-    }
+    List<Address> getAddressesForPeerExchange() {
+        int numSeeNodesAtBoostrap = config.getNumSeeNodesAtBoostrap();
+        int numPersistedPeersAtBoostrap = config.getNumPersistedPeersAtBoostrap();
+        int numReportedPeersAtBoostrap = config.getNumReportedPeersAtBoostrap();
+        int maxNumConnectedPeers = peerGroup.getMaxNumConnectedPeers();
 
-    public void addPeersFromPeerExchange(Set<Peer> peers) {
-        Set<Peer> collect = peers.stream()
+        List<Address> seeds = getShuffled(seedNodeAddresses).stream()
                 .filter(peerGroup::notMyself)
-                .collect(Collectors.toSet());
-        peerGroup.addReportedPeers(collect);
-    }
-
-    public Set<Peer> getPeersForPeerExchange(Address peerAddress) {
-        List<Peer> list = peerGroup.getReportedPeers().stream()
-                .sorted(Comparator.comparing(Peer::getDate))
-                .limit(100)
-                .collect(Collectors.toList());
-        Set<Peer> allConnectedPeers = peerGroup.getAllConnectedPeers();
-        list.addAll(allConnectedPeers);
-        return list.stream()
-                .filter(this::notASeed)
-                .filter(peerGroup::notMyself)
-                .filter(peer -> notTargetPeer(peerAddress, peer))
-                .collect(Collectors.toSet());
-    }
-
-    public List<Address> getAddressesForPeerExchange() {
-        int numSeeNodesAtBoostrap = peerExchangeConfig.getNumSeeNodesAtBoostrap();
-        int numPersistedPeersAtBoostrap = peerExchangeConfig.getNumPersistedPeersAtBoostrap();
-        int numReportedPeersAtBoostrap = peerExchangeConfig.getNumReportedPeersAtBoostrap();
-        int minNumConnectedPeers = peerGroup.getConfig().getMinNumConnectedPeers();
-
-        Set<Address> seeds = seedNodeAddresses.stream()
-                .filter(peerGroup::notMyself)
-                .filter(this::notUsedYet)
+                .filter(this::isNotUsed)
                 .limit(numSeeNodesAtBoostrap)
-                .collect(Collectors.toSet()); //2
+                .collect(Collectors.toList());
 
-        // Usually we don't have reported peers at startup, but in case or repeated bootstrap attempts we likely have
-        // as well it could be that other nodes have started peer exchange to ourself before we start the peer exchange.
+        // Usually we don't have reported peers at startup, but in case of repeated bootstrap attempts we likely have some.
+        // It could be also that other nodes have started peer exchange to ourselves before we start the peer exchange.
         Set<Address> reported = peerGroup.getReportedPeers().stream()
+                .sorted(Comparator.comparing(Peer::getDate))
                 .map(Peer::getAddress)
-                .filter(peerGroup::notMyself)
-                /* .filter(this::notUsedYet)
-                 .limit(numReportedPeersAtBoostrap)*/
-                .collect(Collectors.toSet()); //4
+                .filter(this::isNotUsed)
+                .limit(numReportedPeersAtBoostrap)
+                .collect(Collectors.toSet());
 
         Set<Address> persisted = peerGroup.getPersistedPeers().stream()
+                .sorted(Comparator.comparing(Peer::getDate))
                 .map(Peer::getAddress)
-                .filter(peerGroup::notMyself)
-                /* .filter(this::notUsedYet)
-                 .limit(numPersistedPeersAtBoostrap)*/
-                .collect(Collectors.toSet()); //8
-
-        Set<Address> connectedPeerAddresses = peerGroup.getConnectedPeerAddresses().stream()
-                .filter(peerGroup::notMyself)
-                /* .filter(this::notUsedYet)
-                 .filter(this::notASeed)*/
+                .filter(this::isNotUsed)
+                .limit(numPersistedPeersAtBoostrap)
                 .collect(Collectors.toSet());
 
-        // If we have already connections (at repeated bootstraps) we limit the new set to what is missing to reach out
-        // target.
+        Set<Address> connectedPeerAddresses = peerGroup.getConnectedPeerAddresses().stream()
+                .filter(this::notASeed)
+                .filter(this::isNotUsed)
+                .collect(Collectors.toSet());
+
+        List<Address> priorityList = new ArrayList<>(seeds);
+        priorityList.addAll(reported);
+        priorityList.addAll(persisted);
+        priorityList.addAll(connectedPeerAddresses);
+
         int numConnections = peerGroup.getAllConnectedPeers().size();
-        int candidates = seeds.size() + reported.size() + persisted.size();
-        int missingConnections = numConnections > 0 ?
-                minNumConnectedPeers - numConnections //8
-                : candidates;
-        missingConnections = Math.max(0, missingConnections);
+        int midNumConnectedPeers = maxNumConnectedPeers - peerGroup.getMinNumConnectedPeers();
+        int missing = Math.max(0, midNumConnectedPeers - numConnections);
 
-        // In case we apply the limit it will be applied at the persisted first which is intended as those are the least
-        // likely to be successful.
-        List<Address> all = new ArrayList<>(seeds);
-        all.addAll(reported);
-        all.addAll(persisted);
-        all.addAll(connectedPeerAddresses);
-
-        List<Address> result = all.stream()
-                /*.limit(missingConnections)*/
+        List<Address> candidates = priorityList.stream()
+                .limit(missing)
                 .collect(Collectors.toList());
-        usedAddresses.addAll(result);
-        return result;
+        usedAddresses.addAll(candidates);
+        return candidates;
     }
 
-    public boolean notASeed(Address address) {
-        return seedNodeAddresses.stream().noneMatch(seedAddress -> seedAddress.equals(address));
+    Set<Peer> getPeers(Address peerAddress) {
+        List<Peer> list = new ArrayList<>(peerGroup.getAllConnectedPeers());
+        list.addAll(peerGroup.getReportedPeers().stream()
+                .sorted(Comparator.comparing(Peer::getDate))
+                .collect(Collectors.toList()));
+        return list.stream()
+                .filter(peer -> isValid(peerAddress, peer))
+                .limit(REPORTED_PEERS_LIMIT)
+                .collect(Collectors.toSet());
     }
 
-    public boolean notASeed(Peer peer) {
-        return notASeed(peer.getAddress());
+    void addReportedPeers(Set<Peer> peers, Address peerAddress) {
+        Set<Peer> filtered = peers.stream()
+                .filter(peer -> isValid(peerAddress, peer))
+                .limit(REPORTED_PEERS_LIMIT)
+                .collect(Collectors.toSet());
+        peerGroup.addReportedPeers(filtered);
     }
 
-    public boolean repeatBootstrap(long numSuccess, int numFutures) {
-        long failures = numFutures - numSuccess;
-        boolean moreThenHalfFailed = failures > numFutures / 2;
-        return numSuccess == 0 ||
-                moreThenHalfFailed ||
+    boolean repeatBootstrap(long numSuccess, int numRequests) {
+        boolean moreThenHalfFailed = numRequests - numSuccess > numRequests / 2;
+        return moreThenHalfFailed ||
                 !sufficientConnections() ||
                 !sufficientReportedPeers();
     }
 
-    public long getRepeatBootstrapDelay() {
-        return peerExchangeConfig.getRepeatPeerExchangeDelay();
-    }
-
-    private boolean sufficientReportedPeers() {
-        return peerGroup.getReportedPeers().size() >= peerGroup.getConfig().getMinNumReportedPeers();
+    void shutdown() {
+        usedAddresses.clear();
     }
 
     private boolean sufficientConnections() {
-        return peerGroup.getAllConnectedPeers().size() >= peerGroup.getConfig().getMinNumConnectedPeers();
+        return peerGroup.getAllConnectedPeers().size() >= peerGroup.getMinNumConnectedPeers();
     }
 
-    private boolean notUsedYet(Address address) {
-        //todo check deactivated atm
-        return true || !usedAddresses.contains(address);
+    private boolean sufficientReportedPeers() {
+        return peerGroup.getReportedPeers().size() >= peerGroup.getMinNumReportedPeers();
+    }
+
+    private boolean notASeed(Address address) {
+        return seedNodeAddresses.stream().noneMatch(seedAddress -> seedAddress.equals(address));
+    }
+
+    private boolean notASeed(Peer peer) {
+        return notASeed(peer.getAddress());
+    }
+
+    private boolean isDateValid(Peer peer) {
+        return peer.getAge() < MAX_AGE;
+    }
+
+    private boolean isNotUsed(Address address) {
+        return !usedAddresses.contains(address);
     }
 
     private boolean notTargetPeer(Address peerAddress, Peer peer) {
         return !peer.getAddress().equals(peerAddress);
+    }
+
+    private boolean isValid(Address peerAddress, Peer peer) {
+        return notTargetPeer(peerAddress, peer) &&
+                peerGroup.notMyself(peer) &&
+                notASeed(peer) &&
+                isDateValid(peer);
     }
 
     private List<Address> getShuffled(Collection<Address> addresses) {
@@ -168,5 +185,4 @@ public class PeerExchangeStrategy {
         Collections.shuffle(list);
         return list;
     }
-
 }

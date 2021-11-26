@@ -35,9 +35,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -137,7 +135,20 @@ public class Node {
 
     public CompletableFuture<Connection> send(Message message, Connection connection) {
         return authorizationService.createToken(message.getClass())
-                .thenCompose(token -> connection.send(new AuthorizedMessage(message, token)))
+                .thenCompose(token -> {
+                    if (message instanceof CloseConnectionMessage) {
+                        // We give it 2 sec for sending out the msg then we close the connection
+                        Timer timer = new Timer();
+                        timer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                connection.shutdown();
+                                timer.cancel();
+                            }
+                        }, 2000);
+                    }
+                    return connection.send(new AuthorizedMessage(message, token));
+                })
                 .exceptionally(exception -> {
                     handleException(connection, exception);
                     return connection;
@@ -205,7 +216,11 @@ public class Node {
     private void onMessage(Message message, Connection connection) {
         if (!isStopped && message instanceof AuthorizedMessage authorizedMessage) {
             if (authorizationService.isAuthorized(authorizedMessage)) {
-                runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
+                if (authorizedMessage.message() instanceof CloseConnectionMessage) {
+                    connection.shutdown();
+                } else {
+                    runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
+                }
             } else {
                 log.warn("Message authorization failed. authorizedMessage={}", StringUtils.truncate(authorizedMessage.toString()));
             }

@@ -25,7 +25,6 @@ import network.misq.network.p2p.services.mesh.peers.PeerGroupHealth;
 import network.misq.network.p2p.services.mesh.peers.PeerGroupService;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +35,7 @@ public class MeshService {
     private final PeerGroup peerGroup;
     private final PeerGroupService peerGroupService;
 
-    public static record Config(PeerExchangeConfig peerExchangeConfig, List<Address> seedNodeAddresses) {
+    public static record Config(PeerExchangeStrategy.Config peerExchangeConfig, List<Address> seedNodeAddresses) {
     }
 
     public MeshService(Node node, Config config) {
@@ -45,8 +44,8 @@ public class MeshService {
         peerGroup = new PeerGroup(node, peerGroupConfig);
         PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(peerGroup, seedNodeAddresses, config.peerExchangeConfig());
         PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
-        PeerGroupHealth peerGroupHealth = new PeerGroupHealth(node, peerGroup);
-        peerGroupService = new PeerGroupService(peerGroup, peerGroupHealth, peerExchangeService);
+        PeerGroupHealth peerGroupHealth = new PeerGroupHealth(node, peerGroup,peerExchangeService);
+        peerGroupService = new PeerGroupService(peerGroupHealth, peerExchangeService);
     }
 
     public CompletableFuture<Boolean> initialize() {
@@ -54,6 +53,7 @@ public class MeshService {
     }
 
     public CompletableFuture<Void> shutdown() {
-        return peerGroupService.shutdown();
+        peerGroupService.shutdown();
+        return CompletableFuture.completedFuture(null);
     }
 }

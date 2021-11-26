@@ -48,58 +48,33 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class PeerGroupService {
 
-    private final PeerGroup peerGroup;
     private final PeerGroupHealth peerGroupHealth;
     private final PeerExchangeService peerExchangeService;
     private volatile boolean isStopped;
 
-    public PeerGroupService(PeerGroup peerGroup,
-                            PeerGroupHealth peerGroupHealth,
+    public PeerGroupService(PeerGroupHealth peerGroupHealth,
                             PeerExchangeService peerExchangeService) {
-        this.peerGroup = peerGroup;
         this.peerGroupHealth = peerGroupHealth;
         this.peerExchangeService = peerExchangeService;
     }
 
     public CompletableFuture<Boolean> initialize() {
-        return peerExchangeService.initialize()
-                .thenCompose(sufficientSuccess -> {
-                    if (!sufficientSuccess) {
+        return peerExchangeService.startPeerExchange()
+                .thenCompose(repeatBootstrap -> {
+                    if (repeatBootstrap) {
                         // If we did not have sufficient successful requests we repeat once and ignore result.
-                        peerExchangeService.initialize();
+                        peerExchangeService.startPeerExchange();
                     }
                     return peerGroupHealth.initialize();
                 });
     }
 
-    public CompletableFuture<Void> shutdown() {
+    public void shutdown() {
         if (isStopped) {
-            return CompletableFuture.completedFuture(null);
+            return;
         }
         isStopped = true;
-        return CompletableFuture.allOf(peerExchangeService.shutdown(),
-                peerGroupHealth.shutdown());
+        peerGroupHealth.shutdown();
+        peerExchangeService.shutdown();
     }
-
-    public boolean sufficientPeersAtPeerExchange() {
-        return sufficientConnections() && sufficientReportedPeers();
-    }
-
-    private boolean sufficientReportedPeers() {
-        return peerGroup.getReportedPeers().size() >= peerGroup.getConfig().getMinNumReportedPeers();
-    }
-
-    private boolean sufficientConnections() {
-        return peerGroup.getAllConnectedPeers().size() >= peerGroup.getConfig().getMinNumConnectedPeers();
-    }
-
-   /* @VisibleForTesting
-    public PeerGroup getPeerGroup() {
-        return peerGroup;
-    }*/
-
-  /*  @VisibleForTesting
-    public Node getGuard() {
-        return node;
-    }*/
 }

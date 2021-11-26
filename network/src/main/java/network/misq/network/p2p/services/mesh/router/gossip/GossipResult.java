@@ -17,26 +17,5 @@
 
 package network.misq.network.p2p.services.mesh.router.gossip;
 
-import lombok.Getter;
-
-@Getter
-public class GossipResult {
-    private final int numSuccess;
-    private final int numFaults;
-    private final long duration;
-
-    public GossipResult(int numSuccess, int numFaults, long duration) {
-        this.numSuccess = numSuccess;
-        this.numFaults = numFaults;
-        this.duration = duration;
-    }
-
-    @Override
-    public String toString() {
-        return "GossipResult{" +
-                "\r\n     numSuccess=" + numSuccess +
-                ",\r\n     numFaults=" + numFaults +
-                ",\r\n     duration=" + duration +
-                "\r\n}";
-    }
+public record GossipResult(int numSuccess, int numFaults, long duration) {
 }

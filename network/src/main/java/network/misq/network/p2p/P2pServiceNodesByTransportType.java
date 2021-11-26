@@ -33,8 +33,8 @@ import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
-import network.misq.network.p2p.services.mesh.discovery.SeedNodeRepository;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeConfig;
+import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
@@ -71,8 +71,8 @@ public class P2pServiceNodesByTransportType {
                     supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
                     new Transport.Config(baseDirPath));
-            MeshService.Config meshServiceConfig = new MeshService.Config(new PeerExchangeConfig(),
-                    seedNodeRepository.getAddressesByTransportType().get(transportType));
+            MeshService.Config meshServiceConfig = new MeshService.Config(new PeerExchangeStrategy.Config(),
+                    seedNodeRepository.addressesByTransportType().get(transportType));
             P2pServiceNode p2PServiceNode = new P2pServiceNode(p2pServiceNodeConfig,
                     config,
                     meshServiceConfig,

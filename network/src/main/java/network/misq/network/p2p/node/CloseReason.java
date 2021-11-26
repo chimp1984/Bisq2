@@ -15,11 +15,8 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.router.gossip;
+package network.misq.network.p2p.node;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import network.misq.network.p2p.message.Message;
-
-public record GossipMessage(Message message) implements Message {
+public enum CloseReason {
+    TOO_MANY_CONNECTIONS
 }
