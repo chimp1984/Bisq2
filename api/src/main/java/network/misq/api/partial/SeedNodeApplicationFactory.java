@@ -59,7 +59,7 @@ public class SeedNodeApplicationFactory implements ApplicationFactory {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         // Assuming identityRepository depends on keyPairRepository being initialized... 
         allFutures.add(keyPairRepository.initialize());
-        allFutures.add(networkService.initialize());
+        allFutures.add(networkService.bootstrap());
         // Once all have successfully completed our initialize is complete as well
         return CompletableFutureUtils.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))

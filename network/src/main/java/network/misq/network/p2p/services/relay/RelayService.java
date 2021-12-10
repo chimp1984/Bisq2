@@ -17,8 +17,12 @@
 
 package network.misq.network.p2p.services.relay;
 
+import network.misq.network.p2p.NetworkId;
+import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Node;
 
+import java.security.KeyPair;
 import java.util.concurrent.CompletableFuture;
 
 //TODO
@@ -29,5 +33,18 @@ public class RelayService {
 
     public CompletableFuture<Void> shutdown() {
         return CompletableFuture.completedFuture(null);
+    }
+
+    public CompletableFuture<Connection> relay(Message message, NetworkId networkId, KeyPair myKeyPair) {
+       /*   Set<Connection> connections = getConnectionsWithSupportedNetwork(peerAddress.getNetworkType());
+      Connection outboundConnection = CollectionUtil.getRandomElement(connections);
+        if (outboundConnection != null) {
+            //todo we need 2 diff. pub keys for encryption here
+            // ConfidentialMessage inner = seal(message);
+            // RelayMessage relayMessage = new RelayMessage(inner, peerAddress);
+            // ConfidentialMessage confidentialMessage = seal(relayMessage);
+            // return node.send(confidentialMessage, outboundConnection);
+        }*/
+        return CompletableFuture.failedFuture(new Exception("No connection supporting that network type found."));
     }
 }

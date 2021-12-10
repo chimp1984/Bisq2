@@ -27,13 +27,13 @@ import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pServiceNodesByTransportType;
+import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.Asset;
 import network.misq.offer.Offer;
 import network.misq.protocol.ContractMaker;
-import network.misq.protocol.MockP2PServiceTransport;
+import network.misq.protocol.MockServiceTransport;
 import network.misq.protocol.ProtocolExecutor;
 import network.misq.protocol.multiSig.MultiSig;
 import network.misq.protocol.multiSig.MultiSigProtocol;
@@ -57,13 +57,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 public abstract class MultiSigTest {
-    private P2pServiceNodesByTransportType networkService;
+    private ServiceNodesByTransport networkService;
 
     @BeforeEach
     public void setup() {
         // We share a network mock to call MessageListeners when sending a msg (e.g. alice send a msg and
         // bob receives the event)
-        networkService = new MockP2PServiceTransport();
+        networkService = new MockServiceTransport();
     }
 
     protected abstract Chain getChain();
@@ -73,7 +73,7 @@ public abstract class MultiSigTest {
     protected abstract Wallet getMakerWallet();
 
     protected void run() {
-        P2pServiceNodesByTransportType networkService = new MockP2PServiceTransport();
+        ServiceNodesByTransport networkService = new MockServiceTransport();
         // create offer
         NetworkId makerNetworkId = new NetworkId(Map.of(Transport.Type.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);

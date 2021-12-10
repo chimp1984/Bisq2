@@ -19,7 +19,6 @@ package network.misq.network.p2p;
 
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
-import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
@@ -33,6 +32,7 @@ import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
@@ -40,10 +40,12 @@ import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -51,38 +53,41 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-/**
- * Maintains P2pServiceNode per NetworkType
- */
-public class P2pServiceNodesByTransportType {
-    private static final Logger log = LoggerFactory.getLogger(P2pServiceNodesByTransportType.class);
+public class ServiceNodesByTransport {
+    private static final Logger log = LoggerFactory.getLogger(ServiceNodesByTransport.class);
 
-    private final Map<Transport.Type, P2pServiceNode> p2pServiceNodeByTransportType = new ConcurrentHashMap<>();
+    private final Map<Transport.Type, ServiceNode> serviceNodesByTransport = new ConcurrentHashMap<>();
 
-    public P2pServiceNodesByTransportType(String baseDirPath,
-                                          Set<Transport.Type> supportedTransportTypes,
-                                          P2pServiceNode.Config p2pServiceNodeConfig,
-                                          SeedNodeRepository seedNodeRepository,
-                                          DataService.Config dataServiceConfig,
-                                          KeyPairRepository keyPairRepository) {
+    public ServiceNodesByTransport(String baseDirPath,
+                                   Set<Transport.Type> supportedTransportTypes,
+                                   ServiceNode.Config serviceNodeConfig,
+                                   PeerGroup.Config peerGroupConfig,
+                                   PeerExchangeStrategy.Config peerExchangeConfig,
+                                   SeedNodeRepository seedNodeRepository,
+                                   DataService.Config dataServiceConfig,
+                                   KeyPairRepository keyPairRepository) {
         supportedTransportTypes.forEach(transportType -> {
-            Node.Config config = new Node.Config(transportType,
+            Node.Config nodeConfig = new Node.Config(transportType,
                     supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
                     new Transport.Config(baseDirPath));
-            MeshService.Config meshServiceConfig = new MeshService.Config(new PeerExchangeStrategy.Config(),
+
+            MeshService.Config meshServiceConfig = new MeshService.Config(peerGroupConfig,
+                    peerExchangeConfig,
                     seedNodeRepository.addressesByTransportType().get(transportType));
-            P2pServiceNode p2PServiceNode = new P2pServiceNode(p2pServiceNodeConfig,
-                    config,
+            
+            ServiceNode serviceNode = new ServiceNode(serviceNodeConfig,
+                    nodeConfig,
                     meshServiceConfig,
                     dataServiceConfig,
                     new ConfidentialMessageService.Config(keyPairRepository));
-            p2pServiceNodeByTransportType.put(transportType, p2PServiceNode);
+            serviceNodesByTransport.put(transportType, serviceNode);
         });
     }
 
-    public P2pServiceNodesByTransportType() {
+    public ServiceNodesByTransport() {
     }
 
 
@@ -90,66 +95,62 @@ public class P2pServiceNodesByTransportType {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
-     * otherwise returns false.
-     */
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<Transport.ServerSocketResult, Throwable> resultHandler) {
+    public CompletableFuture<Boolean> bootstrap() {
+        return bootstrap(null);
+    }
+
+    public CompletableFuture<Boolean> bootstrap(@Nullable BiConsumer<Boolean, Throwable> resultHandler) {
+        return bootstrap(NetworkUtils.findFreeSystemPort(), resultHandler);
+    }
+
+    public CompletableFuture<Boolean> bootstrap(int port) {
+        return bootstrap(port, null);
+    }
+
+    public CompletableFuture<Boolean> bootstrap(int port, @Nullable BiConsumer<Boolean, Throwable> resultHandler) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         AtomicInteger completed = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
-        int numNodes = p2pServiceNodeByTransportType.size();
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
-            networkNode.initializeServer(Node.DEFAULT_NODE_ID, NetworkUtils.findFreeSystemPort())
-                    .whenComplete((serverInfo, throwable) -> {
-                        if (serverInfo != null) {
-                            resultHandler.accept(serverInfo, null);
+        int numNodes = serviceNodesByTransport.size();
+        serviceNodesByTransport.values().forEach(networkNode -> {
+            networkNode.bootstrap(Node.DEFAULT_NODE_ID, port)
+                    .whenComplete((result, throwable) -> {
+                        if (result != null) {
                             int compl = completed.incrementAndGet();
                             if (compl + failed.get() == numNodes) {
                                 future.complete(compl == numNodes);
                             }
                         } else {
                             log.error(throwable.toString(), throwable);
-                            resultHandler.accept(null, throwable);
                             if (failed.incrementAndGet() + completed.get() == numNodes) {
                                 future.complete(false);
                             }
+                        }
+                        if (resultHandler != null) {
+                            resultHandler.accept(result, throwable);
                         }
                     });
         });
         return future;
     }
 
-    /**
-     * Completes if all networkNodes are completed. Return true if all servers have been successfully completed
-     * and at least one has been successful.
-     */
-    public CompletableFuture<Boolean> initializeMesh() {
-        List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        p2pServiceNodeByTransportType.values().forEach(p2pServiceNode -> {
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            allFutures.add(future);
-            p2pServiceNode.initializeMesh()
-                    .whenComplete((success, throwable) -> {
-                        if (throwable == null) {
-                            future.complete(success); // Can be still false
-                        } else {
-                            future.complete(false);
-                        }
-                    });
-        });
-        return CompletableFutureUtils.allOf(allFutures)                                 // We require all futures to be completed
-                .thenApply(resultList -> resultList.stream().anyMatch(e -> e))  // If at least one network succeeded
-                .thenCompose(CompletableFuture::completedFuture);               // If at least one was successful we report a success
-    }
-
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair, String connectionId) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         networkId.addressByNetworkType().forEach((transportType, address) -> {
-            try {
-                if (p2pServiceNodeByTransportType.containsKey(transportType)) {
-                    p2pServiceNodeByTransportType.get(transportType)
-                            .confidentialSend(message, networkId.addressByNetworkType().get(transportType), networkId.pubKey(), myKeyPair, connectionId)
+            if (serviceNodesByTransport.containsKey(transportType)) {
+                serviceNodesByTransport.get(transportType)
+                        .confidentialSend(message, networkId.addressByNetworkType().get(transportType), networkId.pubKey(), myKeyPair, connectionId)
+                        .whenComplete((connection, throwable) -> {
+                            if (connection != null) {
+                                future.complete(connection);
+                            } else {
+                                log.error(throwable.toString(), throwable);
+                                future.completeExceptionally(throwable);
+                            }
+                        });
+            } else {
+                serviceNodesByTransport.values().forEach(networkNode -> {
+                    networkNode.relay(message, networkId, myKeyPair)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
                                     future.complete(connection);
@@ -158,28 +159,14 @@ public class P2pServiceNodesByTransportType {
                                     future.completeExceptionally(throwable);
                                 }
                             });
-                } else {
-                    p2pServiceNodeByTransportType.values().forEach(networkNode -> {
-                        networkNode.relay(message, networkId, myKeyPair)
-                                .whenComplete((connection, throwable) -> {
-                                    if (connection != null) {
-                                        future.complete(connection);
-                                    } else {
-                                        log.error(throwable.toString(), throwable);
-                                        future.completeExceptionally(throwable);
-                                    }
-                                });
-                    });
-                }
-            } catch (GeneralSecurityException e) {
-                e.printStackTrace();
+                });
             }
         });
         return future;
     }
 
     public void requestAddData(Message message, Consumer<GossipResult> resultHandler) {
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
+        serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.requestAddData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -192,7 +179,7 @@ public class P2pServiceNodesByTransportType {
     }
 
     public void requestRemoveData(Message message, Consumer<GossipResult> resultHandler) {
-        p2pServiceNodeByTransportType.values().forEach(dataService -> {
+        serviceNodesByTransport.values().forEach(dataService -> {
             dataService.requestRemoveData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -205,7 +192,7 @@ public class P2pServiceNodesByTransportType {
     }
 
     public void requestInventory(DataFilter dataFilter, Consumer<RequestInventoryResult> resultHandler) {
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
+        serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.requestInventory(dataFilter)
                     .whenComplete((requestInventoryResult, throwable) -> {
                         if (requestInventoryResult != null) {
@@ -218,9 +205,9 @@ public class P2pServiceNodesByTransportType {
     }
 
     public Optional<Socks5Proxy> getSocksProxy() {
-        if (p2pServiceNodeByTransportType.containsKey(Transport.Type.TOR)) {
+        if (serviceNodesByTransport.containsKey(Transport.Type.TOR)) {
             try {
-                return p2pServiceNodeByTransportType.get(Transport.Type.TOR).getSocksProxy();
+                return serviceNodesByTransport.get(Transport.Type.TOR).getSocksProxy();
             } catch (IOException e) {
                 return Optional.empty();
             }
@@ -230,44 +217,41 @@ public class P2pServiceNodesByTransportType {
     }
 
     public void addMessageListener(MessageListener messageListener) {
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
+        serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.addMessageListener(messageListener);
         });
     }
 
     public void removeMessageListener(MessageListener messageListener) {
-        p2pServiceNodeByTransportType.values().forEach(networkNode -> {
+        serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.removeMessageListener(messageListener);
         });
     }
 
     public CompletableFuture<Void> shutdown() {
-        CountDownLatch latch = new CountDownLatch(p2pServiceNodeByTransportType.size());
+        CountDownLatch latch = new CountDownLatch(serviceNodesByTransport.size());
         return CompletableFuture.runAsync(() -> {
-            p2pServiceNodeByTransportType.values()
-                    .forEach(p2pServiceNode -> p2pServiceNode.shutdown().whenComplete((v, t) -> latch.countDown()));
+            serviceNodesByTransport.values()
+                    .forEach(serviceNode -> serviceNode.shutdown().whenComplete((v, t) -> latch.countDown()));
             try {
                 latch.await(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Shutdown interrupted by timeout");
             }
-            p2pServiceNodeByTransportType.clear();
+            serviceNodesByTransport.clear();
         });
     }
 
-
-    //todo
-  /*  public Optional<Address> findMyAddress(NetworkType networkType) {
-        return p2pNodes.get(networkType).findMyAddress();
+    public Map<Transport.Type, Map<String, Address>> findMyAddresses() {
+        return serviceNodesByTransport.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAddressesByNodeId()));
     }
 
-    public Set<Address> findMyAddresses() {
-        return p2pNodes.values().stream()
-                .flatMap(networkNode -> networkNode.findMyAddress().stream())
-                .collect(Collectors.toSet());
-    }*/
+    public Optional<Map<String, Address>> findMyAddresses(Transport.Type transport) {
+        return Optional.ofNullable(findMyAddresses().get(transport));
+    }
 
-    public Set<Address> findMyAddresses() {
-        return new HashSet<>(); //todo
+    public Optional<Address> findMyAddresses(Transport.Type transport, String nodeId) {
+        return findMyAddresses(transport).map(map -> map.get(nodeId));
     }
 }

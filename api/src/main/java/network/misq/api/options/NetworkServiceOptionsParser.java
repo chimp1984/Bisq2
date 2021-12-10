@@ -20,10 +20,12 @@ package network.misq.api.options;
 import lombok.Getter;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.network.NetworkService;
-import network.misq.network.p2p.P2pServiceNode;
+import network.misq.network.p2p.ServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
 
 import java.util.*;
 
@@ -39,22 +41,27 @@ public class NetworkServiceOptionsParser {
 
         Set<Transport.Type> supportedTransportTypes = Set.of(Transport.Type.CLEAR_NET, Transport.Type.TOR, Transport.Type.I2P);
 
-        P2pServiceNode.Config p2pServiceNodeConfig = new P2pServiceNode.Config(Set.of(
-                P2pServiceNode.Service.CONFIDENTIAL,
-                P2pServiceNode.Service.MESH,
-                P2pServiceNode.Service.DATA,
-                P2pServiceNode.Service.RELAY));
+        ServiceNode.Config serviceNodeConfig = new ServiceNode.Config(Set.of(
+                ServiceNode.Service.CONFIDENTIAL,
+                ServiceNode.Service.MESH,
+                ServiceNode.Service.DATA,
+                ServiceNode.Service.RELAY,
+                ServiceNode.Service.MONITOR));
 
-        List<Address> seedNodes = List.of(Address.localHost(1111));
+        PeerGroup.Config peerGroupConfig = new PeerGroup.Config();
+        PeerExchangeStrategy.Config peerExchangeStrategyConfig = new PeerExchangeStrategy.Config();
 
-        Map<Transport.Type, List<Address>> addressByTransportType = Map.of(Transport.Type.TOR, Arrays.asList(Address.localHost(1000), Address.localHost(1001)),
+        Map<Transport.Type, List<Address>> seedsByTransportType = Map.of(Transport.Type.TOR, Arrays.asList(Address.localHost(1000), Address.localHost(1001)),
                 Transport.Type.I2P, Arrays.asList(Address.localHost(1000), Address.localHost(1001)),
                 Transport.Type.CLEAR_NET, Arrays.asList(Address.localHost(1000), Address.localHost(1001)));
-        SeedNodeRepository seedNodeRepository = new SeedNodeRepository(addressByTransportType);
-
+       
+        SeedNodeRepository seedNodeRepository = new SeedNodeRepository(seedsByTransportType);
+      
         config = new NetworkService.Config(baseDirPath,
                 supportedTransportTypes,
-                p2pServiceNodeConfig,
+                serviceNodeConfig,
+                peerGroupConfig,
+                peerExchangeStrategyConfig,
                 seedNodeRepository,
                 Optional.empty());
     }

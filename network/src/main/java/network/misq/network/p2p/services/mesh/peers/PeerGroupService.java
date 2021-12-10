@@ -62,8 +62,8 @@ public class PeerGroupService {
         return peerExchangeService.startPeerExchange()
                 .thenCompose(repeatBootstrap -> {
                     if (repeatBootstrap) {
-                        // If we did not have sufficient successful requests we repeat once and ignore result.
-                        peerExchangeService.startPeerExchange();
+                        // If we did not have sufficient successful requests we repeat with a delay.
+                        peerExchangeService.repeatPeerExchangeWithDelay();
                     }
                     return peerGroupHealth.initialize();
                 });

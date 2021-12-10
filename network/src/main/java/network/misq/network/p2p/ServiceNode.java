@@ -27,6 +27,7 @@ import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.MeshService;
+import network.misq.network.p2p.services.mesh.monitor.MonitorService;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.network.p2p.services.relay.RelayService;
 import network.misq.security.PubKey;
@@ -34,8 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -48,8 +49,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Creates nodeRepository and a default node
  * Creates services according to services defined in Config
  */
-public class P2pServiceNode {
-    private static final Logger log = LoggerFactory.getLogger(P2pServiceNode.class);
+public class ServiceNode {
+    private static final Logger log = LoggerFactory.getLogger(ServiceNode.class);
 
     public static record Config(Set<Service> services) {
     }
@@ -58,21 +59,23 @@ public class P2pServiceNode {
         MESH,
         DATA,
         CONFIDENTIAL,
-        RELAY
+        RELAY,
+        MONITOR
     }
 
     private final NodesById nodesById;
     private final Node defaultNode;
     private Optional<ConfidentialMessageService> confidentialMessageService;
-    private Optional<DataService> dataService;
     private Optional<MeshService> meshService;
+    private Optional<DataService> dataService;
     private Optional<RelayService> relayService;
+    private Optional<MonitorService> monitorService;
 
-    public P2pServiceNode(Config config,
-                          Node.Config nodeConfig,
-                          MeshService.Config meshServiceConfig,
-                          DataService.Config dataServiceConfig,
-                          ConfidentialMessageService.Config confMsgServiceConfig) {
+    public ServiceNode(Config config,
+                       Node.Config nodeConfig,
+                       MeshService.Config meshServiceConfig,
+                       DataService.Config dataServiceConfig,
+                       ConfidentialMessageService.Config confMsgServiceConfig) {
         nodesById = new NodesById(nodeConfig);
         defaultNode = nodesById.getDefaultNode();
 
@@ -80,7 +83,7 @@ public class P2pServiceNode {
         if (services.contains(Service.CONFIDENTIAL)) {
             confidentialMessageService = Optional.of(new ConfidentialMessageService(nodesById, confMsgServiceConfig));
         }
-       
+
         if (services.contains(Service.MESH)) {
             meshService = Optional.of(new MeshService(defaultNode, meshServiceConfig));
 
@@ -91,6 +94,10 @@ public class P2pServiceNode {
             if (services.contains(Service.RELAY)) {
                 relayService = Optional.of(new RelayService(defaultNode));
             }
+
+            if (services.contains(Service.MONITOR)) {
+                monitorService = Optional.of(new MonitorService(defaultNode));
+            }
         }
     }
 
@@ -99,24 +106,28 @@ public class P2pServiceNode {
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    public CompletableFuture<Boolean> bootstrap(String nodeId, int serverPort) {
+        return initializeServer(nodeId, serverPort)
+                .thenCompose(res -> initializeMesh());
+    }
+
     public CompletableFuture<Transport.ServerSocketResult> initializeServer(String nodeId, int serverPort) {
         return nodesById.initializeServer(nodeId, serverPort);
     }
 
     public CompletableFuture<Boolean> initializeMesh() {
-        checkArgument(meshService.isPresent());
-        return meshService.get().initialize();
+        return meshService.map(MeshService::initialize)
+                .orElse(CompletableFuture.completedFuture(true));
     }
 
-    public CompletableFuture<Connection> confidentialSend(Message message, Address address, PubKey pubKey, KeyPair myKeyPair, String connectionId)
-            throws GeneralSecurityException {
-        checkArgument(confidentialMessageService.isPresent());
-        return confidentialMessageService.get().send(message, address, pubKey, myKeyPair, connectionId);
+    public CompletableFuture<Connection> confidentialSend(Message message, Address address, PubKey pubKey, KeyPair myKeyPair, String nodeId) {
+        return confidentialMessageService.map(service -> service.send(message, address, pubKey, myKeyPair, nodeId))
+                .orElseThrow(() -> new RuntimeException("ConfidentialMessageService not present at confidentialSend"));
     }
 
     public CompletableFuture<Connection> relay(Message message, NetworkId networkId, KeyPair myKeyPair) {
-        checkArgument(confidentialMessageService.isPresent());
-        return confidentialMessageService.get().relay(message, networkId, myKeyPair);
+        return relayService.map(service -> service.relay(message, networkId, myKeyPair))
+                .orElseThrow(() -> new RuntimeException("RelayService not present at relay"));
     }
 
     public CompletableFuture<GossipResult> requestAddData(Message message) {
@@ -141,15 +152,17 @@ public class P2pServiceNode {
     public CompletableFuture<Void> shutdown() {
         CountDownLatch latch = new CountDownLatch(1 + // For nodesById
                 ((int) confidentialMessageService.stream().count()) +
-                ((int) relayService.stream().count()) +
                 ((int) meshService.stream().count()) +
-                ((int) dataService.stream().count()));
+                ((int) relayService.stream().count()) +
+                ((int) dataService.stream().count()) +
+                ((int) monitorService.stream().count()));
         return CompletableFuture.runAsync(() -> {
             nodesById.shutdown().whenComplete((v, t) -> latch.countDown());
             confidentialMessageService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
-            relayService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             meshService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             dataService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            relayService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            monitorService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
 
             try {
                 latch.await(1, TimeUnit.SECONDS);
@@ -165,5 +178,13 @@ public class P2pServiceNode {
 
     public void removeMessageListener(MessageListener messageListener) {
         confidentialMessageService.ifPresent(service -> service.removeMessageListener(messageListener));
+    }
+
+    public Optional<Address> findMyAddress(String nodeId) {
+        return nodesById.findMyAddress(nodeId);
+    }
+
+    public Map<String, Address> getAddressesByNodeId() {
+        return nodesById.getAddressesByNodeId();
     }
 }

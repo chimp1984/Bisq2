@@ -19,6 +19,7 @@ package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
@@ -29,6 +30,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Getter
 @Slf4j
@@ -49,8 +51,11 @@ class PeerExchangeRequestHandler implements MessageListener {
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof PeerExchangeResponse response) {
             if (response.nonce() == nonce) {
-                log.debug("Node {} received PeerExchangeResponse with peers {}",
-                        node.getMyAddress(), response.peers());
+                String addresses = StringUtils.truncate(response.peers().stream()
+                        .map(peer -> peer.getAddress().print())
+                        .collect(Collectors.toList()).toString());
+                log.info("Node {} received PeerExchangeResponse from {} with peers: {}",
+                        node.print(), connection.getPeerAddress(), addresses);
                 future.complete(response.peers());
                 node.removeMessageListener(this);
             }
@@ -60,7 +65,7 @@ class PeerExchangeRequestHandler implements MessageListener {
     CompletableFuture<Set<Peer>> request(Connection connection, Set<Peer> peersForPeerExchange) {
         future.orTimeout(TIMEOUT, TimeUnit.SECONDS);
         log.debug("Node {} send PeerExchangeRequest to {} with my peers {}",
-                node.getMyAddress(), connection.getPeerAddress(), peersForPeerExchange);
+                node.print(), connection.getPeerAddress(), peersForPeerExchange);
         node.send(new PeerExchangeRequest(nonce, peersForPeerExchange), connection)
                 .whenComplete((c, throwable) -> {
                     if (throwable != null) {

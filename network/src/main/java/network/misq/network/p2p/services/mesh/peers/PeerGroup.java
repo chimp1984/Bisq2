@@ -131,7 +131,7 @@ public class PeerGroup implements ConnectionListener {
     }
 
     public boolean notMyself(Address address) {
-        return node.getMyAddress().stream().noneMatch(myAddress -> myAddress.equals(address));
+        return node.findMyAddress().stream().noneMatch(myAddress -> myAddress.equals(address));
     }
 
     public boolean notMyself(Peer peer) {

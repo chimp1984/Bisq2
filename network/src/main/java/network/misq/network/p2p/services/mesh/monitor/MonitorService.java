@@ -15,18 +15,19 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.protocol;
+package network.misq.network.p2p.services.mesh.monitor;
 
-import network.misq.contract.Party;
-import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 
-public abstract class TwoPartyProtocol extends Protocol implements MessageListener {
-    protected final Party counterParty;
+import java.util.concurrent.CompletableFuture;
 
-    public TwoPartyProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService) {
-        super(contract, p2pService);
-        counterParty = contract.getCounterParty();
+//TODO
+public class MonitorService {
+    public MonitorService(Node node) {
+
+    }
+
+    public CompletableFuture<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 }

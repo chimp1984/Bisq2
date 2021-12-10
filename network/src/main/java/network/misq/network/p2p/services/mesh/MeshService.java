@@ -35,13 +35,12 @@ public class MeshService {
     private final PeerGroup peerGroup;
     private final PeerGroupService peerGroupService;
 
-    public static record Config(PeerExchangeStrategy.Config peerExchangeConfig, List<Address> seedNodeAddresses) {
+    public static record Config(PeerGroup.Config peerGroupConfig, PeerExchangeStrategy.Config peerExchangeConfig, List<Address> seedNodeAddresses) {
     }
 
     public MeshService(Node node, Config config) {
         List<Address> seedNodeAddresses = config.seedNodeAddresses();
-        PeerGroup.Config peerGroupConfig = new PeerGroup.Config();
-        peerGroup = new PeerGroup(node, peerGroupConfig);
+        peerGroup = new PeerGroup(node, config.peerGroupConfig);
         PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(peerGroup, seedNodeAddresses, config.peerExchangeConfig());
         PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
         PeerGroupHealth peerGroupHealth = new PeerGroupHealth(node, peerGroup,peerExchangeService);

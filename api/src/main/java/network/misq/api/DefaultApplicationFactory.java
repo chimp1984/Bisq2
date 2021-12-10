@@ -93,7 +93,7 @@ public class DefaultApplicationFactory implements ApplicationFactory {
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         // Assuming identityRepository depends on keyPairRepository being initialized... 
         allFutures.add(keyPairRepository.initialize().thenCompose(success -> identityRepository.initialize()));
-        allFutures.add(networkService.initialize().thenCompose(success -> marketPriceService.initialize()));
+        allFutures.add(networkService.bootstrap().thenCompose(success -> marketPriceService.initialize()));
         allFutures.add(offerRepository.initialize());
         allFutures.add(openOfferRepository.initialize());
         allFutures.add(offerEntityRepository.initialize());

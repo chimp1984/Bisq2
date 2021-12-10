@@ -17,6 +17,7 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
+import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.CloseConnectionMessage;
 import network.misq.network.p2p.node.CloseReason;
 import network.misq.network.p2p.node.Connection;
@@ -27,8 +28,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class PeerGroupHealth {
-    private static final long INTERVAL = TimeUnit.MINUTES.toMillis(5);
+    // private static final long INTERVAL = TimeUnit.MINUTES.toMillis(5);
+    private static final long INTERVAL = TimeUnit.SECONDS.toMillis(2);
     private static final int MAX_REPORTED = 2000;
     private static final int MAX_PERSISTED = 1000;
 
@@ -68,17 +71,17 @@ public class PeerGroupHealth {
     private void maybeCloseConnections() {
         int maxNumConnectedPeers = peerGroup.getMaxNumConnectedPeers();
         int numConnections = peerGroup.getAllConnectedPeers().size();
-        int overFlow = numConnections - maxNumConnectedPeers;
-        if (overFlow < 0) {
+        int exceeding = numConnections - maxNumConnectedPeers;
+        if (exceeding < 0) {
             return;
         }
         List<Connection> inbound = new ArrayList<>(peerGroup.getInboundConnections());
         inbound.sort(Comparator.comparing(c -> c.getMetrics().getDate()));
         List<Connection> candidates = new ArrayList<>();
         if (!inbound.isEmpty()) {
-            candidates.addAll(inbound.subList(0, Math.min(overFlow, inbound.size())));
+            candidates.addAll(inbound.subList(0, Math.min(exceeding, inbound.size())));
         }
-        int missing = overFlow - candidates.size();
+        int missing = exceeding - candidates.size();
         if (missing > 0) {
             List<Connection> outbound = new ArrayList<>(peerGroup.getOutboundConnections());
             outbound.sort(Comparator.comparing(c -> c.getMetrics().getDate()));
@@ -86,18 +89,27 @@ public class PeerGroupHealth {
                 candidates.addAll(outbound.subList(0, Math.min(missing, outbound.size())));
             }
         }
-
-        candidates.forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.TOO_MANY_CONNECTIONS), connection));
+        if (!candidates.isEmpty()) {
+            log.info("Node {} has {} connections. Our max connections target is {}. " +
+                            "We close {} connections.",
+                    node.print(), numConnections, maxNumConnectedPeers, candidates.size());
+        }
+        candidates.stream()
+                .peek(connection -> log.info("Close connection to peer {} as we have too many connections.", connection.getPeersCapability().address().print()))
+                .forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.TOO_MANY_CONNECTIONS), connection));
     }
 
     private void maybeCreateConnections() {
         int minNumConnectedPeers = peerGroup.getMinNumConnectedPeers();
         int numConnections = peerGroup.getAllConnectedPeers().size();
         int missing = minNumConnectedPeers - numConnections;
-        if (missing < 0) {
+        if (missing <= 0) {
             return;
         }
 
+        log.info("Node {} is missing {} connections to reach our target of {}. " +
+                        "We start the peer exchange protocol to get more connections.",
+                node.print(), missing, minNumConnectedPeers);
         // We use peer exchange protocol for establishing new connections.
         // The calculation how many connections we need is done inside PeerExchangeService/PeerExchangeStrategy
         peerExchangeService.startPeerExchange();
@@ -109,6 +121,7 @@ public class PeerGroupHealth {
         if (overFlow > 0) {
             reportedPeers.sort(Comparator.comparing(Peer::getDate));
             List<Peer> candidates = reportedPeers.subList(0, Math.min(overFlow, reportedPeers.size()));
+            log.info("Remove {} reported peers: {}", candidates.size(), candidates);
             peerGroup.removeReportedPeers(candidates);
         }
     }
@@ -119,6 +132,7 @@ public class PeerGroupHealth {
         if (overFlow > 0) {
             persistedPeers.sort(Comparator.comparing(Peer::getDate));
             List<Peer> candidates = persistedPeers.subList(0, Math.min(overFlow, persistedPeers.size()));
+            log.info("Remove {} persisted peers: {}", candidates.size(), candidates);
             peerGroup.removePersistedPeers(candidates);
         }
     }

@@ -52,9 +52,8 @@ import static java.util.concurrent.CompletableFuture.runAsync;
  * - Notifies ConnectionListeners when a new connection has been created or closed.
  * - Notifies MessageListeners when a new message has been received.
  */
-public class Node {
+public class Node implements NodeApi {
     private static final Logger log = LoggerFactory.getLogger(Node.class);
-    public static final String DEFAULT_NODE_ID = "default";
 
     public static record Config(Transport.Type transportType,
                                 Set<Transport.Type> supportedTransportTypes,
@@ -88,12 +87,13 @@ public class Node {
     // Server
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @Override
     public CompletableFuture<Transport.ServerSocketResult> initializeServer(int port) {
         return transport.initialize()
                 .thenCompose(e -> createServerAndListen(port));
     }
 
-    public CompletableFuture<Transport.ServerSocketResult> createServerAndListen(int port) {
+    private CompletableFuture<Transport.ServerSocketResult> createServerAndListen(int port) {
         return transport.getServerSocket(port, nodeId)
                 .thenCompose(serverSocketResult -> {
                     myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedTransportTypes));
@@ -106,10 +106,12 @@ public class Node {
 
     private void onClientSocket(Socket socket, Transport.ServerSocketResult serverSocketResult, Capability myCapability) {
         ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        log.info("Inbound handshake request at: {}", myCapability.address());
         connectionHandshake.onSocket()
                 .whenComplete((peersCapability, throwable) -> {
                     if (throwable == null) {
                         try {
+                            log.info("Inbound handshake completed: Initiated by {} to {}", peersCapability.address(), myCapability.address());
                             InboundConnection connection = new InboundConnection(socket, serverSocketResult, peersCapability, this::onMessage);
                             connection.startListen(exception -> handleException(connection, exception));
                             inboundConnections.add(connection);
@@ -128,11 +130,13 @@ public class Node {
     // Send
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @Override
     public CompletableFuture<Connection> send(Message message, Address address) {
         return getConnection(address)
                 .thenCompose(connection -> send(message, connection));
     }
 
+    @Override
     public CompletableFuture<Connection> send(Message message, Connection connection) {
         return authorizationService.createToken(message.getClass())
                 .thenCompose(token -> {
@@ -160,6 +164,7 @@ public class Node {
     // OutboundConnection
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @Override
     public CompletableFuture<Connection> getConnection(Address address) {
         if (outboundConnectionMap.containsKey(address)) {
             return CompletableFuture.completedFuture(outboundConnectionMap.get(address));
@@ -185,8 +190,10 @@ public class Node {
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
         ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        log.info("Outbound handshake started: Initiated by {} to {}", myCapability.address(), address);
         connectionHandshake.start()
                 .whenComplete((peersCapability, throwable) -> {
+                    log.info("Outbound handshake completed: Initiated by {} to {}", myCapability.address(), address);
                     log.debug("Create new outbound connection to {}", address);
                     checkArgument(address.equals(peersCapability.address()),
                             "Peers reported address must match address we used to connect");
@@ -227,6 +234,7 @@ public class Node {
         }
     }
 
+    @Override
     public CompletableFuture<Void> shutdown() {
         log.info("shutdown {}", this);
         if (isStopped) {
@@ -255,22 +263,27 @@ public class Node {
         });
     }
 
+    @Override
     public Optional<Socks5Proxy> getSocksProxy() throws IOException {
         return transport.getSocksProxy();
     }
 
+    @Override
     public void addMessageListener(MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
+    @Override
     public void removeMessageListener(MessageListener messageListener) {
         messageListeners.remove(messageListener);
     }
 
+    @Override
     public void addConnectionListener(ConnectionListener connectionListener) {
         connectionListeners.add(connectionListener);
     }
 
+    @Override
     public void removeConnectionListener(ConnectionListener connectionListener) {
         connectionListeners.remove(connectionListener);
     }
@@ -342,7 +355,12 @@ public class Node {
         };
     }
 
-    public Optional<Address> getMyAddress() {
+    @Override
+    public Optional<Address> findMyAddress() {
         return server.map(Server::getAddress);
+    }
+
+    public String print() {
+        return findMyAddress().map(Address::print).orElse("null");
     }
 }

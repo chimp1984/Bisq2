@@ -19,12 +19,11 @@ package network.misq.protocol;
 
 
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pServiceNodesByTransportType;
+import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
@@ -39,21 +38,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class MockP2PServiceTransport extends P2pServiceNodesByTransportType {
-    private static final Logger log = LoggerFactory.getLogger(MockP2PServiceTransport.class);
+public class MockServiceTransport extends ServiceNodesByTransport {
+    private static final Logger log = LoggerFactory.getLogger(MockServiceTransport.class);
     private final Set<MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
 
-    public MockP2PServiceTransport() {
+    public MockServiceTransport() {
         super();
     }
 
     @Override
-    public CompletableFuture<Boolean> initializeServer(BiConsumer<Transport.ServerSocketResult, Throwable> resultHandler) {
+    public CompletableFuture<Boolean> bootstrap(BiConsumer<Boolean, Throwable> resultHandler) {
         return CompletableFuture.completedFuture(true);
     }
 
     @Override
-    public CompletableFuture<Boolean> initializeMesh() {
+    public CompletableFuture<Boolean> bootstrap() {
         return CompletableFuture.completedFuture(true);
     }
 

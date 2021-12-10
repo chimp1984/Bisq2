@@ -22,7 +22,7 @@ import network.misq.network.p2p.services.data.storage.Storage;
 
 @Slf4j
 public class AllNetworksIntegrationTest {
-    private P2pServiceNodesByTransportType alice1, alice2, bob1, bob2;
+    private ServiceNodesByTransport alice1, alice2, bob1, bob2;
     protected final Storage storage = new Storage("");
 
    /* private Set<NetworkServiceConfig> getNetNetworkConfigs(Config.Role role, String id, int serverPort) {

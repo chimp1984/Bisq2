@@ -85,8 +85,7 @@ public class ConfidentialMessageService implements MessageListener {
                                               Address address,
                                               PubKey pubKey,
                                               KeyPair myKeyPair,
-                                              String nodeId)
-            throws GeneralSecurityException {
+                                              String nodeId) {
         return nodesById.send(nodeId, getConfidentialMessage(message, pubKey, myKeyPair), address);
     }
 
@@ -94,8 +93,7 @@ public class ConfidentialMessageService implements MessageListener {
                                               Connection connection,
                                               PubKey pubKey,
                                               KeyPair myKeyPair,
-                                              String nodeId)
-            throws GeneralSecurityException {
+                                              String nodeId) {
         return nodesById.send(nodeId, getConfidentialMessage(message, pubKey, myKeyPair), connection);
     }
 
@@ -132,10 +130,14 @@ public class ConfidentialMessageService implements MessageListener {
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private ConfidentialMessage getConfidentialMessage(Message message, PubKey pubKey, KeyPair myKeyPair)
-            throws GeneralSecurityException {
-        ConfidentialData confidentialData = HybridEncryption.encryptAndSign(message.serialize(), pubKey.publicKey(), myKeyPair);
-        return new ConfidentialMessage(confidentialData, pubKey.id());
+    private ConfidentialMessage getConfidentialMessage(Message message, PubKey pubKey, KeyPair myKeyPair) {
+        try {
+            ConfidentialData confidentialData = HybridEncryption.encryptAndSign(message.serialize(), pubKey.publicKey(), myKeyPair);
+            return new ConfidentialMessage(confidentialData, pubKey.id());
+        } catch (GeneralSecurityException e) {
+            log.error("HybridEncryption.encryptAndSign failed at getConfidentialMessage.", e);
+            throw new RuntimeException(e);
+        }
     }
 
 /*

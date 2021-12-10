@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class PeerExchangeStrategy {
-    private static final long REPORTED_PEERS_LIMIT = 100;
+    private static final long REPORTED_PEERS_LIMIT = 200;
     private static final long MAX_AGE = TimeUnit.DAYS.toMillis(10);
 
     @Getter
@@ -38,20 +38,17 @@ public class PeerExchangeStrategy {
         private final int numSeeNodesAtBoostrap;
         private final int numPersistedPeersAtBoostrap;
         private final int numReportedPeersAtBoostrap;
-        private final int repeatPeerExchangeDelay;
 
         public Config() {
-            this(2, 8, 4, 300);
+            this(2, 40, 20);
         }
 
         public Config(int numSeeNodesAtBoostrap,
                       int numPersistedPeersAtBoostrap,
-                      int numReportedPeersAtBoostrap,
-                      int repeatPeerExchangeDelay) {
+                      int numReportedPeersAtBoostrap) {
             this.numSeeNodesAtBoostrap = numSeeNodesAtBoostrap;
             this.numPersistedPeersAtBoostrap = numPersistedPeersAtBoostrap;
             this.numReportedPeersAtBoostrap = numReportedPeersAtBoostrap;
-            this.repeatPeerExchangeDelay = repeatPeerExchangeDelay;
         }
     }
 
@@ -105,11 +102,13 @@ public class PeerExchangeStrategy {
         priorityList.addAll(connectedPeerAddresses);
 
         int numConnections = peerGroup.getAllConnectedPeers().size();
-        int midNumConnectedPeers = maxNumConnectedPeers - peerGroup.getMinNumConnectedPeers();
-        int missing = Math.max(0, midNumConnectedPeers - numConnections);
+        int minNumConnectedPeers = peerGroup.getMinNumConnectedPeers();
+        int targetNumConnectedPeers = minNumConnectedPeers + (maxNumConnectedPeers - minNumConnectedPeers) / 2;
+        int missing = Math.max(0, targetNumConnectedPeers - numConnections);
 
         List<Address> candidates = priorityList.stream()
                 .limit(missing)
+                .distinct()
                 .collect(Collectors.toList());
         usedAddresses.addAll(candidates);
         return candidates;

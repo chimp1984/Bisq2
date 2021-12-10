@@ -15,18 +15,13 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.protocol;
+package network.misq.monitor;
 
-import network.misq.contract.Party;
-import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
-import network.misq.network.p2p.node.MessageListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public abstract class TwoPartyProtocol extends Protocol implements MessageListener {
-    protected final Party counterParty;
-
-    public TwoPartyProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService) {
-        super(contract, p2pService);
-        counterParty = contract.getCounterParty();
+public class NetworkMonitorUIMain {
+    public static void main(String[] args) {
+        NetworkMonitorUI.launch(NetworkMonitorUI.class);
     }
 }

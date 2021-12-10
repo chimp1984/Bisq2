@@ -58,17 +58,16 @@ public class ConnectionHandshake {
     public CompletableFuture<Capability> start() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.info("Start using {}", socket);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
                 Envelope requestEnvelope = new Envelope(new Request(token, capability));
-                log.info("Client sends {}", requestEnvelope);
+                log.debug("Client sends {}", requestEnvelope);
                 objectOutputStream.writeObject(requestEnvelope);
                 objectOutputStream.flush();
 
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
-                log.info("Client received {}", msg);
+                log.debug("Client received {}", msg);
                 String simpleName = msg.getClass().getSimpleName();
                 if (!(msg instanceof Envelope responseEnvelope)) {
                     throw new ConnectionException("Received message not type of Envelope. " + simpleName);
@@ -84,7 +83,7 @@ public class ConnectionHandshake {
                 }
                 
                 Capability serversCapability = response.capability();
-                log.info("Servers capability {}", serversCapability);
+                log.debug("Servers capability {}", serversCapability);
                 return serversCapability;
             } catch (Exception e) {
                 try {
@@ -106,7 +105,7 @@ public class ConnectionHandshake {
             try {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                 Object msg = objectInputStream.readObject();
-                log.info("Server received {}", msg);
+                log.debug("Server received {}", msg);
                 String simpleName = msg.getClass().getSimpleName();
                 if (!(msg instanceof Envelope requestEnvelope)) {
                     throw new ConnectionException("Received message not type of Envelope. " + simpleName);
@@ -122,7 +121,7 @@ public class ConnectionHandshake {
                 }
 
                 Capability clientCapability = request.capability();
-                log.info("Clients capability {}", clientCapability);
+                log.debug("Clients capability {}", clientCapability);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Response.class).get();
                 objectOutputStream.writeObject(new Envelope(new Response(token, capability)));

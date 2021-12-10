@@ -25,7 +25,9 @@ public class StringUtils {
     }
 
     public static String truncate(String value, int maxLength) {
-        return value.substring(0, Math.min(value.length(), maxLength)) + "...";
+        return value.length() <= maxLength ?
+                value :
+                value.substring(0, maxLength) + "...";
     }
 
     public static String fileSizePrettyPrint(long size) {

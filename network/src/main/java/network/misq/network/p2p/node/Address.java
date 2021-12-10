@@ -50,8 +50,12 @@ public class Address implements Serializable {
         this.port = port;
     }
 
-    public String toShortString() {
-        return StringUtils.truncate(host) + ":" + port;
+    public String print() {
+        if (host.equals("127.0.0.1")) {
+            return "[" + port + "]";
+        } else {
+            return StringUtils.truncate(host) + ":" + port;
+        }
     }
 
     @Override

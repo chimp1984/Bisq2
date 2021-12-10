@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * Maintains nodes per nodeId.
@@ -35,7 +36,7 @@ import java.util.concurrent.*;
 public class NodesById implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(NodesById.class);
 
-    private final Map<String, Node> nodesByNodeId = new ConcurrentHashMap<>();
+    private final Map<String, Node> nodesById = new ConcurrentHashMap<>();
     private final Node.Config nodeConfig;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
@@ -81,25 +82,36 @@ public class NodesById implements MessageListener {
     }
 
     public void removeMessageListener(String nodeId, MessageListener listener) {
-        Optional.ofNullable(nodesByNodeId.get(nodeId)).ifPresent(node -> node.removeMessageListener(listener));
+        Optional.ofNullable(nodesById.get(nodeId)).ifPresent(node -> node.removeMessageListener(listener));
     }
 
     public Optional<Address> getMyAddress(String nodeId) {
-        return Optional.ofNullable(nodesByNodeId.get(nodeId)).flatMap(Node::getMyAddress);
+        return Optional.ofNullable(nodesById.get(nodeId)).flatMap(Node::findMyAddress);
     }
 
     public CompletableFuture<Void> shutdown() {
-        CountDownLatch latch = new CountDownLatch(nodesByNodeId.size()); 
+        CountDownLatch latch = new CountDownLatch(nodesById.size());
         return CompletableFuture.runAsync(() -> {
-            nodesByNodeId.values().forEach(node -> node.shutdown().whenComplete((v, t) -> latch.countDown()));
+            nodesById.values().forEach(node -> node.shutdown().whenComplete((v, t) -> latch.countDown()));
 
             try {
                 latch.await(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Shutdown interrupted by timeout");
             }
-            nodesByNodeId.clear();
+            nodesById.clear();
         });
+    }
+
+    public Optional<Address> findMyAddress(String nodeId) {
+        return nodesById.get(nodeId).findMyAddress();
+    }
+
+    public Map<String, Address> getAddressesByNodeId() {
+        //noinspection OptionalGetWithoutIsPresent
+        return nodesById.entrySet().stream()
+                .filter(e -> e.getValue().findMyAddress().isPresent())
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().findMyAddress().get()));
     }
 
 
@@ -118,11 +130,11 @@ public class NodesById implements MessageListener {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     private Node getOrCreateNode(String nodeId) {
-        if (nodesByNodeId.containsKey(nodeId)) {
-            return nodesByNodeId.get(nodeId);
+        if (nodesById.containsKey(nodeId)) {
+            return nodesById.get(nodeId);
         } else {
             Node node = new Node(nodeConfig, nodeId);
-            nodesByNodeId.put(nodeId, node);
+            nodesById.put(nodeId, node);
             node.addMessageListener(this);
             return node;
         }

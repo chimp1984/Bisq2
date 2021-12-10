@@ -19,7 +19,9 @@ package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import network.misq.common.timer.UserThread;
 import network.misq.common.util.CompletableFutureUtils;
+import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
@@ -34,8 +36,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Responsible for executing the peer exchange protocol with set of peers.
@@ -55,18 +55,24 @@ public class PeerExchangeService implements MessageListener {
         this.node.addMessageListener(this);
     }
 
+    public void repeatPeerExchangeWithDelay() {
+        UserThread.runAfter(this::startPeerExchange, 1);
+    }
+
     public CompletableFuture<Boolean> startPeerExchange() {
         List<Address> addresses = peerExchangeStrategy.getAddressesForPeerExchange();
-        checkArgument(!addresses.isEmpty(),
-                "addresses must not be empty. We expect at least seed nodes.");
+        log.info("Node {} starts peer exchange with: {}", node.print(),
+                StringUtils.truncate(addresses.stream()
+                        .map(Address::print)
+                        .collect(Collectors.toList()).toString()));
         List<CompletableFuture<Boolean>> allFutures = addresses.stream()
                 .map(this::doPeerExchange)
                 .collect(Collectors.toList());
         return CompletableFutureUtils.allOf(allFutures)
                 .thenCompose(resultList -> {
                     int numSuccess = (int) resultList.stream().filter(e -> e).count();
-                    log.info("Peer exchange with {} peers completed. {} requests successfully completed.",
-                            addresses.size(), numSuccess);
+                    log.debug("Peer exchange with {} peers completed. {} requests successfully completed. My address: {}",
+                            addresses.size(), numSuccess, node.print());
                     boolean repeatBootstrap = peerExchangeStrategy.repeatBootstrap(numSuccess, addresses.size());
                     return CompletableFuture.completedFuture(repeatBootstrap);
                 });
@@ -88,7 +94,7 @@ public class PeerExchangeService implements MessageListener {
                         peerExchangeStrategy.addReportedPeers(peers, peerAddress);
                         return true;
                     } else {
-                        log.error("doPeerExchange failed", throwable);
+                        // Expect ConnectException if peer not available 
                         return false;
                     }
                 });
@@ -103,12 +109,13 @@ public class PeerExchangeService implements MessageListener {
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof PeerExchangeRequest request) {
-            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.getMyAddress(), request.peers());
+            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.print(), request.peers());
             Address peerAddress = connection.getPeerAddress();
             peerExchangeStrategy.addReportedPeers(request.peers(), peerAddress);
             Set<Peer> myPeers = peerExchangeStrategy.getPeers(peerAddress);
             node.send(new PeerExchangeResponse(request.nonce(), myPeers), connection);
-            log.debug("Node {} send PeerExchangeResponse with my myPeers {}", node.getMyAddress(), myPeers);
+            log.debug("Node {} send PeerExchangeResponse with my myPeers {}", node.print(), myPeers);
         }
     }
+
 }

@@ -31,12 +31,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Responsibility:
- * - Creates PeerGroup for peer management
- * - Broadcasts messages to peers provided by PeerGroup
- * - Notifies MessageListeners on messages which have been sent by via a GossipMessage
- */
 public class GossipRouter implements MessageListener {
     private static final long BROADCAST_TIMEOUT = 90;
 

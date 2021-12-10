@@ -92,7 +92,7 @@ public abstract class Connection {
                         throw new ConnectionException("Invalid network version. " + simpleName);
                     }
 
-                    log.debug("Received message: {} at connection: {}", envelope, this);
+                    log.debug("Received message: {} at: {}", envelope, print());
                     if (isNotStopped()) {
                         messageHandler.accept(envelope.getPayload(), this);
                     }
@@ -114,7 +114,7 @@ public abstract class Connection {
                 Envelope envelope = new Envelope(message);
                 objectOutputStream.writeObject(envelope);
                 objectOutputStream.flush();
-                log.debug("Message sent: {} at connection: {}", envelope, this);
+                log.debug("Message sent: {} at: {}", envelope, print());
                 return this;
             } catch (IOException exception) {
                 if (!isStopped) {
@@ -126,10 +126,10 @@ public abstract class Connection {
     }
 
     CompletableFuture<Void> shutdown() {
-        log.info("shutdown {}", this);
         if (isStopped) {
             return CompletableFuture.completedFuture(null);
         }
+        log.info("Shut down {}", print());
         isStopped = true;
         return CompletableFuture.runAsync(() -> {
             ThreadingUtils.shutdownAndAwaitTermination(readExecutor, 1, TimeUnit.SECONDS);
@@ -139,6 +139,12 @@ public abstract class Connection {
             } catch (IOException ignore) {
             }
         });
+    }
+
+    private String print() {
+        return "'Connection to peer " + getPeersCapability().address().print() +
+                " with socket " + socket +
+                " and id " + getId() + "'";
     }
 
     public String getId() {

@@ -22,19 +22,24 @@ import lombok.Getter;
 import network.misq.network.http.HttpService;
 import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.P2pServiceNode;
-import network.misq.network.p2p.P2pServiceNodesByTransportType;
+import network.misq.network.p2p.ServiceNode;
+import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.message.Message;
+import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
+import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
+import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -51,7 +56,9 @@ public class NetworkService {
 
     public static record Config(String baseDirPath,
                                 Set<Transport.Type> supportedTransportTypes,
-                                P2pServiceNode.Config p2pServiceNodeConfig,
+                                ServiceNode.Config p2pServiceNodeConfig,
+                                PeerGroup.Config peerGroupConfig,
+                                PeerExchangeStrategy.Config peerExchangeConfig,
                                 SeedNodeRepository seedNodeRepository,
                                 Optional<String> socks5ProxyAddress) {
     }
@@ -62,15 +69,17 @@ public class NetworkService {
     private final Optional<String> socks5ProxyAddress; // Optional proxy address of external tor instance 
     @Getter
     private final Set<Transport.Type> supportedTransportTypes;
-    private final P2pServiceNodesByTransportType p2pService;
+    private final ServiceNodesByTransport serviceNodesByTransport;
 
     public NetworkService(Config config, KeyPairRepository keyPairRepository) {
         httpService = new HttpService();
         socks5ProxyAddress = config.socks5ProxyAddress;
         supportedTransportTypes = config.supportedTransportTypes();
-        p2pService = new P2pServiceNodesByTransportType(config.baseDirPath(),
+        serviceNodesByTransport = new ServiceNodesByTransport(config.baseDirPath(),
                 supportedTransportTypes,
                 config.p2pServiceNodeConfig(),
+                config.peerGroupConfig,
+                config.peerExchangeConfig(),
                 config.seedNodeRepository(),
                 new DataService.Config(config.baseDirPath()),
                 keyPairRepository);
@@ -81,34 +90,35 @@ public class NetworkService {
     // API P2pService
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public CompletableFuture<Boolean> initialize() {
-        CompletableFuture<Boolean> bootstrap = p2pService.initializeMesh();
-        // For now we dont want to wait for bootstrap done at startup
-        // return CompletableFuture.completedFuture(true);
-        return bootstrap;
+    public CompletableFuture<Boolean> bootstrap() {
+        return serviceNodesByTransport.bootstrap();
+    }
+
+    public CompletableFuture<Boolean> bootstrap(int port) {
+        return serviceNodesByTransport.bootstrap(port);
     }
 
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId peerNetworkId, KeyPair myKeyPair, String connectionId) {
-        return p2pService.confidentialSend(message, peerNetworkId, myKeyPair, connectionId);
+        return serviceNodesByTransport.confidentialSend(message, peerNetworkId, myKeyPair, connectionId);
     }
 
     public void addMessageListener(MessageListener messageListener) {
-        p2pService.addMessageListener(messageListener);
+        serviceNodesByTransport.addMessageListener(messageListener);
     }
 
     public void removeMessageListener(MessageListener messageListener) {
-        p2pService.removeMessageListener(messageListener);
+        serviceNodesByTransport.removeMessageListener(messageListener);
     }
 
 
     public CompletableFuture<BaseHttpClient> getHttpClient(String url, String userAgent, Transport.Type transportType) {
-        return httpService.getHttpClient(url, userAgent, transportType, p2pService.getSocksProxy(), socks5ProxyAddress);
+        return httpService.getHttpClient(url, userAgent, transportType, serviceNodesByTransport.getSocksProxy(), socks5ProxyAddress);
     }
 
     public CompletableFuture<Void> shutdown() {
         CountDownLatch latch = new CountDownLatch(2);
         return CompletableFuture.runAsync(() -> {
-            p2pService.shutdown().whenComplete((v, t) -> latch.countDown());
+            serviceNodesByTransport.shutdown().whenComplete((v, t) -> latch.countDown());
             httpService.shutdown().whenComplete((v, t) -> latch.countDown());
             try {
                 latch.await(1, TimeUnit.SECONDS);
@@ -118,9 +128,19 @@ public class NetworkService {
         });
     }
 
-    
-       /*public Set<Address> findMyAddresses() {
-        return p2pService.findMyAddresses();
-    }*/
+    public Map<Transport.Type, Map<String, Address>> findMyAddresses() {
+        return serviceNodesByTransport.findMyAddresses();
+    }
 
+    public Optional<Map<String, Address>> findMyAddresses(Transport.Type transport) {
+        return serviceNodesByTransport.findMyAddresses(transport);
+    }
+
+    public Optional<Address> findMyAddresses(Transport.Type transport, String nodeId) {
+        return serviceNodesByTransport.findMyAddresses(transport, nodeId);
+    }
+
+    public Optional<Address> findMyDefaultAddressesByTransportType(Transport.Type transport) {
+        return serviceNodesByTransport.findMyAddresses(transport, Node.DEFAULT_NODE_ID);
+    }
 }
