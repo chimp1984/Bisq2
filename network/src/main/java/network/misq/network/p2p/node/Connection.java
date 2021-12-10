@@ -36,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Represents an inbound or outbound connection to a peer node.
  * Listens for messages from the peer.
@@ -84,16 +86,16 @@ public abstract class Connection {
             try {
                 while (isNotStopped()) {
                     Object msg = objectInputStream.readObject();
-                    String simpleName = msg.getClass().getSimpleName();
-                    if (!(msg instanceof Envelope envelope)) {
-                        throw new ConnectionException("Received message not type of Envelope. " + simpleName);
-                    }
-                    if (envelope.getVersion() != Version.VERSION) {
-                        throw new ConnectionException("Invalid network version. " + simpleName);
-                    }
-
-                    log.debug("Received message: {} at: {}", envelope, print());
                     if (isNotStopped()) {
+                        String simpleName = msg.getClass().getSimpleName();
+                        if (!(msg instanceof Envelope envelope)) {
+                            throw new ConnectionException("Received message not type of Envelope. " + simpleName);
+                        }
+                        if (envelope.getVersion() != Version.VERSION) {
+                            throw new ConnectionException("Invalid network version. " + simpleName);
+                        }
+                        log.debug("Received message: {} at: {}", envelope, print());
+                        metrics.received(envelope.getPayload());
                         messageHandler.accept(envelope.getPayload(), this);
                     }
                 }
@@ -109,11 +111,14 @@ public abstract class Connection {
 
 
     CompletableFuture<Connection> send(Message message) {
+        checkArgument(!isStopped, "send must not be called after connection is shut down");
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Envelope envelope = new Envelope(message);
                 objectOutputStream.writeObject(envelope);
                 objectOutputStream.flush();
+                metrics.sent(message);
                 log.debug("Message sent: {} at: {}", envelope, print());
                 return this;
             } catch (IOException exception) {
@@ -141,7 +146,7 @@ public abstract class Connection {
         });
     }
 
-    private String print() {
+    public String print() {
         return "'Connection to peer " + getPeersCapability().address().print() +
                 " with socket " + socket +
                 " and id " + getId() + "'";

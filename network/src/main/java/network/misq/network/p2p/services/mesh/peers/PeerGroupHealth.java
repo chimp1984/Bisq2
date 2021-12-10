@@ -23,6 +23,7 @@ import network.misq.network.p2p.node.CloseReason;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
+import network.misq.network.p2p.services.mesh.peers.keepalive.KeepAliveService;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -32,18 +33,21 @@ import java.util.concurrent.TimeUnit;
 public class PeerGroupHealth {
     // private static final long INTERVAL = TimeUnit.MINUTES.toMillis(5);
     private static final long INTERVAL = TimeUnit.SECONDS.toMillis(2);
+
     private static final int MAX_REPORTED = 2000;
     private static final int MAX_PERSISTED = 1000;
 
     private final Node node;
     private final PeerGroup peerGroup;
     private final PeerExchangeService peerExchangeService;
+    private final KeepAliveService keepAliveService;
     private final Timer timer = new Timer();
 
     public PeerGroupHealth(Node node, PeerGroup peerGroup, PeerExchangeService peerExchangeService) {
         this.node = node;
         this.peerGroup = peerGroup;
         this.peerExchangeService = peerExchangeService;
+        keepAliveService = new KeepAliveService(node, peerGroup);
     }
 
     public CompletableFuture<Boolean> initialize() {
@@ -57,6 +61,7 @@ public class PeerGroupHealth {
             }
 
         }, INTERVAL);
+        keepAliveService.initialize();
         return CompletableFuture.completedFuture(true);
     }
 
@@ -76,7 +81,7 @@ public class PeerGroupHealth {
             return;
         }
         List<Connection> inbound = new ArrayList<>(peerGroup.getInboundConnections());
-        inbound.sort(Comparator.comparing(c -> c.getMetrics().getDate()));
+        inbound.sort(Comparator.comparing(c -> c.getMetrics().getCreationDate()));
         List<Connection> candidates = new ArrayList<>();
         if (!inbound.isEmpty()) {
             candidates.addAll(inbound.subList(0, Math.min(exceeding, inbound.size())));
@@ -84,7 +89,7 @@ public class PeerGroupHealth {
         int missing = exceeding - candidates.size();
         if (missing > 0) {
             List<Connection> outbound = new ArrayList<>(peerGroup.getOutboundConnections());
-            outbound.sort(Comparator.comparing(c -> c.getMetrics().getDate()));
+            outbound.sort(Comparator.comparing(c -> c.getMetrics().getCreationDate()));
             if (!outbound.isEmpty()) {
                 candidates.addAll(outbound.subList(0, Math.min(missing, outbound.size())));
             }

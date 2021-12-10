@@ -72,12 +72,13 @@ public class ServiceNodesByTransport {
             Node.Config nodeConfig = new Node.Config(transportType,
                     supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
-                    new Transport.Config(baseDirPath));
+                    new Transport.Config(baseDirPath),
+                    (int) TimeUnit.SECONDS.toMillis(10));
 
             MeshService.Config meshServiceConfig = new MeshService.Config(peerGroupConfig,
                     peerExchangeConfig,
                     seedNodeRepository.addressesByTransportType().get(transportType));
-            
+
             ServiceNode serviceNode = new ServiceNode(serviceNodeConfig,
                     nodeConfig,
                     meshServiceConfig,

@@ -15,58 +15,56 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.network.p2p.services.mesh.peers.exchange;
+package network.misq.network.p2p.services.mesh.peers.keepalive;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.peers.Peer;
 
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Getter
 @Slf4j
-class PeerExchangeRequestHandler implements MessageListener {
+class KeepAliveHandler implements MessageListener {
     private static final long TIMEOUT = 90;
 
     private final Node node;
-    private final CompletableFuture<Set<Peer>> future = new CompletableFuture<>();
+    private final CompletableFuture<Void> future = new CompletableFuture<>();
     private final int nonce;
 
-    PeerExchangeRequestHandler(Node node) {
+    KeepAliveHandler(Node node) {
         this.node = node;
         nonce = new Random().nextInt();
-        this.node.addMessageListener(this);
+        node.addMessageListener(this);
+        log.error("new KeepAliveHandler at node {} nonce={}", node.print(), nonce);
     }
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        if (message instanceof PeerExchangeResponse response) {
-            if (response.nonce() == nonce) {
-                String addresses = StringUtils.truncate(response.peers().stream()
-                        .map(peer -> peer.getAddress().print())
-                        .collect(Collectors.toList()).toString());
-                log.info("Node {} received PeerExchangeResponse from {} with peers: {}",
-                        node.print(), connection.getPeerAddress().print(), addresses);
-                future.complete(response.peers());
+        if (message instanceof Pong pong) {
+            if (pong.requestNonce() == nonce) {
+                log.info("Node {} received Pong from {} with nonce {}. Connection={}",
+                        node.print(), connection.getPeerAddress().print(), pong.requestNonce(), connection.getId());
                 node.removeMessageListener(this);
+                future.complete(null);
+            } else {
+                log.debug("Expected case if we receive message from different connection. " +
+                                "Node {} received Pong from {} with invalid nonce {}. Request nonce was {}. Connection={}",
+                        node.print(), connection.getPeerAddress().print(), pong.requestNonce(), nonce, connection.getId());
             }
         }
     }
 
-    CompletableFuture<Set<Peer>> request(Connection connection, Set<Peer> peersForPeerExchange) {
+    CompletableFuture<Void> sendPing(Connection connection) {
         future.orTimeout(TIMEOUT, TimeUnit.SECONDS);
-        log.debug("Node {} send PeerExchangeRequest to {} with my peers {}",
-                node.print(), connection.getPeerAddress().print(), peersForPeerExchange);
-        node.send(new PeerExchangeRequest(nonce, peersForPeerExchange), connection)
+        log.info("Node {} send Ping to {} with nonce {}. Connection={}",
+                node.print(), connection.getPeerAddress().print(), nonce, connection.getId());
+        node.send(new Ping(nonce), connection)
                 .whenComplete((c, throwable) -> {
                     if (throwable != null) {
                         future.completeExceptionally(throwable);

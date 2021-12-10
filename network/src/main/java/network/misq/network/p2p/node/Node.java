@@ -19,6 +19,7 @@ package network.misq.network.p2p.node;
 
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
+import lombok.Getter;
 import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
@@ -35,6 +36,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -58,12 +60,15 @@ public class Node implements NodeApi {
     public static record Config(Transport.Type transportType,
                                 Set<Transport.Type> supportedTransportTypes,
                                 AuthorizationService authorizationService,
-                                Transport.Config transportConfig) {
+                                Transport.Config transportConfig,
+                                int socketTimeout) {
     }
 
     private final Transport transport;
     private final Set<Transport.Type> supportedTransportTypes;
     private final AuthorizationService authorizationService;
+    @Getter
+    private final int socketTimeout;
     private final String nodeId;
 
     private final Map<Address, OutboundConnection> outboundConnectionMap = new ConcurrentHashMap<>();
@@ -79,6 +84,7 @@ public class Node implements NodeApi {
         transport = getNetworkProxy(config.transportType(), config.transportConfig());
         supportedTransportTypes = config.supportedTransportTypes();
         authorizationService = config.authorizationService();
+        socketTimeout = config.socketTimeout();
         this.nodeId = nodeId;
     }
 
@@ -98,6 +104,7 @@ public class Node implements NodeApi {
                 .thenCompose(serverSocketResult -> {
                     myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedTransportTypes));
                     server = Optional.of(new Server(serverSocketResult,
+                            socketTimeout,
                             socket -> onClientSocket(socket, serverSocketResult, myCapability.get()),
                             this::handleException));
                     return CompletableFuture.completedFuture(serverSocketResult);
@@ -105,7 +112,7 @@ public class Node implements NodeApi {
     }
 
     private void onClientSocket(Socket socket, Transport.ServerSocketResult serverSocketResult, Capability myCapability) {
-        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, socketTimeout, myCapability, authorizationService);
         log.info("Inbound handshake request at: {}", myCapability.address());
         connectionHandshake.onSocket()
                 .whenComplete((peersCapability, throwable) -> {
@@ -147,6 +154,7 @@ public class Node implements NodeApi {
                             @Override
                             public void run() {
                                 connection.shutdown();
+                                // onDisconnect(connection);
                                 timer.cancel();
                             }
                         }, 2000);
@@ -189,7 +197,7 @@ public class Node implements NodeApi {
         }
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, myCapability, authorizationService);
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, socketTimeout, myCapability, authorizationService);
         log.info("Outbound handshake started: Initiated by {} to {}", myCapability.address(), address);
         connectionHandshake.start()
                 .whenComplete((peersCapability, throwable) -> {
@@ -225,6 +233,7 @@ public class Node implements NodeApi {
             if (authorizationService.isAuthorized(authorizedMessage)) {
                 if (authorizedMessage.message() instanceof CloseConnectionMessage) {
                     connection.shutdown();
+                    onDisconnect(connection);
                 } else {
                     runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
                 }
@@ -288,33 +297,10 @@ public class Node implements NodeApi {
         connectionListeners.remove(connectionListener);
     }
 
-    //todo
-    // Only to be used when we know that we have already created the default server
-   /* public Address getMyAddress() {
-        Optional<Address> myAddress = findMyAddress();
-        checkArgument(myAddress.isPresent(), "myAddress need to be present at a getMyAddress call");
-        return myAddress.get();
-    }*/
-
-    //todo
- /*   public Optional<Address> findMyAddress() {
-        return findMyAddress(DEFAULT_CONNECTION_ID);
-    }*/
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Private
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /*private Optional<Address> findMyAddress(String serverId) {
-        if (serverMap.containsKey(serverId)) {
-            return Optional.of(serverMap.get(serverId).getAddress());
-        } else if (!serverMap.isEmpty()) {
-            return serverMap.values().stream().map(Server::getAddress).findAny();
-        } else {
-            return Optional.empty();
-        }
-    }*/
-
 
     private void onDisconnect(Connection connection) {
         if (connection instanceof InboundConnection) {
@@ -330,12 +316,15 @@ public class Node implements NodeApi {
             return;
         }
         if (exception instanceof EOFException) {
-            // log.debug(exception.toString(), exception);
+            log.debug(exception.toString(), exception);
         } else if (exception instanceof SocketException) {
-            // log.debug(exception.toString(), exception);
+            log.debug(exception.toString(), exception);
+        } else if (exception instanceof SocketTimeoutException) {
+            log.info(exception.toString(), exception);
         } else {
             log.error(exception.toString(), exception);
         }
+
     }
 
     private void handleException(Connection connection, Throwable exception) {

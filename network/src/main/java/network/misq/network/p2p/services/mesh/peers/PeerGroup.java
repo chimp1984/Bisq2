@@ -59,7 +59,7 @@ public class PeerGroup implements ConnectionListener {
     private final Config config;
     @Getter
     private final Set<Peer> reportedPeers = new CopyOnWriteArraySet<>();
-    
+
     //todo persist
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
@@ -114,7 +114,7 @@ public class PeerGroup implements ConnectionListener {
                 .collect(Collectors.toSet());
     }
 
-    Stream<Connection> getAllConnectionsAsStream() {
+    public Stream<Connection> getAllConnectionsAsStream() {
         return Stream.concat(outboundConnections.stream(), inboundConnections.stream());
     }
 

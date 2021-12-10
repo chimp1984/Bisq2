@@ -18,20 +18,38 @@
 package network.misq.network.p2p.node;
 
 import lombok.Getter;
+import network.misq.network.p2p.message.Message;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Getter
 public class Metrics {
 
     private final long created;
+    private final AtomicLong lastUpdate = new AtomicLong();
+    private final AtomicLong sentBytes = new AtomicLong();
+    private final AtomicLong receivedBytes = new AtomicLong();
+    private final AtomicLong numMessagesSent = new AtomicLong();
+    private final AtomicLong numMessagesReceived = new AtomicLong();
 
     public Metrics() {
         created = new Date().getTime();
     }
 
-    public Date getDate() {
+    public Date getCreationDate() {
         return new Date(created);
     }
 
+    public void sent(Message message) {
+        lastUpdate.set(System.currentTimeMillis());
+        sentBytes.addAndGet(message.serialize().length);
+        numMessagesSent.incrementAndGet();
+    }
+
+    public void received(Message message) {
+        lastUpdate.set(System.currentTimeMillis());
+        receivedBytes.addAndGet(message.serialize().length);
+        numMessagesReceived.incrementAndGet();
+    }
 }

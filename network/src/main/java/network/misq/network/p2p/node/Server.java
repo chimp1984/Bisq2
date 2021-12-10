@@ -27,11 +27,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 @Slf4j
 public final class Server {
@@ -41,7 +39,7 @@ public final class Server {
     private final Address address;
     private volatile boolean isStopped;
 
-    Server(Transport.ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
+    Server(Transport.ServerSocketResult serverSocketResult, int socketTimeout, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
         serverSocket = serverSocketResult.serverSocket();
         address = serverSocketResult.address();
         log.debug("Create server: {}", serverSocketResult);
@@ -49,17 +47,19 @@ public final class Server {
             Thread.currentThread().setName("Server-" +
                     StringUtils.truncate(serverSocketResult.nodeId()) + "-" +
                     StringUtils.truncate(serverSocketResult.address().toString()));
+
             try {
+                serverSocket.setSoTimeout(socketTimeout);
                 while (isNotStopped()) {
                     Socket socket = serverSocket.accept();
                     log.debug("Accepted new connection on server: {}", serverSocketResult);
                     if (isNotStopped()) {
-                        socketHandler.accept(socket);  Stream.of("").map(e->e).sequential();
+                        socketHandler.accept(socket);
                     }
                 }
             } catch (IOException e) {
                 if (!isStopped) {
-                    exceptionHandler.accept(e); 
+                    exceptionHandler.accept(e);
                     shutdown();
                 }
             }

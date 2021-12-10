@@ -44,7 +44,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Getter
 public class PeerExchangeService implements MessageListener {
-    private static final long TIMEOUT = 30;
+    private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+
     private final Node node;
     private final PeerExchangeStrategy peerExchangeStrategy;
     private final Map<Address, PeerExchangeRequestHandler> requestHandlerMap = new ConcurrentHashMap<>();
@@ -82,6 +83,12 @@ public class PeerExchangeService implements MessageListener {
         return node.getConnection(peerAddress)
                 .orTimeout(TIMEOUT, TimeUnit.SECONDS)
                 .thenCompose(connection -> {
+                    if (requestHandlerMap.containsKey(peerAddress)) {
+                        log.warn("requestHandlerMap contains already {}. " +
+                                "We dispose the existing handler and start a new one.", peerAddress);
+                        requestHandlerMap.get(peerAddress).dispose();
+                    }
+
                     PeerExchangeRequestHandler handler = new PeerExchangeRequestHandler(node);
                     requestHandlerMap.put(peerAddress, handler);
                     Set<Peer> peers = peerExchangeStrategy.getPeers(peerAddress);
@@ -114,7 +121,7 @@ public class PeerExchangeService implements MessageListener {
             peerExchangeStrategy.addReportedPeers(request.peers(), peerAddress);
             Set<Peer> myPeers = peerExchangeStrategy.getPeers(peerAddress);
             node.send(new PeerExchangeResponse(request.nonce(), myPeers), connection);
-            log.debug("Node {} send PeerExchangeResponse with my myPeers {}", node.print(), myPeers);
+            log.debug("Node {} sent PeerExchangeResponse with my myPeers {}", node.print(), myPeers);
         }
     }
 

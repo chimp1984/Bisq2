@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,6 +39,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class ConnectionHandshake {
+
     private final Socket socket;
     private final Capability capability;
     private final AuthorizationService authorizationService;
@@ -48,16 +50,25 @@ public class ConnectionHandshake {
     public static record Response(AuthorizationToken token, Capability capability) implements Message {
     }
 
-    public ConnectionHandshake(Socket socket, Capability capability, AuthorizationService authorizationService) {
+    public ConnectionHandshake(Socket socket, int socketTimeout, Capability capability, AuthorizationService authorizationService) {
         this.socket = socket;
         this.capability = capability;
         this.authorizationService = authorizationService;
+
+        try {
+            socket.setTcpNoDelay(true);
+            socket.setSoLinger(true, 100);
+            socket.setSoTimeout(socketTimeout);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     // Client side protocol
     public CompletableFuture<Capability> start() {
         return CompletableFuture.supplyAsync(() -> {
             try {
+
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
                 Envelope requestEnvelope = new Envelope(new Request(token, capability));
@@ -81,7 +92,7 @@ public class ConnectionHandshake {
                 if (!authorizationService.isAuthorized(response.token())) {
                     throw new ConnectionException("Response authorization failed. " + simpleName);
                 }
-                
+
                 Capability serversCapability = response.capability();
                 log.debug("Servers capability {}", serversCapability);
                 return serversCapability;
