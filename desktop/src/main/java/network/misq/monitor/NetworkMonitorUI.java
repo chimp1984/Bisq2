@@ -34,9 +34,12 @@ import network.misq.common.timer.UserThread;
 import network.misq.common.util.CompletableFutureUtils;
 import network.misq.desktop.utils.UITimer;
 import network.misq.network.NetworkService;
+import network.misq.network.p2p.ServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.monitor.NetworkMonitor;
+import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,14 +124,14 @@ public class NetworkMonitorUI extends Application {
         modesBox.getChildren().add(meshButton);*/
 
 
-        Triple<Label, TextField, HBox> numSeedsTriple = getTextInput("Num seeds:");
+      /*  Triple<Label, TextField, HBox> numSeedsTriple = getTextInput("Num seeds:");
         numSeedsTriple.second().textProperty().bindBidirectional(numSeeds);
 
         Triple<Label, TextField, HBox> numNodesTriple = getTextInput("Num nodes:");
-        numNodesTriple.second().textProperty().bindBidirectional(numNodes);
+        numNodesTriple.second().textProperty().bindBidirectional(numNodes);*/
 
-        VBox modesWithFieldsBox = new VBox(20);
-        modesWithFieldsBox.getChildren().addAll(modesBox, numSeedsTriple.third(), numNodesTriple.third());
+      /*  VBox modesWithFieldsBox = new VBox(20);
+        modesWithFieldsBox.getChildren().addAll(modesBox, numSeedsTriple.third(), numNodesTriple.third());*/
 
         HBox actionBox = new HBox(20);
         actionBox.setStyle(bgStyle);
@@ -140,7 +143,7 @@ public class NetworkMonitorUI extends Application {
 
         ToggleGroup startStopGroup = new ToggleGroup();
 
-        ToggleButton startButton = new ToggleButton("Start");
+       /* ToggleButton startButton = new ToggleButton("Start");
         startButton.setOnAction(e -> onStart());
         startButton.setToggleGroup(startStopGroup);
         actionBox.getChildren().add(startButton);
@@ -148,7 +151,7 @@ public class NetworkMonitorUI extends Application {
         ToggleButton stopButton = new ToggleButton("Stop");
         stopButton.setOnAction(e -> onStop());
         stopButton.setToggleGroup(startStopGroup);
-        actionBox.getChildren().add(stopButton);
+        actionBox.getChildren().add(stopButton);*/
 
         HBox infoBox = new HBox(20);
         infoBox.setStyle(bgStyle);
@@ -159,11 +162,12 @@ public class NetworkMonitorUI extends Application {
         infoBox.getChildren().add(actionLabel);
 
         infoTextArea = new TextArea();
+        infoTextArea.setMinHeight(300);
         infoBox.getChildren().add(infoTextArea);
 
         VBox vBox = new VBox(20);
         vBox.setPadding(bgPadding);
-        vBox.getChildren().addAll(seedsPane, nodesPane, infoBox, modesWithFieldsBox, actionBox);
+        vBox.getChildren().addAll(seedsPane, nodesPane, infoBox/*, modesWithFieldsBox, actionBox*/);
 
 
         ScrollPane scrollPane = new ScrollPane(vBox);
@@ -187,22 +191,23 @@ public class NetworkMonitorUI extends Application {
     }
 
     private CompletableFuture<Boolean> bootstrap(List<Address> addresses, String name, List<NetworkService> sink, Pane pane) {
-        stopNodes(sink, pane);
-
+        UserThread.execute(() -> stopNodes(sink, pane));
+        
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         addresses.forEach(seedAddress -> {
             int port = seedAddress.getPort();
-            Button button = new Button(name + port);
-            button.setMinWidth(100);
-            button.setMaxWidth(button.getMinWidth());
-            pane.getChildren().add(button);
-
             NetworkService networkService = networkMonitor.createNetworkService();
             allFutures.add(networkService.bootstrap(port));
 
-            button.setUserData(networkService);
-            button.setOnAction(e -> onNodeInfo(networkService));
-            sink.add(networkService);
+            UserThread.execute(() -> {
+                Button button = new Button(name + port);
+                button.setMinWidth(100);
+                button.setMaxWidth(button.getMinWidth());
+                pane.getChildren().add(button);
+                button.setUserData(networkService);
+                button.setOnAction(e -> onNodeInfo(networkService));
+                sink.add(networkService);
+            });
         });
 
         return CompletableFutureUtils.allOf(allFutures)
@@ -260,7 +265,13 @@ public class NetworkMonitorUI extends Application {
 
 
     private void onNodeInfo(NetworkService networkService) {
-        infoTextArea.setText("Node " + networkService.findMyDefaultAddressesByTransportType(Transport.Type.CLEAR_NET) + ":" + networkService);
+        String connectionMatrix = networkService.findServiceNode(Transport.Type.CLEAR_NET)
+                .flatMap(ServiceNode::getMeshService)
+                .map(MeshService::getPeerGroup).stream()
+                .map(PeerGroup::getConnectionMatrix)
+                .findAny()
+                .orElse("null");
+        infoTextArea.setText(connectionMatrix);
     }
 
     private void onStop() {

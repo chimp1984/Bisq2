@@ -23,6 +23,7 @@ import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationServ
 import network.misq.network.p2p.node.transport.Transport;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public abstract class BaseNetworkTest {
     protected Node.Config getConfig(Transport.Type transportType) {
@@ -33,7 +34,8 @@ public abstract class BaseNetworkTest {
         return new Node.Config(transportType,
                 supportedTransportTypes,
                 getAuthorizationService(),
-                getTransportConfig(getBaseDirName()));
+                getTransportConfig(getBaseDirName()),
+                (int) TimeUnit.SECONDS.toMillis(120));
     }
 
     protected UnrestrictedAuthorizationService getAuthorizationService() {

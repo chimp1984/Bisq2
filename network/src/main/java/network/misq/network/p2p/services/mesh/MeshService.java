@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
-@Getter
 public class MeshService {
+    @Getter
     private final PeerGroup peerGroup;
     private final PeerGroupService peerGroupService;
 

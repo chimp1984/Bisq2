@@ -54,7 +54,7 @@ class PeerExchangeRequestHandler implements Node.MessageListener {
                         .map(peer -> peer.getAddress().toString())
                         .collect(Collectors.toList()).toString());
                 log.info("Node {} received PeerExchangeResponse from {} with peers: {}",
-                        node.toString(), connection.getPeerAddress().toString(), addresses);
+                        node, connection.getPeerAddress().toString(), addresses);
                 future.complete(response.peers());
                 node.removeMessageListener(this);
             }
@@ -64,7 +64,7 @@ class PeerExchangeRequestHandler implements Node.MessageListener {
     CompletableFuture<Set<Peer>> request(Connection connection, Set<Peer> peersForPeerExchange) {
         future.orTimeout(TIMEOUT, TimeUnit.SECONDS);
         log.debug("Node {} send PeerExchangeRequest to {} with my peers {}",
-                node.toString(), connection.getPeerAddress().toString(), peersForPeerExchange);
+                node, connection.getPeerAddress().toString(), peersForPeerExchange);
         node.send(new PeerExchangeRequest(nonce, peersForPeerExchange), connection)
                 .whenComplete((c, throwable) -> {
                     if (throwable != null) {

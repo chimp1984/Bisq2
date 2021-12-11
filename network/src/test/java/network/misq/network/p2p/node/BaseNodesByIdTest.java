@@ -36,7 +36,7 @@ public abstract class BaseNodesByIdTest extends BaseNetworkTest {
         NodesById nodesById = new NodesById(config);
         long ts = System.currentTimeMillis();
         // Thread.sleep(6000);
-        numNodes = 100;
+        numNodes = 5;
         int numRepeats = 1;
         for (int i = 0; i < numRepeats; i++) {
             log.error("Iteration {}", i);
@@ -62,8 +62,8 @@ public abstract class BaseNodesByIdTest extends BaseNetworkTest {
                 initializeServerLatch.countDown();
                 nodesById.addMessageListener(nodeId, (message, connection, id) -> {
                     log.info("Received " + message.toString());
-                    if (message instanceof ClearNetNodesByIdTest.Ping) {
-                        ClearNetNodesByIdTest.Pong pong = new ClearNetNodesByIdTest.Pong("Pong from " + finalI + " to " + connection.getPeerAddress().getPort());
+                    if (message instanceof ClearNetNodesByIdIntegrationTest.Ping) {
+                        ClearNetNodesByIdIntegrationTest.Pong pong = new ClearNetNodesByIdIntegrationTest.Pong("Pong from " + finalI + " to " + connection.getPeerAddress().getPort());
                         log.info("Send pong " + pong);
                         nodesById.send(nodeId, pong, connection).whenComplete((r2, t2) -> {
                             if (t2 != null) {
@@ -72,7 +72,7 @@ public abstract class BaseNodesByIdTest extends BaseNetworkTest {
                             log.info("Send pong completed " + pong);
                             sendPongLatch.countDown();
                         });
-                    } else if (message instanceof ClearNetNodesByIdTest.Pong) {
+                    } else if (message instanceof ClearNetNodesByIdIntegrationTest.Pong) {
                         receivedPongLatch.countDown();
                     }
                 });
@@ -91,7 +91,7 @@ public abstract class BaseNodesByIdTest extends BaseNetworkTest {
             int receiverIndex = (i + 1) % numNodes;
             String receiverNodeId = "node_" + receiverIndex;
             Address receiverNodeAddress = nodesById.getMyAddress(receiverNodeId).get();
-            ClearNetNodesByIdTest.Ping ping = new ClearNetNodesByIdTest.Ping("Ping from " + nodesById.getMyAddress(nodeId) + " to " + receiverNodeAddress);
+            ClearNetNodesByIdIntegrationTest.Ping ping = new ClearNetNodesByIdIntegrationTest.Ping("Ping from " + nodesById.getMyAddress(nodeId) + " to " + receiverNodeAddress);
             log.info("Send ping " + ping);
             nodesById.send(nodeId, ping, receiverNodeAddress).whenComplete((r, t) -> {
                 if (t != null) {

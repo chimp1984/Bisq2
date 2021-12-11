@@ -18,24 +18,19 @@
 package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.OsUtils;
-import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
 @Slf4j
-public class I2PNodesByIdTest extends BaseNodesByIdTest {
-
+public class TorNodesByIdIntegrationTest extends BaseNodesByIdTest {
     @Test
     void test_messageRoundTrip() throws InterruptedException {
-        super.test_messageRoundTrip(getConfig(Transport.Type.I2P));
+        super.test_messageRoundTrip(getConfig(Transport.Type.TOR));
     }
 
     // @Test
     void test_initializeServer() throws InterruptedException {
-        super.test_initializeServer(getConfig(Transport.Type.I2P));
+        super.test_initializeServer(getConfig(Transport.Type.TOR));
     }
 
     @Override

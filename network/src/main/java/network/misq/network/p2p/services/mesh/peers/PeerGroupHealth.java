@@ -62,7 +62,7 @@ public class PeerGroupHealth {
                 maybeRemovePersistedPeers();
             }
 
-        }, INTERVAL);
+        }, INTERVAL, INTERVAL);
         keepAliveService.initialize();
         return CompletableFuture.completedFuture(true);
     }
@@ -79,11 +79,12 @@ public class PeerGroupHealth {
         int maxNumConnectedPeers = peerGroup.getMaxNumConnectedPeers();
         int numConnections = peerGroup.getAllConnectedPeers().size();
         int exceeding = numConnections - maxNumConnectedPeers;
-        if (exceeding < 0) {
+        if (exceeding <= 0) {
             return;
         }
         List<Connection> inbound = new ArrayList<>(peerGroup.getInboundConnections());
         inbound.sort(Comparator.comparing(c -> c.getMetrics().getCreationDate()));
+        //todo remove duplicates
         List<Connection> candidates = new ArrayList<>();
         if (!inbound.isEmpty()) {
             candidates.addAll(inbound.subList(0, Math.min(exceeding, inbound.size())));
@@ -99,11 +100,11 @@ public class PeerGroupHealth {
         if (!candidates.isEmpty()) {
             log.info("Node {} has {} connections. Our max connections target is {}. " +
                             "We close {} connections.",
-                    node.toString(), numConnections, maxNumConnectedPeers, candidates.size());
+                    node, numConnections, maxNumConnectedPeers, candidates.size());
         }
         candidates.stream()
                 .peek(connection -> log.info("Node {} send CloseConnectionMessage to peer {} as we have too many connections.",
-                        node.toString(), connection.getPeersCapability().address().toString()))
+                        node, connection.getPeersCapability().address().toString()))
                 .forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.TOO_MANY_CONNECTIONS), connection));
     }
 
@@ -115,9 +116,9 @@ public class PeerGroupHealth {
             return;
         }
 
-        log.info("Node {} is missing {} connections to reach our target of {}. " +
+        log.error("############ Node {} is missing {} connections to reach our target of {}. " +
                         "We start the peer exchange protocol to get more connections.",
-                node.toString(), missing, minNumConnectedPeers);
+                node, missing, minNumConnectedPeers);
         // We use peer exchange protocol for establishing new connections.
         // The calculation how many connections we need is done inside PeerExchangeService/PeerExchangeStrategy
         peerExchangeService.startPeerExchange();

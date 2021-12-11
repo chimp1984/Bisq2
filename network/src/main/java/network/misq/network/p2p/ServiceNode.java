@@ -19,6 +19,7 @@ package network.misq.network.p2p;
 
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
+import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.node.transport.Transport;
@@ -66,6 +67,7 @@ public class ServiceNode {
     private final NodesById nodesById;
     private final Node defaultNode;
     private Optional<ConfidentialMessageService> confidentialMessageService;
+    @Getter
     private Optional<MeshService> meshService;
     private Optional<DataService> dataService;
     private Optional<RelayService> relayService;
@@ -182,6 +184,10 @@ public class ServiceNode {
 
     public Optional<Address> findMyAddress(String nodeId) {
         return nodesById.findMyAddress(nodeId);
+    }
+    
+    public Optional<Node> findNode(String nodeId) {
+        return nodesById.findNode(nodeId);
     }
 
     public Map<String, Address> getAddressesByNodeId() {

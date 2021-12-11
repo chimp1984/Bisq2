@@ -76,7 +76,6 @@ public class PeerGroup implements ConnectionListener {
 
     @Override
     public void onConnection(Connection connection) {
-        Peer peer = new Peer(connection.getPeersCapability());
         if (connection.isOutboundConnection()) {
             outboundConnections.add(connection);
         } else {
@@ -136,5 +135,17 @@ public class PeerGroup implements ConnectionListener {
 
     public boolean notMyself(Peer peer) {
         return notMyself(peer.getAddress());
+    }
+
+    public String getConnectionMatrix() {
+        int numConnections = outboundConnections.size() + inboundConnections.size();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Num connections: ").append(numConnections)
+                .append("\n").append("Num outbound connections: ").append(outboundConnections.size())
+                .append("\n").append("Num inbound connections: ").append(inboundConnections.size())
+                .append("\n");
+        outboundConnections.forEach(connection -> sb.append(node).append(" --> ").append(connection.getPeerAddress().toString()).append("\n"));
+        inboundConnections.forEach(connection -> sb.append(node).append(" <-- ").append(connection.getPeerAddress().toString()).append("\n"));
+        return sb.toString();
     }
 }

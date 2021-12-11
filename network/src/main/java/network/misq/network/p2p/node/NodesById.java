@@ -107,6 +107,10 @@ public class NodesById implements Node.MessageListener {
         return nodesById.get(nodeId).findMyAddress();
     }
 
+    public Optional<Node> findNode(String nodeId) {
+        return Optional.ofNullable(nodesById.get(nodeId));
+    }
+
     public Map<String, Address> getAddressesByNodeId() {
         //noinspection OptionalGetWithoutIsPresent
         return nodesById.entrySet().stream()

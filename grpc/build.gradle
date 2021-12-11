@@ -59,4 +59,5 @@ protobuf {
 
 test {
     useJUnitPlatform()
+    exclude '**/**Integration*'
 }

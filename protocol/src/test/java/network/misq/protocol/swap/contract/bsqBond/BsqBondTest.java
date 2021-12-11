@@ -61,7 +61,7 @@ public class BsqBondTest {
         networkService = new MockServiceTransport();
     }
 
-    @Test
+   // @Test
     public void testBsqBond() {
 
         // create offer

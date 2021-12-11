@@ -315,7 +315,7 @@ public class Node {
         if (exception instanceof EOFException) {
             // log.debug(exception.toString(), exception);
         } else if (exception instanceof SocketException) {
-            log.debug(exception.toString(), exception);
+            //log.debug(exception.toString(), exception);
         } else if (exception instanceof SocketTimeoutException) {
             log.info(exception.toString(), exception);
         } else {

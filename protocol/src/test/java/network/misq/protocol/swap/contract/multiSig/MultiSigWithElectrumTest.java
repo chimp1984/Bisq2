@@ -51,7 +51,7 @@ public class MultiSigWithElectrumTest extends MultiSigTest {
         return new Bitcoind();
     }
 
-    @Test
+   // @Test
     public void testMultiSig() {
         super.run();
     }

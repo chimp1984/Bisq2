@@ -40,7 +40,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Represents an inbound or outbound connection to a peer node.
  * Listens for messages from the peer.
- * Sends messages to the peer.
+ * Send messages to the peer.
  * Notifies messageListeners on new received messages.
  * Notifies errorHandler on exceptions from the inputHandlerService executor.
  */

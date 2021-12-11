@@ -139,7 +139,19 @@ public class NetworkService {
         return serviceNodesByTransport.findMyAddresses(transport, nodeId);
     }
 
-    public Optional<Address> findMyDefaultAddressesByTransportType(Transport.Type transport) {
+    public Optional<Address> findMyDefaultAddresses(Transport.Type transport) {
         return serviceNodesByTransport.findMyAddresses(transport, Node.DEFAULT_NODE_ID);
+    }
+
+    public Optional<Node> findDefaultNode(Transport.Type transport) {
+        return findNode(transport, Node.DEFAULT_NODE_ID);
+    }
+
+    public Optional<Node> findNode(Transport.Type transport, String nodeId) {
+        return serviceNodesByTransport.findNode(transport, nodeId);
+    }
+
+    public Optional<ServiceNode> findServiceNode(Transport.Type transport) {
+        return serviceNodesByTransport.findServiceNode(transport);
     }
 }

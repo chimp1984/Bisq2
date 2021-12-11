@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-public class PersistenceTest {
+public class PersistenceIntegrationTest {
     @EqualsAndHashCode
     @Getter
     static class MockObject implements Persistable {

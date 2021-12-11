@@ -61,7 +61,7 @@ public class PeerExchangeService implements Node.MessageListener {
 
     public CompletableFuture<Boolean> startPeerExchange() {
         List<Address> addresses = peerExchangeStrategy.getAddressesForPeerExchange();
-        log.info("Node {} starts peer exchange with: {}", node.toString(),
+        log.info("Node {} starts peer exchange with: {}", node,
                 StringUtils.truncate(addresses.stream()
                         .map(Address::toString)
                         .collect(Collectors.toList()).toString()));
@@ -72,7 +72,7 @@ public class PeerExchangeService implements Node.MessageListener {
                 .thenCompose(resultList -> {
                     int numSuccess = (int) resultList.stream().filter(e -> e).count();
                     log.debug("Peer exchange with {} peers completed. {} requests successfully completed. My address: {}",
-                            addresses.size(), numSuccess, node.toString());
+                            addresses.size(), numSuccess, node);
                     boolean repeatBootstrap = peerExchangeStrategy.repeatBootstrap(numSuccess, addresses.size());
                     return CompletableFuture.completedFuture(repeatBootstrap);
                 });
@@ -115,12 +115,12 @@ public class PeerExchangeService implements Node.MessageListener {
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof PeerExchangeRequest request) {
-            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.toString(), request.peers());
+            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node, request.peers());
             Address peerAddress = connection.getPeerAddress();
             peerExchangeStrategy.addReportedPeers(request.peers(), peerAddress);
             Set<Peer> myPeers = peerExchangeStrategy.getPeers(peerAddress);
             node.send(new PeerExchangeResponse(request.nonce(), myPeers), connection);
-            log.debug("Node {} sent PeerExchangeResponse with my myPeers {}", node.toString(), myPeers);
+            log.debug("Node {} sent PeerExchangeResponse with my myPeers {}", node, myPeers);
         }
     }
 

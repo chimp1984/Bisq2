@@ -18,10 +18,8 @@
 package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
+//TODO Test commented out as network layer has changed. not sure yet the test will be reactivate/rewritten or delete later.
+// leave it for now...
 
 @Slf4j
 public class TorIntegrationTest extends BaseTest {

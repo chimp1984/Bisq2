@@ -18,7 +18,8 @@
 package network.misq.network.p2p;
 
 import lombok.extern.slf4j.Slf4j;
-
+//TODO Commented out as network layer has changed. not sure yet the test will be reactivate/rewritten or delete later.
+// leave it for now...
 @Slf4j
 public abstract class Config {
    /* protected static KeyPair keyPairAlice1, keyPairBob1, keyPairAlice2, keyPairBob2;

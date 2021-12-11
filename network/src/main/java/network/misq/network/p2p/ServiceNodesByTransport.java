@@ -74,7 +74,7 @@ public class ServiceNodesByTransport {
         ConfidentialMessageService.Config confMsgServiceConfig = new ConfidentialMessageService.Config(keyPairRepository);
         KeepAliveService.Config keepAliveServiceConfig = new KeepAliveService.Config(socketTimeout / 2,
                 socketTimeout / 4);
-        
+
         supportedTransportTypes.forEach(transportType -> {
             Node.Config nodeConfig = new Node.Config(transportType,
                     supportedTransportTypes,
@@ -263,5 +263,14 @@ public class ServiceNodesByTransport {
 
     public Optional<Address> findMyAddresses(Transport.Type transport, String nodeId) {
         return findMyAddresses(transport).map(map -> map.get(nodeId));
+    }
+
+    public Optional<ServiceNode> findServiceNode(Transport.Type transport) {
+        return Optional.ofNullable(serviceNodesByTransport.get(transport));
+    }
+
+    public Optional<Node> findNode(Transport.Type transport, String nodeId) {
+        return Optional.ofNullable(serviceNodesByTransport.get(transport))
+                .flatMap(serviceNode -> serviceNode.findNode(nodeId));
     }
 }

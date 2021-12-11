@@ -41,10 +41,10 @@ public class NetworkMonitor {
 
     @Setter
     @Getter
-    private int numSeeds = 1;
+    private int numSeeds = 8;
     @Setter
     @Getter
-    private int numNodes = 4;
+    private int numNodes = 20;
     private int jitter = 50; // 50%
 
     public NetworkMonitor() {
@@ -81,8 +81,8 @@ public class NetworkMonitor {
     }
 
     public NetworkService createNetworkService() {
-        PeerGroup.Config peerGroupConfig = new PeerGroup.Config(1, 2, 1);
-        PeerExchangeStrategy.Config peerExchangeConfig = new PeerExchangeStrategy.Config(1, 40, 20);
+        PeerGroup.Config peerGroupConfig = new PeerGroup.Config(8, 12, 100);
+        PeerExchangeStrategy.Config peerExchangeConfig = new PeerExchangeStrategy.Config(2, 40, 20);
 
         List<Address> seedAddresses = getSeedAddresses();
         Map<Transport.Type, List<Address>> seedsByTransportType = Map.of(Transport.Type.TOR, seedAddresses,
