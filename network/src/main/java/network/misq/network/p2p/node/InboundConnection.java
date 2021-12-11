@@ -38,9 +38,4 @@ public class InboundConnection extends Connection {
         this.serverSocketResult = serverSocketResult;
         log.debug("Create inboundConnection from server: {}", serverSocketResult);
     }
-
-    @Override
-    public String toString() {
-        return serverSocketResult + " / " + id;
-    }
 }

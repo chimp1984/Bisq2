@@ -56,8 +56,8 @@ public class ConnectionHandshake {
         this.authorizationService = authorizationService;
 
         try {
-            socket.setTcpNoDelay(true);
-            socket.setSoLinger(true, 100);
+            // socket.setTcpNoDelay(true);
+            // socket.setSoLinger(true, 100);
             socket.setSoTimeout(socketTimeout);
         } catch (SocketException e) {
             e.printStackTrace();

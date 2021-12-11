@@ -39,7 +39,7 @@ public final class Server {
     private final Address address;
     private volatile boolean isStopped;
 
-    Server(Transport.ServerSocketResult serverSocketResult, int socketTimeout, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
+    Server(Transport.ServerSocketResult serverSocketResult, Consumer<Socket> socketHandler, Consumer<Exception> exceptionHandler) {
         serverSocket = serverSocketResult.serverSocket();
         address = serverSocketResult.address();
         log.debug("Create server: {}", serverSocketResult);
@@ -49,7 +49,6 @@ public final class Server {
                     StringUtils.truncate(serverSocketResult.address().toString()));
 
             try {
-                serverSocket.setSoTimeout(socketTimeout);
                 while (isNotStopped()) {
                     Socket socket = serverSocket.accept();
                     log.debug("Accepted new connection on server: {}", serverSocketResult);

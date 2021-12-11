@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 
 import java.util.Random;
@@ -30,40 +29,41 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 @Slf4j
-class KeepAliveHandler implements MessageListener {
+class KeepAliveHandler implements Connection.MessageListener {
     private static final long TIMEOUT = 90;
 
     private final Node node;
+    private final Connection connection;
     private final CompletableFuture<Void> future = new CompletableFuture<>();
     private final int nonce;
 
-    KeepAliveHandler(Node node) {
+    KeepAliveHandler(Node node, Connection connection) {
         this.node = node;
+        this.connection = connection;
+
         nonce = new Random().nextInt();
-        node.addMessageListener(this);
-        log.error("new KeepAliveHandler at node {} nonce={}", node.print(), nonce);
+        connection.addMessageListener(this);
     }
 
     @Override
-    public void onMessage(Message message, Connection connection, String nodeId) {
+    public void onMessage(Message message) {
         if (message instanceof Pong pong) {
             if (pong.requestNonce() == nonce) {
                 log.info("Node {} received Pong from {} with nonce {}. Connection={}",
-                        node.print(), connection.getPeerAddress().print(), pong.requestNonce(), connection.getId());
-                node.removeMessageListener(this);
+                        node.toString(), connection.getPeerAddress().toString(), pong.requestNonce(), connection.getId());
+                connection.removeMessageListener(this);
                 future.complete(null);
             } else {
-                log.debug("Expected case if we receive message from different connection. " +
-                                "Node {} received Pong from {} with invalid nonce {}. Request nonce was {}. Connection={}",
-                        node.print(), connection.getPeerAddress().print(), pong.requestNonce(), nonce, connection.getId());
+                log.warn("Node {} received Pong from {} with invalid nonce {}. Request nonce was {}. Connection={}",
+                        node.toString(), connection.getPeerAddress().toString(), pong.requestNonce(), nonce, connection.getId());
             }
         }
     }
 
-    CompletableFuture<Void> sendPing(Connection connection) {
+    CompletableFuture<Void> sendPing() {
         future.orTimeout(TIMEOUT, TimeUnit.SECONDS);
         log.info("Node {} send Ping to {} with nonce {}. Connection={}",
-                node.print(), connection.getPeerAddress().print(), nonce, connection.getId());
+                node.toString(), connection.getPeerAddress().toString(), nonce, connection.getId());
         node.send(new Ping(nonce), connection)
                 .whenComplete((c, throwable) -> {
                     if (throwable != null) {
@@ -75,7 +75,7 @@ class KeepAliveHandler implements MessageListener {
     }
 
     void dispose() {
-        node.removeMessageListener(this);
+        connection.removeMessageListener(this);
         future.cancel(true);
     }
 }

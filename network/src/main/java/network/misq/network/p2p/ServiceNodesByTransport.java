@@ -23,7 +23,6 @@ import network.misq.common.util.NetworkUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
@@ -35,6 +34,7 @@ import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.mesh.peers.keepalive.KeepAliveService;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.security.KeyPair;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -68,22 +69,30 @@ public class ServiceNodesByTransport {
                                    SeedNodeRepository seedNodeRepository,
                                    DataService.Config dataServiceConfig,
                                    KeyPairRepository keyPairRepository) {
+        long socketTimeout = TimeUnit.SECONDS.toMillis(10);
+        Transport.Config transportConfig = new Transport.Config(baseDirPath);
+        ConfidentialMessageService.Config confMsgServiceConfig = new ConfidentialMessageService.Config(keyPairRepository);
+        KeepAliveService.Config keepAliveServiceConfig = new KeepAliveService.Config(socketTimeout / 2,
+                socketTimeout / 4);
+        
         supportedTransportTypes.forEach(transportType -> {
             Node.Config nodeConfig = new Node.Config(transportType,
                     supportedTransportTypes,
                     new UnrestrictedAuthorizationService(),
-                    new Transport.Config(baseDirPath),
-                    (int) TimeUnit.SECONDS.toMillis(10));
+                    transportConfig,
+                    (int) socketTimeout);
 
+            List<Address> seedNodeAddresses = seedNodeRepository.addressesByTransportType().get(transportType);
             MeshService.Config meshServiceConfig = new MeshService.Config(peerGroupConfig,
                     peerExchangeConfig,
-                    seedNodeRepository.addressesByTransportType().get(transportType));
+                    keepAliveServiceConfig,
+                    seedNodeAddresses);
 
             ServiceNode serviceNode = new ServiceNode(serviceNodeConfig,
                     nodeConfig,
                     meshServiceConfig,
                     dataServiceConfig,
-                    new ConfidentialMessageService.Config(keyPairRepository));
+                    confMsgServiceConfig);
             serviceNodesByTransport.put(transportType, serviceNode);
         });
     }
@@ -217,13 +226,13 @@ public class ServiceNodesByTransport {
         }
     }
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.addMessageListener(messageListener);
         });
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         serviceNodesByTransport.values().forEach(networkNode -> {
             networkNode.removeMessageListener(messageListener);
         });

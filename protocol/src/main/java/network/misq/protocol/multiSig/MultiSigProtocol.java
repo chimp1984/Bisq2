@@ -20,7 +20,7 @@ package network.misq.protocol.multiSig;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.ServiceNodesByTransport;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 import network.misq.protocol.Protocol;
 import network.misq.protocol.SecurityProvider;
 import network.misq.protocol.TwoPartyProtocol;
@@ -45,7 +45,7 @@ import network.misq.protocol.TwoPartyProtocol;
  *   payout tx and broadcasts it and sends Maker a message that the payout tx is broadcast.
  * </ol>
  */
-public abstract class MultiSigProtocol extends TwoPartyProtocol implements MessageListener {
+public abstract class MultiSigProtocol extends TwoPartyProtocol implements Node.MessageListener {
 
     public enum State implements Protocol.State {
         START,

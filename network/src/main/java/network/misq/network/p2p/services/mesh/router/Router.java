@@ -18,7 +18,6 @@
 package network.misq.network.p2p.services.mesh.router;
 
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
@@ -36,9 +35,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * - Decides which router is used for which message
  * - MessageListeners will get the consolidated messages from multiple routers
  */
-public class Router implements MessageListener {
+public class Router implements Node.MessageListener {
     private final GossipRouter gossipRouter;
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Set<Node.MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
     public Router(Node node, PeerGroup peerGroup) {
         gossipRouter = new GossipRouter(node, peerGroup);
@@ -49,11 +48,11 @@ public class Router implements MessageListener {
         return gossipRouter.broadcast(message);
     }
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         messageListeners.remove(messageListener);
     }
 

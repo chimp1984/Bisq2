@@ -22,7 +22,7 @@ import network.misq.common.timer.MisqTimer;
 import network.misq.common.timer.UserThread;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
@@ -31,24 +31,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class KeepAliveService implements MessageListener {
+public class KeepAliveService implements Node.MessageListener, ConnectionListener {
     private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+
+    public static record Config(long maxIdleTime, long interval) {
+    }
 
     private final Node node;
     private final PeerGroup peerGroup;
-    private final int socketTimeout;
+    private final Config config;
     private final Map<String, KeepAliveHandler> requestHandlerMap = new ConcurrentHashMap<>();
     private MisqTimer timer;
 
-    public KeepAliveService(Node node, PeerGroup peerGroup) {
+    public KeepAliveService(Node node, PeerGroup peerGroup, Config config) {
         this.node = node;
         this.peerGroup = peerGroup;
-        this.socketTimeout = node.getSocketTimeout();
+        this.config = config;
         this.node.addMessageListener(this);
+        node.addConnectionListener(this);
     }
 
     public void initialize() {
-        timer = UserThread.runPeriodically(this::sendPingIfRequired, socketTimeout / 4, TimeUnit.MILLISECONDS);
+        timer = UserThread.runPeriodically(this::sendPingIfRequired, config.interval(), TimeUnit.MILLISECONDS);
     }
 
     private void sendPingIfRequired() {
@@ -58,16 +62,15 @@ public class KeepAliveService implements MessageListener {
     }
 
     private void sendPing(Connection connection) {
-        log.info("Node {} send ping to {}. Connection={}", node.print(), connection.getPeerAddress().print(), connection.getId());
         String key = connection.getId();
         if (requestHandlerMap.containsKey(key)) {
             log.warn("requestHandlerMap contains already {}. " +
-                    "We dispose the existing handler and start a new one.", connection.getPeerAddress().print());
+                    "We dispose the existing handler and start a new one. Connection={}", connection.getPeerAddress().toString(), connection);
             requestHandlerMap.get(key).dispose();
         }
-        KeepAliveHandler handler = new KeepAliveHandler(node);
+        KeepAliveHandler handler = new KeepAliveHandler(node, connection);
         requestHandlerMap.put(key, handler);
-        handler.sendPing(connection)
+        handler.sendPing()
                 .orTimeout(TIMEOUT, TimeUnit.SECONDS)
                 .whenComplete((__, throwable) -> requestHandlerMap.remove(key));
     }
@@ -84,14 +87,28 @@ public class KeepAliveService implements MessageListener {
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof Ping ping) {
-            String peerAddress = connection.getPeerAddress().print();
-            log.debug("Node {} received Ping with nonce {} from {}", node.print(), ping.nonce(), peerAddress);
+            String peerAddress = connection.getPeerAddress().toString();
+            log.debug("Node {} received Ping with nonce {} from {}", node.toString(), ping.nonce(), peerAddress);
             node.send(new Pong(ping.nonce()), connection);
-            log.debug("Node {} sent Pong with nonce {} to {}. Connection={}", node.print(), ping.nonce(), peerAddress, connection.getId());
+            log.debug("Node {} sent Pong with nonce {} to {}. Connection={}", node.toString(), ping.nonce(), peerAddress, connection.getId());
+        }
+    }
+
+    @Override
+    public void onConnection(Connection connection) {
+    }
+
+    @Override
+    public void onDisconnect(Connection connection) {
+        String key = connection.getId();
+        if (requestHandlerMap.containsKey(key)) {
+            requestHandlerMap.get(key).dispose();
+            requestHandlerMap.remove(key);
         }
     }
 
     private boolean isRequired(Connection connection) {
-        return System.currentTimeMillis() - connection.getMetrics().getLastUpdate().get() > socketTimeout / 2;
+        return System.currentTimeMillis() - connection.getMetrics().getLastUpdate().get() > config.maxIdleTime();
     }
+
 }

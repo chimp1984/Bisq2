@@ -25,7 +25,6 @@ import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Getter
-public class PeerExchangeService implements MessageListener {
+public class PeerExchangeService implements Node.MessageListener {
     private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
     private final Node node;
@@ -62,9 +61,9 @@ public class PeerExchangeService implements MessageListener {
 
     public CompletableFuture<Boolean> startPeerExchange() {
         List<Address> addresses = peerExchangeStrategy.getAddressesForPeerExchange();
-        log.info("Node {} starts peer exchange with: {}", node.print(),
+        log.info("Node {} starts peer exchange with: {}", node.toString(),
                 StringUtils.truncate(addresses.stream()
-                        .map(Address::print)
+                        .map(Address::toString)
                         .collect(Collectors.toList()).toString()));
         List<CompletableFuture<Boolean>> allFutures = addresses.stream()
                 .map(this::doPeerExchange)
@@ -73,7 +72,7 @@ public class PeerExchangeService implements MessageListener {
                 .thenCompose(resultList -> {
                     int numSuccess = (int) resultList.stream().filter(e -> e).count();
                     log.debug("Peer exchange with {} peers completed. {} requests successfully completed. My address: {}",
-                            addresses.size(), numSuccess, node.print());
+                            addresses.size(), numSuccess, node.toString());
                     boolean repeatBootstrap = peerExchangeStrategy.repeatBootstrap(numSuccess, addresses.size());
                     return CompletableFuture.completedFuture(repeatBootstrap);
                 });
@@ -116,12 +115,12 @@ public class PeerExchangeService implements MessageListener {
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
         if (message instanceof PeerExchangeRequest request) {
-            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.print(), request.peers());
+            log.debug("Node {} received PeerExchangeRequest with myPeers {}", node.toString(), request.peers());
             Address peerAddress = connection.getPeerAddress();
             peerExchangeStrategy.addReportedPeers(request.peers(), peerAddress);
             Set<Peer> myPeers = peerExchangeStrategy.getPeers(peerAddress);
             node.send(new PeerExchangeResponse(request.nonce(), myPeers), connection);
-            log.debug("Node {} sent PeerExchangeResponse with my myPeers {}", node.print(), myPeers);
+            log.debug("Node {} sent PeerExchangeResponse with my myPeers {}", node.toString(), myPeers);
         }
     }
 

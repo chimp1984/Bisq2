@@ -19,7 +19,6 @@ package network.misq.network.p2p.services.mesh.router.gossip;
 
 import network.misq.common.util.CollectionUtil;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Address;
@@ -31,12 +30,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GossipRouter implements MessageListener {
+public class GossipRouter implements Node.MessageListener {
     private static final long BROADCAST_TIMEOUT = 90;
 
     private final Node node;
     private final PeerGroup peerGroup;
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Set<Node.MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
     public GossipRouter(Node node, PeerGroup peerGroup) {
         this.node = node;
@@ -82,11 +81,11 @@ public class GossipRouter implements MessageListener {
         return CollectionUtil.getRandomElement(peerGroup.getConnectedPeerAddresses());
     }
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         messageListeners.remove(messageListener);
     }
 

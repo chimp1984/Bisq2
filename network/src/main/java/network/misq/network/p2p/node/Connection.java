@@ -23,16 +23,15 @@ import network.misq.common.util.ThreadingUtils;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.message.Version;
+import network.misq.network.p2p.node.authorization.AuthorizedMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -48,6 +47,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public abstract class Connection {
 
+    public interface MessageListener {
+        void onMessage(Message message);
+    }
+
     protected final String id = UUID.randomUUID().toString();
     private final Socket socket;
     @Getter
@@ -56,6 +59,7 @@ public abstract class Connection {
     private final BiConsumer<Message, Connection> messageHandler;
     @Getter
     private final Metrics metrics;
+    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private ExecutorService writeExecutor;
     private ExecutorService readExecutor;
     private ObjectInputStream objectInputStream;
@@ -94,7 +98,7 @@ public abstract class Connection {
                         if (envelope.getVersion() != Version.VERSION) {
                             throw new ConnectionException("Invalid network version. " + simpleName);
                         }
-                        log.debug("Received message: {} at: {}", envelope, print());
+                        log.debug("Received message: {} at: {}", envelope, toString());
                         metrics.received(envelope.getPayload());
                         messageHandler.accept(envelope.getPayload(), this);
                     }
@@ -110,7 +114,7 @@ public abstract class Connection {
     }
 
 
-    CompletableFuture<Connection> send(Message message) {
+    CompletableFuture<Connection> send(AuthorizedMessage message) {
         checkArgument(!isStopped, "send must not be called after connection is shut down");
 
         return CompletableFuture.supplyAsync(() -> {
@@ -119,7 +123,11 @@ public abstract class Connection {
                 objectOutputStream.writeObject(envelope);
                 objectOutputStream.flush();
                 metrics.sent(message);
-                log.debug("Message sent: {} at: {}", envelope, print());
+                log.debug("Message sent: {} at: {}", envelope, toString());
+
+                if (message.message() instanceof CloseConnectionMessage) {
+                    shutdown();
+                }
                 return this;
             } catch (IOException exception) {
                 if (!isStopped) {
@@ -134,7 +142,7 @@ public abstract class Connection {
         if (isStopped) {
             return CompletableFuture.completedFuture(null);
         }
-        log.info("Shut down {}", print());
+        log.info("Shut down {}", this);
         isStopped = true;
         return CompletableFuture.runAsync(() -> {
             ThreadingUtils.shutdownAndAwaitTermination(readExecutor, 1, TimeUnit.SECONDS);
@@ -146,10 +154,16 @@ public abstract class Connection {
         });
     }
 
-    public String print() {
-        return "'Connection to peer " + getPeersCapability().address().print() +
-                " with socket " + socket +
-                " and id " + getId() + "'";
+    void notifyMessageListeners(Message message) {
+        messageListeners.forEach(listener -> listener.onMessage(message));
+    }
+
+    public void addMessageListener(MessageListener messageListener) {
+        messageListeners.add(messageListener);
+    }
+
+    public void removeMessageListener(MessageListener messageListener) {
+        messageListeners.remove(messageListener);
     }
 
     public String getId() {
@@ -180,7 +194,9 @@ public abstract class Connection {
 
     @Override
     public String toString() {
-        return id;
+        return "'Connection to peer " + getPeersCapability().address().toString() +
+                " with socket " + socket +
+                " and id " + getId() + "'";
     }
 
     private boolean isNotStopped() {

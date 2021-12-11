@@ -20,7 +20,6 @@ package network.misq.network.p2p.services.data.inventory;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
@@ -29,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class InventoryRequestHandler implements MessageListener, Disposable {
+public class InventoryRequestHandler implements Node.MessageListener, Disposable {
     private static final long TIMEOUT_SEC = 90;
 
     private final Node node;

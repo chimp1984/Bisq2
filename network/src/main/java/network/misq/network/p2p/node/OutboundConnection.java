@@ -40,9 +40,4 @@ public class OutboundConnection extends Connection {
         this.address = address;
         log.debug("Create outboundConnection to {}", address);
     }
-
-    @Override
-    public String toString() {
-        return StringUtils.truncate(address.toString()) + " / " + id;
-    }
 }

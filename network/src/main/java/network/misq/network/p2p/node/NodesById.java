@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
  * Maintains nodes per nodeId.
  * Provides delegate methods to node with given nodeId
  */
-public class NodesById implements MessageListener {
+public class NodesById implements Node.MessageListener {
     private static final Logger log = LoggerFactory.getLogger(NodesById.class);
 
     private final Map<String, Node> nodesById = new ConcurrentHashMap<>();
     private final Node.Config nodeConfig;
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Set<Node.MessageListener> messageListeners = new CopyOnWriteArraySet<>();
 
     public NodesById(Node.Config nodeConfig) {
         this.nodeConfig = nodeConfig;
@@ -69,19 +69,19 @@ public class NodesById implements MessageListener {
         return getOrCreateNode(nodeId).initializeServer(serverPort);
     }
 
-    public void addMessageListener(MessageListener listener) {
+    public void addMessageListener(Node.MessageListener listener) {
         messageListeners.add(listener);
     }
 
-    public void removeMessageListener(MessageListener listener) {
+    public void removeMessageListener(Node.MessageListener listener) {
         messageListeners.remove(listener);
     }
 
-    public void addMessageListener(String nodeId, MessageListener listener) {
+    public void addMessageListener(String nodeId, Node.MessageListener listener) {
         getOrCreateNode(nodeId).addMessageListener(listener);
     }
 
-    public void removeMessageListener(String nodeId, MessageListener listener) {
+    public void removeMessageListener(String nodeId, Node.MessageListener listener) {
         Optional.ofNullable(nodesById.get(nodeId)).ifPresent(node -> node.removeMessageListener(listener));
     }
 

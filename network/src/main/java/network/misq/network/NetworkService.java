@@ -27,7 +27,6 @@ import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
@@ -102,11 +101,11 @@ public class NetworkService {
         return serviceNodesByTransport.confidentialSend(message, peerNetworkId, myKeyPair, connectionId);
     }
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         serviceNodesByTransport.addMessageListener(messageListener);
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         serviceNodesByTransport.removeMessageListener(messageListener);
     }
 

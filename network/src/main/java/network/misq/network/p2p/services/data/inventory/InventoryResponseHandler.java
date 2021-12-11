@@ -20,7 +20,6 @@ package network.misq.network.p2p.services.data.inventory;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.Disposable;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.services.data.filter.DataFilter;
@@ -28,7 +27,7 @@ import network.misq.network.p2p.services.data.filter.DataFilter;
 import java.util.function.Function;
 
 @Slf4j
-public class InventoryResponseHandler implements MessageListener, Disposable {
+public class InventoryResponseHandler implements Node.MessageListener, Disposable {
     private final Node node;
     private final Connection connection;
     private final Function<DataFilter, Inventory> inventoryProvider;

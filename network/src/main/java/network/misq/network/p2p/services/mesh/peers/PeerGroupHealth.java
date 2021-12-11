@@ -43,11 +43,13 @@ public class PeerGroupHealth {
     private final KeepAliveService keepAliveService;
     private final Timer timer = new Timer();
 
-    public PeerGroupHealth(Node node, PeerGroup peerGroup, PeerExchangeService peerExchangeService) {
+    public PeerGroupHealth(Node node, PeerGroup peerGroup,
+                           PeerExchangeService peerExchangeService,
+                           KeepAliveService.Config keepAliveServiceConfig) {
         this.node = node;
         this.peerGroup = peerGroup;
         this.peerExchangeService = peerExchangeService;
-        keepAliveService = new KeepAliveService(node, peerGroup);
+        keepAliveService = new KeepAliveService(node, peerGroup, keepAliveServiceConfig);
     }
 
     public CompletableFuture<Boolean> initialize() {
@@ -97,10 +99,11 @@ public class PeerGroupHealth {
         if (!candidates.isEmpty()) {
             log.info("Node {} has {} connections. Our max connections target is {}. " +
                             "We close {} connections.",
-                    node.print(), numConnections, maxNumConnectedPeers, candidates.size());
+                    node.toString(), numConnections, maxNumConnectedPeers, candidates.size());
         }
         candidates.stream()
-                .peek(connection -> log.info("Close connection to peer {} as we have too many connections.", connection.getPeersCapability().address().print()))
+                .peek(connection -> log.info("Node {} send CloseConnectionMessage to peer {} as we have too many connections.",
+                        node.toString(), connection.getPeersCapability().address().toString()))
                 .forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.TOO_MANY_CONNECTIONS), connection));
     }
 
@@ -114,7 +117,7 @@ public class PeerGroupHealth {
 
         log.info("Node {} is missing {} connections to reach our target of {}. " +
                         "We start the peer exchange protocol to get more connections.",
-                node.print(), missing, minNumConnectedPeers);
+                node.toString(), missing, minNumConnectedPeers);
         // We use peer exchange protocol for establishing new connections.
         // The calculation how many connections we need is done inside PeerExchangeService/PeerExchangeStrategy
         peerExchangeService.startPeerExchange();

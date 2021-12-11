@@ -19,7 +19,7 @@ package network.misq.network.p2p.node;
 
 
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.NetworkUtils;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
@@ -29,15 +29,15 @@ import network.misq.network.p2p.node.transport.ClearNetTransport;
 import network.misq.network.p2p.node.transport.I2PTransport;
 import network.misq.network.p2p.node.transport.TorTransport;
 import network.misq.network.p2p.node.transport.Transport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -54,8 +54,13 @@ import static java.util.concurrent.CompletableFuture.runAsync;
  * - Notifies ConnectionListeners when a new connection has been created or closed.
  * - Notifies MessageListeners when a new message has been received.
  */
-public class Node implements NodeApi {
-    private static final Logger log = LoggerFactory.getLogger(Node.class);
+@Slf4j
+public class Node {
+    public static final String DEFAULT_NODE_ID = "default";
+
+    public interface MessageListener {
+        void onMessage(Message message, Connection connection, String nodeId);
+    }
 
     public static record Config(Transport.Type transportType,
                                 Set<Transport.Type> supportedTransportTypes,
@@ -65,10 +70,8 @@ public class Node implements NodeApi {
     }
 
     private final Transport transport;
-    private final Set<Transport.Type> supportedTransportTypes;
     private final AuthorizationService authorizationService;
-    @Getter
-    private final int socketTimeout;
+    private final Config config;
     private final String nodeId;
 
     private final Map<Address, OutboundConnection> outboundConnectionMap = new ConcurrentHashMap<>();
@@ -82,9 +85,8 @@ public class Node implements NodeApi {
 
     public Node(Config config, String nodeId) {
         transport = getNetworkProxy(config.transportType(), config.transportConfig());
-        supportedTransportTypes = config.supportedTransportTypes();
         authorizationService = config.authorizationService();
-        socketTimeout = config.socketTimeout();
+        this.config = config;
         this.nodeId = nodeId;
     }
 
@@ -93,7 +95,7 @@ public class Node implements NodeApi {
     // Server
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
+
     public CompletableFuture<Transport.ServerSocketResult> initializeServer(int port) {
         return transport.initialize()
                 .thenCompose(e -> createServerAndListen(port));
@@ -102,9 +104,8 @@ public class Node implements NodeApi {
     private CompletableFuture<Transport.ServerSocketResult> createServerAndListen(int port) {
         return transport.getServerSocket(port, nodeId)
                 .thenCompose(serverSocketResult -> {
-                    myCapability = Optional.of(new Capability(serverSocketResult.address(), supportedTransportTypes));
+                    myCapability = Optional.of(new Capability(serverSocketResult.address(), config.supportedTransportTypes()));
                     server = Optional.of(new Server(serverSocketResult,
-                            socketTimeout,
                             socket -> onClientSocket(socket, serverSocketResult, myCapability.get()),
                             this::handleException));
                     return CompletableFuture.completedFuture(serverSocketResult);
@@ -112,7 +113,7 @@ public class Node implements NodeApi {
     }
 
     private void onClientSocket(Socket socket, Transport.ServerSocketResult serverSocketResult, Capability myCapability) {
-        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, socketTimeout, myCapability, authorizationService);
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, config.socketTimeout(), myCapability, authorizationService);
         log.info("Inbound handshake request at: {}", myCapability.address());
         connectionHandshake.onSocket()
                 .whenComplete((peersCapability, throwable) -> {
@@ -137,30 +138,15 @@ public class Node implements NodeApi {
     // Send
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
+
     public CompletableFuture<Connection> send(Message message, Address address) {
         return getConnection(address)
                 .thenCompose(connection -> send(message, connection));
     }
 
-    @Override
     public CompletableFuture<Connection> send(Message message, Connection connection) {
         return authorizationService.createToken(message.getClass())
-                .thenCompose(token -> {
-                    if (message instanceof CloseConnectionMessage) {
-                        // We give it 2 sec for sending out the msg then we close the connection
-                        Timer timer = new Timer();
-                        timer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                connection.shutdown();
-                                // onDisconnect(connection);
-                                timer.cancel();
-                            }
-                        }, 2000);
-                    }
-                    return connection.send(new AuthorizedMessage(message, token));
-                })
+                .thenCompose(token -> connection.send(new AuthorizedMessage(message, token)))
                 .exceptionally(exception -> {
                     handleException(connection, exception);
                     return connection;
@@ -172,7 +158,6 @@ public class Node implements NodeApi {
     // OutboundConnection
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
     public CompletableFuture<Connection> getConnection(Address address) {
         if (outboundConnectionMap.containsKey(address)) {
             return CompletableFuture.completedFuture(outboundConnectionMap.get(address));
@@ -197,7 +182,7 @@ public class Node implements NodeApi {
         }
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, socketTimeout, myCapability, authorizationService);
+        ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, config.socketTimeout(), myCapability, authorizationService);
         log.info("Outbound handshake started: Initiated by {} to {}", myCapability.address(), address);
         connectionHandshake.start()
                 .whenComplete((peersCapability, throwable) -> {
@@ -229,13 +214,20 @@ public class Node implements NodeApi {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void onMessage(Message message, Connection connection) {
-        if (!isStopped && message instanceof AuthorizedMessage authorizedMessage) {
+        if (isStopped) {
+            return;
+        }
+        if (message instanceof AuthorizedMessage authorizedMessage) {
             if (authorizationService.isAuthorized(authorizedMessage)) {
-                if (authorizedMessage.message() instanceof CloseConnectionMessage) {
+                Message payLoadMessage = authorizedMessage.message();
+                if (payLoadMessage instanceof CloseConnectionMessage) {
                     connection.shutdown();
                     onDisconnect(connection);
                 } else {
-                    runAsync(() -> messageListeners.forEach(listener -> listener.onMessage(authorizedMessage.message(), connection, nodeId)));
+                    runAsync(() -> {
+                        connection.notifyMessageListeners(payLoadMessage);
+                        messageListeners.forEach(listener -> listener.onMessage(payLoadMessage, connection, nodeId));
+                    });
                 }
             } else {
                 log.warn("Message authorization failed. authorizedMessage={}", StringUtils.truncate(authorizedMessage.toString()));
@@ -243,7 +235,6 @@ public class Node implements NodeApi {
         }
     }
 
-    @Override
     public CompletableFuture<Void> shutdown() {
         log.info("shutdown {}", this);
         if (isStopped) {
@@ -272,27 +263,23 @@ public class Node implements NodeApi {
         });
     }
 
-    @Override
     public Optional<Socks5Proxy> getSocksProxy() throws IOException {
         return transport.getSocksProxy();
     }
 
-    @Override
     public void addMessageListener(MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
-    @Override
     public void removeMessageListener(MessageListener messageListener) {
         messageListeners.remove(messageListener);
     }
 
-    @Override
     public void addConnectionListener(ConnectionListener connectionListener) {
         connectionListeners.add(connectionListener);
     }
 
-    @Override
+
     public void removeConnectionListener(ConnectionListener connectionListener) {
         connectionListeners.remove(connectionListener);
     }
@@ -311,12 +298,22 @@ public class Node implements NodeApi {
         runAsync(() -> connectionListeners.forEach(listener -> listener.onDisconnect(connection)));
     }
 
+
+    private void handleException(Connection connection, Throwable exception) {
+        // log.error("handleException={},exception={}", connection.toString(), exception);
+        if (isStopped) {
+            return;
+        }
+        handleException(exception);
+        onDisconnect(connection);
+    }
+
     private void handleException(Throwable exception) {
         if (isStopped) {
             return;
         }
         if (exception instanceof EOFException) {
-            log.debug(exception.toString(), exception);
+            // log.debug(exception.toString(), exception);
         } else if (exception instanceof SocketException) {
             log.debug(exception.toString(), exception);
         } else if (exception instanceof SocketTimeoutException) {
@@ -327,15 +324,6 @@ public class Node implements NodeApi {
 
     }
 
-    private void handleException(Connection connection, Throwable exception) {
-        if (isStopped) {
-            return;
-        }
-        handleException(exception);
-        onDisconnect(connection);
-    }
-
-
     private Transport getNetworkProxy(Transport.Type transportType, Transport.Config config) {
         return switch (transportType) {
             case TOR -> TorTransport.getInstance(config);
@@ -344,12 +332,12 @@ public class Node implements NodeApi {
         };
     }
 
-    @Override
     public Optional<Address> findMyAddress() {
         return server.map(Server::getAddress);
     }
 
-    public String print() {
-        return findMyAddress().map(Address::print).orElse("null");
+    @Override
+    public String toString() {
+        return findMyAddress().map(Address::toString).orElse("null");
     }
 }

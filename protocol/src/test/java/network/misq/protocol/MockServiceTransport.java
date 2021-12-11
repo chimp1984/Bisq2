@@ -23,7 +23,7 @@ import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
 import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 
 public class MockServiceTransport extends ServiceNodesByTransport {
     private static final Logger log = LoggerFactory.getLogger(MockServiceTransport.class);
-    private final Set<MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
+    private final Set<Node.MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
 
     public MockServiceTransport() {
         super();
@@ -91,12 +91,12 @@ public class MockServiceTransport extends ServiceNodesByTransport {
     }
 
     @Override
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
     @Override
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
     }
 
     @Override

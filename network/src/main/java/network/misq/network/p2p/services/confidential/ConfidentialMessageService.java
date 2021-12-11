@@ -21,10 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.ObjectSerializer;
 import network.misq.network.p2p.NetworkId;
 import network.misq.network.p2p.message.Message;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
-import network.misq.network.p2p.node.NodesById;
+import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.services.relay.RelayMessage;
 import network.misq.security.ConfidentialData;
 import network.misq.security.HybridEncryption;
@@ -38,12 +35,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
-public class ConfidentialMessageService implements MessageListener {
+public class ConfidentialMessageService implements Node.MessageListener {
 
     public static record Config(KeyPairRepository keyPairRepository) {
     }
 
-    private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Set<Node.MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private final NodesById nodesById;
     private final KeyPairRepository keyPairRepository;
 
@@ -117,11 +114,11 @@ public class ConfidentialMessageService implements MessageListener {
     }
 
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         messageListeners.remove(messageListener);
     }
 

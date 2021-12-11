@@ -172,11 +172,11 @@ public class ServiceNode {
         });
     }
 
-    public void addMessageListener(MessageListener messageListener) {
+    public void addMessageListener(Node.MessageListener messageListener) {
         confidentialMessageService.ifPresent(service -> service.addMessageListener(messageListener));
     }
 
-    public void removeMessageListener(MessageListener messageListener) {
+    public void removeMessageListener(Node.MessageListener messageListener) {
         confidentialMessageService.ifPresent(service -> service.removeMessageListener(messageListener));
     }
 

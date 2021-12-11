@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * That way the user trades of speed with loss of little privacy (the other nodes learn that that IP uses misq).
  * Probably acceptable trade off for many users. Would be good if the restart could be avoided. Maybe not that hard...
  */
-public class DataService implements MessageListener, ConnectionListener {
+public class DataService implements Node.MessageListener, ConnectionListener {
 
     public static record Config(String baseDirPath) {
     }

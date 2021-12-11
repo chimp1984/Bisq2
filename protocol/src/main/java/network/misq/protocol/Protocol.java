@@ -20,7 +20,7 @@ package network.misq.protocol;
 import lombok.Getter;
 import network.misq.contract.Contract;
 import network.misq.network.p2p.ServiceNodesByTransport;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Defines the protocol for executing a contract.
  */
-public abstract class Protocol implements MessageListener {
+public abstract class Protocol implements Node.MessageListener {
     public interface Listener {
         void onStateChange(State state);
     }

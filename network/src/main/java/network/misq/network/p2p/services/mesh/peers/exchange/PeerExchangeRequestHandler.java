@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.MessageListener;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.Peer;
 
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Slf4j
-class PeerExchangeRequestHandler implements MessageListener {
+class PeerExchangeRequestHandler implements Node.MessageListener {
     private static final long TIMEOUT = 90;
 
     private final Node node;
@@ -52,10 +51,10 @@ class PeerExchangeRequestHandler implements MessageListener {
         if (message instanceof PeerExchangeResponse response) {
             if (response.nonce() == nonce) {
                 String addresses = StringUtils.truncate(response.peers().stream()
-                        .map(peer -> peer.getAddress().print())
+                        .map(peer -> peer.getAddress().toString())
                         .collect(Collectors.toList()).toString());
                 log.info("Node {} received PeerExchangeResponse from {} with peers: {}",
-                        node.print(), connection.getPeerAddress().print(), addresses);
+                        node.toString(), connection.getPeerAddress().toString(), addresses);
                 future.complete(response.peers());
                 node.removeMessageListener(this);
             }
@@ -65,7 +64,7 @@ class PeerExchangeRequestHandler implements MessageListener {
     CompletableFuture<Set<Peer>> request(Connection connection, Set<Peer> peersForPeerExchange) {
         future.orTimeout(TIMEOUT, TimeUnit.SECONDS);
         log.debug("Node {} send PeerExchangeRequest to {} with my peers {}",
-                node.print(), connection.getPeerAddress().print(), peersForPeerExchange);
+                node.toString(), connection.getPeerAddress().toString(), peersForPeerExchange);
         node.send(new PeerExchangeRequest(nonce, peersForPeerExchange), connection)
                 .whenComplete((c, throwable) -> {
                     if (throwable != null) {

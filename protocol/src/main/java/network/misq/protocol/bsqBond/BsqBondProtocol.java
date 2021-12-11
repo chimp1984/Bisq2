@@ -20,7 +20,7 @@ package network.misq.protocol.bsqBond;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
 import network.misq.network.p2p.ServiceNodesByTransport;
-import network.misq.network.p2p.node.MessageListener;
+import network.misq.network.p2p.node.Node;
 import network.misq.protocol.Protocol;
 import network.misq.protocol.SecurityProvider;
 import network.misq.protocol.TwoPartyProtocol;
@@ -40,7 +40,7 @@ import network.misq.protocol.TwoPartyProtocol;
  *   <li value="5">After Taker has received Maker's funds he sends his funds. He has completed now.
  * </ol>
  */
-public abstract class BsqBondProtocol extends TwoPartyProtocol implements MessageListener {
+public abstract class BsqBondProtocol extends TwoPartyProtocol implements Node.MessageListener {
 
     public enum State implements Protocol.State {
         START,
