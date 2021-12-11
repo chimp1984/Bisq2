@@ -84,7 +84,7 @@ public class Node {
     private volatile boolean isStopped;
 
     public Node(Config config, String nodeId) {
-        transport = getNetworkProxy(config.transportType(), config.transportConfig());
+        transport = getTransport(config.transportType(), config.transportConfig());
         authorizationService = config.authorizationService();
         this.config = config;
         this.nodeId = nodeId;
@@ -324,7 +324,7 @@ public class Node {
 
     }
 
-    private Transport getNetworkProxy(Transport.Type transportType, Transport.Config config) {
+    private Transport getTransport(Transport.Type transportType, Transport.Config config) {
         return switch (transportType) {
             case TOR -> TorTransport.getInstance(config);
             case I2P -> I2PTransport.getInstance(config);

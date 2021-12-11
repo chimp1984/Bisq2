@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 public class ServiceNodesByTransport {
     private static final Logger log = LoggerFactory.getLogger(ServiceNodesByTransport.class);
 
-    private final Map<Transport.Type, ServiceNode> serviceNodesByTransport = new ConcurrentHashMap<>();
+    private final Map<Transport.Type, ServiceNode> map = new ConcurrentHashMap<>();
 
     public ServiceNodesByTransport(String baseDirPath,
                                    Set<Transport.Type> supportedTransportTypes,
@@ -93,7 +93,7 @@ public class ServiceNodesByTransport {
                     meshServiceConfig,
                     dataServiceConfig,
                     confMsgServiceConfig);
-            serviceNodesByTransport.put(transportType, serviceNode);
+            map.put(transportType, serviceNode);
         });
     }
 
@@ -121,8 +121,8 @@ public class ServiceNodesByTransport {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         AtomicInteger completed = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
-        int numNodes = serviceNodesByTransport.size();
-        serviceNodesByTransport.values().forEach(networkNode -> {
+        int numNodes = map.size();
+        map.values().forEach(networkNode -> {
             networkNode.bootstrap(Node.DEFAULT_NODE_ID, port)
                     .whenComplete((result, throwable) -> {
                         if (result != null) {
@@ -147,8 +147,8 @@ public class ServiceNodesByTransport {
     public CompletableFuture<Connection> confidentialSend(Message message, NetworkId networkId, KeyPair myKeyPair, String connectionId) {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         networkId.addressByNetworkType().forEach((transportType, address) -> {
-            if (serviceNodesByTransport.containsKey(transportType)) {
-                serviceNodesByTransport.get(transportType)
+            if (map.containsKey(transportType)) {
+                map.get(transportType)
                         .confidentialSend(message, networkId.addressByNetworkType().get(transportType), networkId.pubKey(), myKeyPair, connectionId)
                         .whenComplete((connection, throwable) -> {
                             if (connection != null) {
@@ -159,7 +159,7 @@ public class ServiceNodesByTransport {
                             }
                         });
             } else {
-                serviceNodesByTransport.values().forEach(networkNode -> {
+                map.values().forEach(networkNode -> {
                     networkNode.relay(message, networkId, myKeyPair)
                             .whenComplete((connection, throwable) -> {
                                 if (connection != null) {
@@ -176,7 +176,7 @@ public class ServiceNodesByTransport {
     }
 
     public void requestAddData(Message message, Consumer<GossipResult> resultHandler) {
-        serviceNodesByTransport.values().forEach(networkNode -> {
+        map.values().forEach(networkNode -> {
             networkNode.requestAddData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -189,7 +189,7 @@ public class ServiceNodesByTransport {
     }
 
     public void requestRemoveData(Message message, Consumer<GossipResult> resultHandler) {
-        serviceNodesByTransport.values().forEach(dataService -> {
+        map.values().forEach(dataService -> {
             dataService.requestRemoveData(message)
                     .whenComplete((gossipResult, throwable) -> {
                         if (gossipResult != null) {
@@ -202,7 +202,7 @@ public class ServiceNodesByTransport {
     }
 
     public void requestInventory(DataFilter dataFilter, Consumer<RequestInventoryResult> resultHandler) {
-        serviceNodesByTransport.values().forEach(networkNode -> {
+        map.values().forEach(networkNode -> {
             networkNode.requestInventory(dataFilter)
                     .whenComplete((requestInventoryResult, throwable) -> {
                         if (requestInventoryResult != null) {
@@ -215,9 +215,9 @@ public class ServiceNodesByTransport {
     }
 
     public Optional<Socks5Proxy> getSocksProxy() {
-        if (serviceNodesByTransport.containsKey(Transport.Type.TOR)) {
+        if (map.containsKey(Transport.Type.TOR)) {
             try {
-                return serviceNodesByTransport.get(Transport.Type.TOR).getSocksProxy();
+                return map.get(Transport.Type.TOR).getSocksProxy();
             } catch (IOException e) {
                 return Optional.empty();
             }
@@ -227,33 +227,33 @@ public class ServiceNodesByTransport {
     }
 
     public void addMessageListener(Node.MessageListener messageListener) {
-        serviceNodesByTransport.values().forEach(networkNode -> {
+        map.values().forEach(networkNode -> {
             networkNode.addMessageListener(messageListener);
         });
     }
 
     public void removeMessageListener(Node.MessageListener messageListener) {
-        serviceNodesByTransport.values().forEach(networkNode -> {
+        map.values().forEach(networkNode -> {
             networkNode.removeMessageListener(messageListener);
         });
     }
 
     public CompletableFuture<Void> shutdown() {
-        CountDownLatch latch = new CountDownLatch(serviceNodesByTransport.size());
+        CountDownLatch latch = new CountDownLatch(map.size());
         return CompletableFuture.runAsync(() -> {
-            serviceNodesByTransport.values()
+            map.values()
                     .forEach(serviceNode -> serviceNode.shutdown().whenComplete((v, t) -> latch.countDown()));
             try {
                 latch.await(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Shutdown interrupted by timeout");
             }
-            serviceNodesByTransport.clear();
+            map.clear();
         });
     }
 
     public Map<Transport.Type, Map<String, Address>> findMyAddresses() {
-        return serviceNodesByTransport.entrySet().stream()
+        return map.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAddressesByNodeId()));
     }
 
@@ -266,11 +266,11 @@ public class ServiceNodesByTransport {
     }
 
     public Optional<ServiceNode> findServiceNode(Transport.Type transport) {
-        return Optional.ofNullable(serviceNodesByTransport.get(transport));
+        return Optional.ofNullable(map.get(transport));
     }
 
     public Optional<Node> findNode(Transport.Type transport, String nodeId) {
-        return Optional.ofNullable(serviceNodesByTransport.get(transport))
+        return Optional.ofNullable(map.get(transport))
                 .flatMap(serviceNode -> serviceNode.findNode(nodeId));
     }
 }

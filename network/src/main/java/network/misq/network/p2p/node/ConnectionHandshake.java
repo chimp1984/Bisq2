@@ -68,7 +68,6 @@ public class ConnectionHandshake {
     public CompletableFuture<Capability> start() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
                 Envelope requestEnvelope = new Envelope(new Request(token, capability));
