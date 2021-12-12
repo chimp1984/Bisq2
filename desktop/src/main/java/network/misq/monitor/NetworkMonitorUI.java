@@ -19,53 +19,51 @@ package network.misq.monitor;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import network.misq.common.data.Triple;
+import lombok.extern.slf4j.Slf4j;
 import network.misq.common.timer.UserThread;
 import network.misq.common.util.CompletableFutureUtils;
 import network.misq.desktop.utils.UITimer;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.ServiceNode;
 import network.misq.network.p2p.node.Address;
+import network.misq.network.p2p.node.Connection;
+import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.monitor.NetworkMonitor;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class NetworkMonitorUI extends Application {
-    private static final Logger log = LoggerFactory.getLogger(NetworkMonitorUI.class);
     private NetworkMonitor networkMonitor;
     private FlowPane seedsPane, nodesPane;
-    private int nodeWidth;
-    private Mode mode = Mode.START_NODES;
-    private TextArea infoTextArea;
+    private TextArea nodeInfoTextArea, eventTextArea;
     private final List<NetworkService> seedNetworkServices = new ArrayList<>();
     private final List<NetworkService> nodeNetworkServices = new ArrayList<>();
-    private StringProperty numSeeds = new SimpleStringProperty();
-    private StringProperty numNodes = new SimpleStringProperty();
+    private final Map<Address, String> connectionInfoByAddress = new HashMap<>();
 
-    enum Mode {
-        STARTS_SEEDS,
-        START_NODES
-
-    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -73,17 +71,13 @@ public class NetworkMonitorUI extends Application {
         UserThread.setTimerClass(UITimer.class);
 
         networkMonitor = new NetworkMonitor();
-        numSeeds.set(String.valueOf(networkMonitor.getNumSeeds()));
-        numSeeds.addListener((observable, oldValue, newValue) -> networkMonitor.setNumSeeds(Integer.parseInt(newValue)));
-        numNodes.set(String.valueOf(networkMonitor.getNumNodes()));
-        numNodes.addListener((observable, oldValue, newValue) -> networkMonitor.setNumNodes(Integer.parseInt(newValue)));
 
         String bgStyle = "-fx-background-color: #dadada";
         String seedStyle = "-fx-background-color: #80afa1";
 
         Insets bgPadding = new Insets(10, 10, 10, 10);
         Insets labelPadding = new Insets(4, -20, 0, 0);
-        nodeWidth = 50;
+        int nodeWidth = 50;
         double stageWidth = 2000;
         double availableWidth = stageWidth - 2 * bgPadding.getLeft() - 2 * bgPadding.getRight();
         int nodesPerRow = (int) (availableWidth / nodeWidth);
@@ -105,34 +99,6 @@ public class NetworkMonitorUI extends Application {
         modeLabel.setPadding(labelPadding);
         modesBox.getChildren().add(modeLabel);
 
-        ToggleGroup modesGroup = new ToggleGroup();
-
-        ToggleButton startSeedsButton = new ToggleButton("Seeds");
-        startSeedsButton.setOnAction(e -> onMode(Mode.STARTS_SEEDS));
-        startSeedsButton.setToggleGroup(modesGroup);
-        modesBox.getChildren().add(startSeedsButton);
-        modesGroup.selectToggle(startSeedsButton);
-
-        ToggleButton startNodesButton = new ToggleButton("Nodes");
-        startNodesButton.setOnAction(e -> onMode(Mode.START_NODES));
-        startNodesButton.setToggleGroup(modesGroup);
-        modesBox.getChildren().add(startNodesButton);
-
-       /* ToggleButton meshButton = new ToggleButton("Mesh");
-        meshButton.setOnAction(e -> onMode(Mode.START_MESH));
-        meshButton.setToggleGroup(modesGroup);
-        modesBox.getChildren().add(meshButton);*/
-
-
-      /*  Triple<Label, TextField, HBox> numSeedsTriple = getTextInput("Num seeds:");
-        numSeedsTriple.second().textProperty().bindBidirectional(numSeeds);
-
-        Triple<Label, TextField, HBox> numNodesTriple = getTextInput("Num nodes:");
-        numNodesTriple.second().textProperty().bindBidirectional(numNodes);*/
-
-      /*  VBox modesWithFieldsBox = new VBox(20);
-        modesWithFieldsBox.getChildren().addAll(modesBox, numSeedsTriple.third(), numNodesTriple.third());*/
-
         HBox actionBox = new HBox(20);
         actionBox.setStyle(bgStyle);
         actionBox.setPadding(bgPadding);
@@ -141,17 +107,6 @@ public class NetworkMonitorUI extends Application {
         actionLabel.setPadding(labelPadding);
         actionBox.getChildren().add(actionLabel);
 
-        ToggleGroup startStopGroup = new ToggleGroup();
-
-       /* ToggleButton startButton = new ToggleButton("Start");
-        startButton.setOnAction(e -> onStart());
-        startButton.setToggleGroup(startStopGroup);
-        actionBox.getChildren().add(startButton);
-
-        ToggleButton stopButton = new ToggleButton("Stop");
-        stopButton.setOnAction(e -> onStop());
-        stopButton.setToggleGroup(startStopGroup);
-        actionBox.getChildren().add(stopButton);*/
 
         HBox infoBox = new HBox(20);
         infoBox.setStyle(bgStyle);
@@ -161,14 +116,19 @@ public class NetworkMonitorUI extends Application {
         infoLabel.setPadding(labelPadding);
         infoBox.getChildren().add(actionLabel);
 
-        infoTextArea = new TextArea();
-        infoTextArea.setMinHeight(300);
-        infoBox.getChildren().add(infoTextArea);
+        nodeInfoTextArea = new TextArea();
+        nodeInfoTextArea.setMinHeight(900);
+        nodeInfoTextArea.setFont(Font.font("Courier", FontWeight.NORMAL, FontPosture.REGULAR, 13));
+
+        eventTextArea = new TextArea();
+        eventTextArea.setMinHeight(nodeInfoTextArea.getMinHeight());
+        eventTextArea.setFont(Font.font("Courier", FontWeight.NORMAL, FontPosture.REGULAR, 13));
+
+        infoBox.getChildren().addAll(nodeInfoTextArea, eventTextArea);
 
         VBox vBox = new VBox(20);
         vBox.setPadding(bgPadding);
-        vBox.getChildren().addAll(seedsPane, nodesPane, infoBox/*, modesWithFieldsBox, actionBox*/);
-
+        vBox.getChildren().addAll(seedsPane, nodesPane, infoBox);
 
         ScrollPane scrollPane = new ScrollPane(vBox);
         scrollPane.setFitToWidth(true);
@@ -178,25 +138,64 @@ public class NetworkMonitorUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        onMode(Mode.STARTS_SEEDS);
-        onStart();
+        start();
     }
 
-    private Triple<Label, TextField, HBox> getTextInput(String title) {
-        HBox hBox = new HBox(20);
-        Label label = new Label(title);
-        TextField textField = new TextField();
-        hBox.getChildren().addAll(label, textField);
-        return new Triple<>(label, textField, hBox);
+    private void start() {
+        bootstrap(networkMonitor.getSeedAddresses(), "Seed ", seedNetworkServices, seedsPane)
+                .thenCompose(res1 -> {
+                    return bootstrap(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
+                }).whenComplete((r, t) -> {
+                    log.info("All nodes bootstrapped");
+                });
+    }
+
+    private void setupConnectionListener(NetworkService networkService) {
+        networkService.findDefaultNode(Transport.Type.CLEAR_NET).ifPresent(node -> {
+            node.addConnectionListener(new ConnectionListener() {
+                @Override
+                public void onConnection(Connection connection) {
+                    UserThread.execute(() -> {
+                        String dir = connection.isOutboundConnection() ? " -> " : " <- ";
+                        String info = "\n+ onConnection " + node + dir + connection.getPeerAddress();
+                        eventTextArea.appendText(info);
+
+                        Address key = node.findMyAddress().get();
+                        String prev = connectionInfoByAddress.get(key);
+                        if (prev == null) {
+                            prev = "";
+                        }
+                        connectionInfoByAddress.put(key, prev + info);
+                    });
+                }
+
+                @Override
+                public void onDisconnect(Connection connection) {
+                    UserThread.execute(() -> {
+                        String dir = connection.isOutboundConnection() ? " -> " : " <- ";
+                        String info = "\n- onDisconnect " + node + dir + connection.getPeerAddress();
+                        eventTextArea.appendText(info);
+
+                        Address key = node.findMyAddress().get();
+                        String prev = connectionInfoByAddress.get(key);
+                        if (prev == null) {
+                            prev = "";
+                        }
+                        connectionInfoByAddress.put(key, prev + info);
+                    });
+                }
+            });
+        });
     }
 
     private CompletableFuture<Boolean> bootstrap(List<Address> addresses, String name, List<NetworkService> sink, Pane pane) {
         UserThread.execute(() -> stopNodes(sink, pane));
-        
+
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
         addresses.forEach(seedAddress -> {
             int port = seedAddress.getPort();
             NetworkService networkService = networkMonitor.createNetworkService();
+            setupConnectionListener(networkService);
             allFutures.add(networkService.bootstrap(port));
 
             UserThread.execute(() -> {
@@ -228,41 +227,6 @@ public class NetworkMonitorUI extends Application {
         sink.clear();
     }
 
-  /*  private CompletableFuture<Boolean> startNodes() {
-        stopNodes();
-        List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        networkMonitor.getNodeAddresses().forEach(address -> {
-            int port = address.getPort();
-            Button button = new Button("Node " + port);
-            button.setMinWidth(100);
-            button.setMaxWidth(button.getMinWidth());
-            nodesPane.getChildren().add(button);
-
-            NetworkService networkService = networkMonitor.createNetworkService();
-            allFutures.add(networkService.bootstrap(port));
-
-            button.setUserData(networkService);
-            button.setOnAction(e -> onNodeInfo(networkService));
-            networkServices.add(networkService);
-        });
-        return CompletableFutureUtils.allOf(allFutures)
-                .thenApply(success -> success.stream().allMatch(e -> e))
-                .orTimeout(120, TimeUnit.SECONDS)
-                .thenCompose(CompletableFuture::completedFuture);
-    }
-
-    private void stopNodes() {
-        nodesPane.getChildren().clear();
-        networkServices.forEach(e -> {
-            CompletableFuture<Void> shutdown = e.shutdown();
-            try {
-                shutdown.get();
-            } catch (InterruptedException | ExecutionException ignore) {
-            }
-        });
-        networkServices.clear();
-    }*/
-
 
     private void onNodeInfo(NetworkService networkService) {
         String connectionMatrix = networkService.findServiceNode(Transport.Type.CLEAR_NET)
@@ -271,49 +235,9 @@ public class NetworkMonitorUI extends Application {
                 .map(PeerGroup::getConnectionMatrix)
                 .findAny()
                 .orElse("null");
-        infoTextArea.setText(connectionMatrix);
-    }
+        nodeInfoTextArea.setText(connectionMatrix);
 
-    private void onStop() {
-        stopNodes(seedNetworkServices, seedsPane);
-        stopNodes(nodeNetworkServices, nodesPane);
-       /* switch (mode) {
-            case STARTS_SEEDS -> {
-                this.stopNodes();
-            }
-            case START_NODES -> {
-                stopNodes();
-            }
-        }*/
-    }
-
-
-    private void onStart() {
-        bootstrap(networkMonitor.getSeedAddresses(), "Seed ", seedNetworkServices, seedsPane)
-                .thenCompose(res1 -> {
-                    onMode(Mode.STARTS_SEEDS);
-                    return bootstrap(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
-                }).whenComplete((r, t) -> {
-                    log.info("All nodes bootstrapped");
-                });
-        
-       /* switch (mode) {
-            case STARTS_SEEDS -> {
-                bootstrap(networkMonitor.getSeedAddresses(), "Seed ", seedNetworkServices, seedsPane)
-                        .thenCompose(res1 -> {
-                            onMode(Mode.STARTS_SEEDS);
-                            return bootstrap(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
-                        }).whenComplete((r, t) -> {
-                            log.info("All nodes bootstrapped");
-                        });
-            }
-            case START_NODES -> {
-                startNodes();
-            }
-        }*/
-    }
-
-    private void onMode(Mode mode) {
-        this.mode = mode;
+        Address address = networkService.findDefaultNode(Transport.Type.CLEAR_NET).map(node -> node.findMyAddress().get()).get();
+        nodeInfoTextArea.appendText("Connections:\n" + connectionInfoByAddress.get(address));
     }
 }
