@@ -59,14 +59,8 @@ public class PeerGroupService {
     }
 
     public CompletableFuture<Boolean> initialize() {
-        return peerExchangeService.startPeerExchange()
-                .thenCompose(repeatBootstrap -> {
-                    if (repeatBootstrap) {
-                        // If we did not have sufficient successful requests we repeat with a delay.
-                        peerExchangeService.repeatPeerExchangeWithDelay();
-                    }
-                    return peerGroupHealth.initialize();
-                });
+        return peerExchangeService.doInitialPeerExchange()
+                .thenCompose(__ -> peerGroupHealth.initialize());
     }
 
     public void shutdown() {

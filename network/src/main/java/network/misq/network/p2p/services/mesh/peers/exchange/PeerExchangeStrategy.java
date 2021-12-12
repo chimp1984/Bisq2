@@ -63,7 +63,7 @@ public class PeerExchangeStrategy {
         this.config = config;
     }
 
-    List<Address> getAddressesForPeerExchange() {
+    List<Address> getAddressesForInitialPeerExchange() {
         int numSeeNodesAtBoostrap = config.getNumSeeNodesAtBoostrap();
         int numPersistedPeersAtBoostrap = config.getNumPersistedPeersAtBoostrap();
         int numReportedPeersAtBoostrap = config.getNumReportedPeersAtBoostrap();
@@ -114,6 +114,45 @@ public class PeerExchangeStrategy {
         return candidates;
     }
 
+    // After bootstrap, we might want to add more connections and use the peer exchange protocol for that.
+    // We do not want to use seed nodes or already existing connections in that case.
+    List<Address> getAddressesForFurtherPeerExchange() {
+        int numPersistedPeersAtBoostrap = config.getNumPersistedPeersAtBoostrap();
+        int numReportedPeersAtBoostrap = config.getNumReportedPeersAtBoostrap();
+        int maxNumConnectedPeers = peerGroup.getMaxNumConnectedPeers();
+
+        // Usually we don't have reported peers at startup, but in case of repeated bootstrap attempts we likely have some.
+        // It could be also that other nodes have started peer exchange to ourselves before we start the peer exchange.
+        Set<Address> reported = peerGroup.getReportedPeers().stream()
+                .sorted(Comparator.comparing(Peer::getDate))
+                .map(Peer::getAddress)
+                .filter(this::isNotUsed)
+                .limit(numReportedPeersAtBoostrap)
+                .collect(Collectors.toSet());
+
+        Set<Address> persisted = peerGroup.getPersistedPeers().stream()
+                .sorted(Comparator.comparing(Peer::getDate))
+                .map(Peer::getAddress)
+                .filter(this::isNotUsed)
+                .limit(numPersistedPeersAtBoostrap)
+                .collect(Collectors.toSet());
+
+        List<Address> priorityList = new ArrayList<>(reported);
+        priorityList.addAll(persisted);
+
+        int numConnections = peerGroup.getAllConnectedPeers().size();
+        int minNumConnectedPeers = peerGroup.getMinNumConnectedPeers();
+        int targetNumConnectedPeers = minNumConnectedPeers + (maxNumConnectedPeers - minNumConnectedPeers) / 2;
+        int missing = Math.max(0, targetNumConnectedPeers - numConnections);
+
+        List<Address> candidates = priorityList.stream()
+                .limit(missing)
+                .distinct()
+                .collect(Collectors.toList());
+        usedAddresses.addAll(candidates);
+        return candidates;
+    }
+
     Set<Peer> getPeers(Address peerAddress) {
         List<Peer> list = new ArrayList<>(peerGroup.getAllConnectedPeers());
         list.addAll(peerGroup.getReportedPeers().stream()
@@ -133,7 +172,7 @@ public class PeerExchangeStrategy {
         peerGroup.addReportedPeers(filtered);
     }
 
-    boolean repeatBootstrap(long numSuccess, int numRequests) {
+    boolean redoInitialPeerExchange(long numSuccess, int numRequests) {
         boolean moreThenHalfFailed = numRequests - numSuccess > numRequests / 2;
         return moreThenHalfFailed ||
                 !sufficientConnections() ||

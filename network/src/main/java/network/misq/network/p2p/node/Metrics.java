@@ -41,6 +41,10 @@ public class Metrics {
         return new Date(created);
     }
 
+    public long getAge() {
+        return System.currentTimeMillis() - created;
+    }
+
     public void sent(Message message) {
         lastUpdate.set(System.currentTimeMillis());
         sentBytes.addAndGet(message.serialize().length);

@@ -35,8 +35,6 @@ import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Represents an inbound or outbound connection to a peer node.
  * Listens for messages from the peer.
@@ -113,9 +111,11 @@ public abstract class Connection {
         });
     }
 
-
     CompletableFuture<Connection> send(AuthorizedMessage message) {
-        checkArgument(!isStopped, "send must not be called after connection is shut down");
+        if (isStopped) {
+            log.warn("Message not sent as connection has been shut down already. Message={}", message);
+            return CompletableFuture.completedFuture(this);
+        }
 
         return CompletableFuture.supplyAsync(() -> {
             try {

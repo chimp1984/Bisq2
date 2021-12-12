@@ -17,6 +17,7 @@
 
 package network.misq.network.p2p.services.mesh.peers;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import network.misq.network.p2p.node.Address;
@@ -28,12 +29,15 @@ import java.util.Objects;
 
 @Getter
 @ToString
+@EqualsAndHashCode(exclude = "created")
 public class Peer implements Serializable {
     private final Capability capability;
+    private final boolean isOutboundConnection;
     private final long created;
 
-    public Peer(Capability capability) {
+    public Peer(Capability capability, boolean isOutboundConnection) {
         this.capability = capability;
+        this.isOutboundConnection = isOutboundConnection;
         this.created = System.currentTimeMillis();
     }
 
@@ -43,19 +47,6 @@ public class Peer implements Serializable {
 
     public Address getAddress() {
         return capability.address();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Peer peer = (Peer) o;
-        return Objects.equals(capability.address(), peer.capability.address());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(capability.address());
     }
 
     public long getAge() {

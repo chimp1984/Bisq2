@@ -19,7 +19,7 @@ package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.timer.UserThread;
+import network.misq.common.timer.TimerUtil;
 import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
@@ -55,12 +55,15 @@ public class PeerExchangeService implements Node.MessageListener {
         this.node.addMessageListener(this);
     }
 
-    public void repeatPeerExchangeWithDelay() {
-        UserThread.runAfter(this::startPeerExchange, 1);
+    public CompletableFuture<Void> doInitialPeerExchange() {
+        return doPeerExchange(peerExchangeStrategy.getAddressesForInitialPeerExchange());
     }
 
-    public CompletableFuture<Boolean> startPeerExchange() {
-        List<Address> addresses = peerExchangeStrategy.getAddressesForPeerExchange();
+    public CompletableFuture<Void> doFurtherPeerExchange() {
+        return doPeerExchange(peerExchangeStrategy.getAddressesForFurtherPeerExchange());
+    }
+
+    private CompletableFuture<Void> doPeerExchange(List<Address> addresses) {
         log.info("Node {} starts peer exchange with: {}", node,
                 StringUtils.truncate(addresses.stream()
                         .map(Address::toString)
@@ -73,8 +76,12 @@ public class PeerExchangeService implements Node.MessageListener {
                     int numSuccess = (int) resultList.stream().filter(e -> e).count();
                     log.debug("Peer exchange with {} peers completed. {} requests successfully completed. My address: {}",
                             addresses.size(), numSuccess, node);
-                    boolean repeatBootstrap = peerExchangeStrategy.repeatBootstrap(numSuccess, addresses.size());
-                    return CompletableFuture.completedFuture(repeatBootstrap);
+                    if (peerExchangeStrategy.redoInitialPeerExchange(numSuccess, addresses.size())) {
+                        log.info("We redo the initial peer exchange as we have not reached sufficient connections " +
+                                "or received sufficient peers");
+                        TimerUtil.runAfter(this::doInitialPeerExchange, 1);
+                    }
+                    return CompletableFuture.completedFuture(null);
                 });
     }
 
@@ -100,7 +107,7 @@ public class PeerExchangeService implements Node.MessageListener {
                         peerExchangeStrategy.addReportedPeers(peers, peerAddress);
                         return true;
                     } else {
-                        // Expect ConnectException if peer not available 
+                        // Expected ConnectException if peer not available 
                         return false;
                     }
                 });

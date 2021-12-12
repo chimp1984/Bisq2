@@ -79,9 +79,8 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
             Node node = nodes.get(i);
             PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(new PeerGroup(node, new PeerGroup.Config()), seedNodeAddresses, new PeerExchangeStrategy.Config());
             PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
-            peerExchangeService.startPeerExchange().whenComplete((result, throwable) -> {
+            peerExchangeService.doInitialPeerExchange().whenComplete((result, throwable) -> {
                 assertNull(throwable);
-                assertTrue(result);
             }).join();
         }
 
@@ -96,9 +95,8 @@ public abstract class BasePeerExchangeServiceTest extends BaseNetworkTest {
                 Node node = nodes.get(i);
                 PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(new PeerGroup(node, new PeerGroup.Config()), seedNodeAddresses, new PeerExchangeStrategy.Config());
                 PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
-                peerExchangeService.startPeerExchange().whenComplete((result, throwable) -> {
+                peerExchangeService.doInitialPeerExchange().whenComplete((result, throwable) -> {
                     assertNull(throwable);
-                    assertTrue(result);
                 }).join();
             }
         }

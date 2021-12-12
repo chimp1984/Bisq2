@@ -19,10 +19,7 @@ package network.misq.network.p2p.services.mesh.peers;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.node.Address;
-import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.ConnectionListener;
-import network.misq.network.p2p.node.Node;
+import network.misq.network.p2p.node.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -64,9 +61,9 @@ public class PeerGroup implements ConnectionListener {
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
     @Getter
-    private final Set<Connection> inboundConnections = new CopyOnWriteArraySet<>();
+    private final Set<InboundConnection> inboundConnections = new CopyOnWriteArraySet<>();
     @Getter
-    private final Set<Connection> outboundConnections = new CopyOnWriteArraySet<>();
+    private final Set<OutboundConnection> outboundConnections = new CopyOnWriteArraySet<>();
 
     public PeerGroup(Node node, Config config) {
         this.node = node;
@@ -76,19 +73,19 @@ public class PeerGroup implements ConnectionListener {
 
     @Override
     public void onConnection(Connection connection) {
-        if (connection.isOutboundConnection()) {
-            outboundConnections.add(connection);
+        if (connection instanceof OutboundConnection outboundConnection) {
+            outboundConnections.add(outboundConnection);
         } else {
-            inboundConnections.add(connection);
+            inboundConnections.add((InboundConnection) connection);
         }
     }
 
     @Override
     public void onDisconnect(Connection connection) {
-        if (connection.isOutboundConnection()) {
-            outboundConnections.remove(connection);
+        if (connection instanceof OutboundConnection outboundConnection) {
+            outboundConnections.remove(outboundConnection);
         } else {
-            inboundConnections.remove(connection);
+            inboundConnections.remove((InboundConnection) connection);
         }
     }
 
@@ -109,13 +106,18 @@ public class PeerGroup implements ConnectionListener {
     }
 
     public Set<Peer> getAllConnectedPeers() {
-        return getAllConnectionsAsStream().map(connection -> new Peer(connection.getPeersCapability()))
+        return getAllConnectionsAsStream().map(connection -> new Peer(connection.getPeersCapability(), connection.isOutboundConnection()))
                 .collect(Collectors.toSet());
     }
 
     public Stream<Connection> getAllConnectionsAsStream() {
         return Stream.concat(outboundConnections.stream(), inboundConnections.stream());
     }
+
+    public int getNumAllConnections() {
+        return (int) getAllConnectionsAsStream().count();
+    }
+
 
     public int getMinNumReportedPeers() {
         return config.getMinNumReportedPeers();
@@ -141,6 +143,7 @@ public class PeerGroup implements ConnectionListener {
         int numConnections = outboundConnections.size() + inboundConnections.size();
         StringBuilder sb = new StringBuilder();
         sb.append("Num connections: ").append(numConnections)
+                .append("\n").append("Num all connections: ").append(getNumAllConnections())
                 .append("\n").append("Num outbound connections: ").append(outboundConnections.size())
                 .append("\n").append("Num inbound connections: ").append(inboundConnections.size())
                 .append("\n");

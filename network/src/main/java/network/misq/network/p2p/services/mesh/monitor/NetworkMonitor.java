@@ -44,7 +44,7 @@ public class NetworkMonitor {
     private int numSeeds = 8;
     @Setter
     @Getter
-    private int numNodes = 20;
+    private int numNodes = 10;
     private int jitter = 50; // 50%
 
     public NetworkMonitor() {
