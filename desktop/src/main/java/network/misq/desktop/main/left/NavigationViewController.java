@@ -19,7 +19,7 @@ package network.misq.desktop.main.left;
 
 import lombok.Getter;
 import network.misq.api.DefaultApi;
-import network.misq.desktop.common.Controller;
+import network.misq.desktop.common.view.Controller;
 import network.misq.desktop.main.content.ContentViewController;
 import network.misq.desktop.main.content.createoffer.CreateOfferController;
 import network.misq.desktop.overlay.OverlayController;

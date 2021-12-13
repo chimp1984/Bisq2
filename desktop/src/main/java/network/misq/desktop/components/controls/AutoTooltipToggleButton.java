@@ -21,7 +21,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Skin;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.skin.ToggleButtonSkin;
-import network.misq.desktop.utils.TooltipUtil;
+import network.misq.desktop.common.utils.TooltipUtil;
 
 public class AutoTooltipToggleButton extends ToggleButton {
 

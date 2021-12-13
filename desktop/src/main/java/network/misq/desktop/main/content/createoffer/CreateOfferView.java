@@ -29,9 +29,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.Model;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.Model;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.components.controls.AutoTooltipButton;
 import network.misq.desktop.components.controls.AutoTooltipLabel;
 

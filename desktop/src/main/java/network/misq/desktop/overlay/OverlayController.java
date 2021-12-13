@@ -19,8 +19,8 @@ package network.misq.desktop.overlay;
 
 import javafx.scene.Scene;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.View;
 
 @Slf4j
 public class OverlayController {

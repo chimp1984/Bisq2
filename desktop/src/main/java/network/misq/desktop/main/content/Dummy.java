@@ -22,10 +22,10 @@ import network.misq.desktop.components.controls.AutoTooltipLabel;
 
 public class Dummy {
 
-    public static class Model implements network.misq.desktop.common.Model {
+    public static class Model implements network.misq.desktop.common.view.Model {
     }
 
-    public static class Controller implements network.misq.desktop.common.Controller {
+    public static class Controller implements network.misq.desktop.common.view.Controller {
         @Override
         public void initialize() {
         }
@@ -39,12 +39,12 @@ public class Dummy {
         }
 
         @Override
-        public network.misq.desktop.common.View getView() {
+        public network.misq.desktop.common.view.View getView() {
             return null;
         }
     }
 
-    public static class View extends network.misq.desktop.common.View<StackPane, Model, Controller> {
+    public static class View extends network.misq.desktop.common.view.View<StackPane, Model, Controller> {
         public View(String label) {
             super(new StackPane(), new Model(), new Controller());
             root.getChildren().add(new AutoTooltipLabel(label));

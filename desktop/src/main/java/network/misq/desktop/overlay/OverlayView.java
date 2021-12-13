@@ -24,9 +24,9 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.Model;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.Model;
+import network.misq.desktop.common.view.View;
 
 public class OverlayView {
     private final Scene parentScene;

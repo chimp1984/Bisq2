@@ -31,6 +31,8 @@ import network.misq.security.KeyPairRepository;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NetworkMonitor {
     private final Set<Transport.Type> supportedTransportTypes;
@@ -38,20 +40,22 @@ public class NetworkMonitor {
     private final String baseDirPath;
     private final KeyPairRepository keyPairRepository;
 
-
+    @Getter
+    private final Transport.Type transportType = Transport.Type.CLEAR_NET;
     @Setter
     @Getter
-    private int numSeeds = 8;
+    private int numSeeds = 2;
     @Setter
     @Getter
-    private int numNodes = 10;
-    private int jitter = 50; // 50%
+    private int numNodes = 5;
+    private final PeerGroup.Config peerGroupConfig = new PeerGroup.Config(1, 3, 1);
+    private final PeerExchangeStrategy.Config peerExchangeConfig = new PeerExchangeStrategy.Config(3, 10, 10);
 
     public NetworkMonitor() {
         baseDirPath = OsUtils.getUserDataDir() + File.separator + "NetworkMonitor";
 
         //Set<Transport.Type> supportedTransportTypes = Set.of(Transport.Type.CLEAR_NET, Transport.Type.TOR, Transport.Type.I2P);
-        supportedTransportTypes = Set.of(Transport.Type.CLEAR_NET);
+        supportedTransportTypes = Set.of(transportType);
 
         serviceNodeConfig = new ServiceNode.Config(Set.of(
                 ServiceNode.Service.CONFIDENTIAL,
@@ -64,12 +68,38 @@ public class NetworkMonitor {
         keyPairRepository = new KeyPairRepository(keyPairRepositoryConf);
     }
 
-    public List<Address> getSeedAddresses() {
-        List<Address> seedAddresses = new ArrayList<>();
-        for (int i = 0; i < numSeeds; i++) {
-            seedAddresses.add(Address.localHost(1000 + i));
+    public List<Address> getSeedAddresses(Transport.Type type) {
+        switch (type) {
+            case TOR -> {
+                return Stream.of(
+                                new Address("76ewqvsvh5nnuqnlro65nrxu3d4377aw5kv25p2uq7cpvoi4xslq7vyd.onion", 1000),
+                                new Address("ucq3qw4qlzstpwtqig6lxll64tarmqi77u6t5iquvi52j66pqrsqcpad.onion", 1001),
+                                new Address("fanvmqmbxyklaro3uanyotybrfcflc2ywlr5qd3ttvf2cva2huxrwuyd.onion", 1002),
+                                new Address("4i45sndzsxnw24idfr57lzzbcxhfdjp3yikvxwb54p4bjay5j4lqjuqd.onion", 1003),
+                                new Address("5wzt2sx53vzozoifkvntrl7rycegmker57aofb6qxgbunbw2p435fnyd.onion", 1004),
+                                new Address("5ekgw2qowowt7ncgo2jnnwyehqfvj7gqj75cogt3apuyef32myj7byyd.onion", 1005),
+                                new Address("cqvqm4ewvh2zdlrcz4whn6b5ltgg5hbef4ymp2pzk2hlrz4hjkqpmgyd.onion", 1006),
+                                new Address("kctohowqiwkgeceag622c56kv5aqbeozm5ifjjldqo2x5hnzb5qkhfqd.onion", 1007),
+                                new Address("hqvn6w7phvz6jifm2ak66flrdeieq24f653njkf4e7tsrqbramm3hpyd.onion", 1008),
+                                new Address("onuyzrnp4zgnokmptj4krgwfydqh5snzoekhoo4hr3eo4qg7jhhziaad.onion", 1009),
+                                new Address("zj6eiccp4irphbs4ihbgwcy3jo6unxap5nhac4r25mswrscuqqs5beqd.onion", 1010),
+                                new Address("plj7e5vs67psw2jlryjrbuh4336zwrigcsiiwf4jeennkla5x2ly5qyd.onion", 1011)
+                        )
+                        .limit(numSeeds)
+                        .collect(Collectors.toList());
+            }
+            case I2P -> {
+                //todo
+                return new ArrayList<>();
+            }
+            default -> {
+                List<Address> seedAddresses = new ArrayList<>();
+                for (int i = 0; i < numSeeds; i++) {
+                    seedAddresses.add(Address.localHost(1000 + i));
+                }
+                return seedAddresses;
+            }
         }
-        return seedAddresses;
     }
 
     public List<Address> getNodeAddresses() {
@@ -80,18 +110,18 @@ public class NetworkMonitor {
         return addresses;
     }
 
-    public NetworkService createNetworkService() {
-        PeerGroup.Config peerGroupConfig = new PeerGroup.Config(8, 12, 100);
-        PeerExchangeStrategy.Config peerExchangeConfig = new PeerExchangeStrategy.Config(2, 40, 20);
-
-        List<Address> seedAddresses = getSeedAddresses();
-        Map<Transport.Type, List<Address>> seedsByTransportType = Map.of(Transport.Type.TOR, seedAddresses,
-                Transport.Type.I2P, seedAddresses,
-                Transport.Type.CLEAR_NET, seedAddresses);
+    public NetworkService createNetworkService(int port) {
+        Map<Transport.Type, List<Address>> seedsByTransportType = Map.of(
+                Transport.Type.TOR, getSeedAddresses(Transport.Type.TOR),
+                Transport.Type.I2P, getSeedAddresses(Transport.Type.I2P),
+                Transport.Type.CLEAR_NET, getSeedAddresses(Transport.Type.CLEAR_NET)
+        );
 
         SeedNodeRepository seedNodeRepository = new SeedNodeRepository(seedsByTransportType);
-
-        NetworkService.Config networkServiceConfig = new NetworkService.Config(baseDirPath,
+        String dirPath = baseDirPath + File.separator + port;
+        Transport.Config transportConfig = new Transport.Config(dirPath);
+        NetworkService.Config networkServiceConfig = new NetworkService.Config(dirPath,
+                transportConfig,
                 supportedTransportTypes,
                 serviceNodeConfig,
                 peerGroupConfig,
@@ -100,12 +130,5 @@ public class NetworkMonitor {
                 Optional.empty());
 
         return new NetworkService(networkServiceConfig, keyPairRepository);
-    }
-
-    public double getVariance() {
-        if (jitter == 0) {
-            return 1;
-        }
-        return 1d - new Random().nextInt(jitter) / 100d;
     }
 }

@@ -15,19 +15,15 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.overlay;
+package network.misq.desktop.common.view;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Parent;
-import network.misq.desktop.common.view.Controller;
-import network.misq.desktop.common.view.Model;
-import network.misq.desktop.common.view.View;
+import javafx.scene.Node;
 
-public class OverlayModel implements Model {
-    final ObjectProperty<View<Parent, Model, Controller>> view = new SimpleObjectProperty<>();
+public interface LifeCycleChangeListener {
+    void onConstructView(View<? extends Node, Model, Controller> view);
 
-    public void selectView(View<Parent, Model, Controller> view) {
-        this.view.set(view);
-    }
+    void onViewAdded();
+
+    void onViewRemoved();
+
 }

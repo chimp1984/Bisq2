@@ -19,8 +19,8 @@ package network.misq.desktop.main.content.createoffer;
 
 import lombok.Getter;
 import network.misq.api.DefaultApi;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.main.content.createoffer.assetswap.amounts.SetAmountsController;
 import network.misq.desktop.main.content.createoffer.assetswap.review.ReviewOfferController;
 

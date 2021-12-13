@@ -23,11 +23,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.main.content.ContentView;
 import network.misq.desktop.main.left.NavigationView;
 import network.misq.desktop.main.top.TopPanelView;
-import network.misq.desktop.utils.ImageUtil;
+import network.misq.desktop.common.utils.ImageUtil;
 
 public class MainView extends View<StackPane, MainViewModel, MainViewController> {
 

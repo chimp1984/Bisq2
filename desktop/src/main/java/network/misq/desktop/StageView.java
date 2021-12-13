@@ -28,7 +28,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.desktop.main.MainView;
-import network.misq.desktop.utils.KeyCodeUtils;
+import network.misq.desktop.common.utils.KeyCodeUtils;
 
 import java.util.concurrent.CompletableFuture;
 

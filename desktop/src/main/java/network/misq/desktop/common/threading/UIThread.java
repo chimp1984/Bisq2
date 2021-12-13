@@ -1,4 +1,4 @@
-/*
+package network.misq.desktop.common.threading;/*
  * This file is part of Bisq.
  *
  * Bisq is free software: you can redistribute it and/or modify it
@@ -15,22 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.utils;
+import javafx.application.Platform;
 
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import lombok.extern.slf4j.Slf4j;
-
-import java.io.InputStream;
-
-@Slf4j
-public class ImageUtil {
-    public static ImageView getImageView(String imagePath) {
-        return new ImageView(getImage(imagePath));
-    }
-
-    public static Image getImage(String imagePath) {
-        InputStream resourceAsStream = ImageView.class.getResourceAsStream(imagePath);
-        return new Image(resourceAsStream);
+public class UIThread {
+    public static void run(Runnable task) {
+        if (Platform.isFxApplicationThread()) {
+            task.run();
+        } else {
+            Platform.runLater(task);
+        }
     }
 }

@@ -25,10 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.common.currency.MisqCurrency;
 import network.misq.common.data.Pair;
 import network.misq.common.monetary.Quote;
-import network.misq.common.timer.UserThread;
+import network.misq.common.timer.Scheduler;
 import network.misq.common.util.CollectionUtil;
 import network.misq.common.util.MathUtils;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 import network.misq.network.NetworkService;
 import network.misq.network.http.common.BaseHttpClient;
 import network.misq.network.p2p.node.transport.Transport;
@@ -78,28 +78,29 @@ public class MarketPriceService {
     }
 
     public CompletableFuture<Boolean> initialize() {
-        executor = ThreadingUtils.getSingleThreadExecutor("MarketPriceRequest");
+        executor = ExecutorFactory.getSingleThreadExecutor("MarketPriceRequest");
         selectProvider();
         // We start a request but we do not block until response arrives.
         request();
-
-        UserThread.runPeriodically(() -> request().whenComplete((map, throwable) -> {
-            if (map.isEmpty() || throwable != null) {
-                selectProvider();
-                httpClient.shutdown();
-                try {
-                    httpClient = getHttpClient(provider).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-                request();
-            }
-        }), REQUEST_INTERVAL_SEC, TimeUnit.SECONDS);
+        Scheduler.run(() -> request()
+                        .whenComplete((map, throwable) -> {
+                            if (map.isEmpty() || throwable != null) {
+                                selectProvider();
+                                httpClient.shutdown();
+                                try {
+                                    httpClient = getHttpClient(provider).get();
+                                } catch (InterruptedException | ExecutionException e) {
+                                    e.printStackTrace();
+                                }
+                                request();
+                            }
+                        }))
+                .periodically(REQUEST_INTERVAL_SEC, TimeUnit.SECONDS);
         return CompletableFuture.completedFuture(true);
     }
 
     public void shutdown() {
-        ThreadingUtils.shutdownAndAwaitTermination(executor);
+        ExecutorFactory.shutdownAndAwaitTermination(executor);
         httpClient.shutdown();
     }
 

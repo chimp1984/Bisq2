@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.common.util;
+package network.misq.common.threading;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -24,12 +24,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 
-public class ThreadingUtils {
+public class ExecutorFactory {
+    public static final ExecutorService GLOBAL_WORK_STEALING_POOL = Executors.newWorkStealingPool();
+
     public static void shutdownAndAwaitTermination(ExecutorService executor) {
+        //noinspection UnstableApiUsage
         MoreExecutors.shutdownAndAwaitTermination(executor, 100, TimeUnit.MILLISECONDS);
     }
 
     public static void shutdownAndAwaitTermination(ExecutorService executor, long timeout, TimeUnit unit) {
+        //noinspection UnstableApiUsage
         MoreExecutors.shutdownAndAwaitTermination(executor, timeout, unit);
     }
 
@@ -62,20 +66,5 @@ public class ThreadingUtils {
                 TimeUnit.SECONDS, workQueue, threadFactory);
         executor.allowCoreThreadTimeOut(true);
         return executor;
-    }
-
-    public static Timer runAfter(Runnable runnable, int delay) {
-        return runAfter(runnable, delay, TimeUnit.SECONDS);
-    }
-
-    public static Timer runAfter(Runnable runnable, int delay, TimeUnit timeUnit) {
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runnable.run();
-            }
-        }, timeUnit.toMillis(delay));
-        return timer;
     }
 }

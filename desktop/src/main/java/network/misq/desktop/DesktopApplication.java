@@ -23,8 +23,6 @@ import network.misq.api.DefaultApi;
 import network.misq.api.DefaultApplicationFactory;
 import network.misq.application.Executable;
 import network.misq.application.options.ApplicationOptions;
-import network.misq.common.timer.UserThread;
-import network.misq.desktop.utils.UITimer;
 
 @Slf4j
 public class DesktopApplication extends Executable<DefaultApplicationFactory> {
@@ -55,12 +53,6 @@ public class DesktopApplication extends Executable<DefaultApplicationFactory> {
     }
 
     @Override
-    protected void setupUserThread() {
-        UserThread.setExecutor(Platform::runLater);
-        UserThread.setTimerClass(UITimer.class);
-    }
-
-    @Override
     protected void onInitializeDomainFailed(Throwable throwable) {
         super.onInitializeDomainFailed(throwable);
         stageController.onInitializeDomainFailed();
@@ -76,7 +68,7 @@ public class DesktopApplication extends Executable<DefaultApplicationFactory> {
         if (stageController != null) {
             stageController.shutdown();
         }
-        
+
         super.shutdown();
     }
 }

@@ -4,7 +4,7 @@ import com.jfoenix.controls.JFXToggleButton;
 import com.jfoenix.skins.JFXToggleButtonSkin;
 import javafx.scene.control.Skin;
 
-import static network.misq.desktop.utils.TooltipUtil.showTooltipIfTruncated;
+import static network.misq.desktop.common.utils.TooltipUtil.showTooltipIfTruncated;
 
 public class AutoTooltipSlideToggleButton extends JFXToggleButton {
     public AutoTooltipSlideToggleButton() {

@@ -52,8 +52,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
+    private final Config config;
+    private final KeyPairRepository keyPairRepository;
 
     public static record Config(String baseDirPath,
+                                Transport.Config transportConfig,
                                 Set<Transport.Type> supportedTransportTypes,
                                 ServiceNode.Config p2pServiceNodeConfig,
                                 PeerGroup.Config peerGroupConfig,
@@ -71,10 +74,13 @@ public class NetworkService {
     private final ServiceNodesByTransport serviceNodesByTransport;
 
     public NetworkService(Config config, KeyPairRepository keyPairRepository) {
+        this.config = config;
+        this.keyPairRepository = keyPairRepository;
+
         httpService = new HttpService();
         socks5ProxyAddress = config.socks5ProxyAddress;
         supportedTransportTypes = config.supportedTransportTypes();
-        serviceNodesByTransport = new ServiceNodesByTransport(config.baseDirPath(),
+        serviceNodesByTransport = new ServiceNodesByTransport(config.transportConfig(),
                 supportedTransportTypes,
                 config.p2pServiceNodeConfig(),
                 config.peerGroupConfig,
@@ -82,12 +88,17 @@ public class NetworkService {
                 config.seedNodeRepository(),
                 new DataService.Config(config.baseDirPath()),
                 keyPairRepository);
+        init();
     }
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // API P2pService
+    // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void init() {
+        serviceNodesByTransport.init();
+    }
 
     public CompletableFuture<Boolean> bootstrap() {
         return serviceNodesByTransport.bootstrap();

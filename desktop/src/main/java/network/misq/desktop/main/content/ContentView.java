@@ -24,9 +24,9 @@ import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.Model;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.Model;
+import network.misq.desktop.common.view.View;
 
 @Slf4j
 public class ContentView extends View<HBox, ContentViewModel, ContentViewController> {

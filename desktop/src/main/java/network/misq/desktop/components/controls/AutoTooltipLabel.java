@@ -21,7 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
 import javafx.scene.control.skin.LabelSkin;
 
-import static network.misq.desktop.utils.TooltipUtil.showTooltipIfTruncated;
+import static network.misq.desktop.common.utils.TooltipUtil.showTooltipIfTruncated;
 
 public class AutoTooltipLabel extends Label {
 

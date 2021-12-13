@@ -15,8 +15,14 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.utils;
+package network.misq.desktop.common.view;
 
-public interface UncaughtExceptionHandler {
-    void handleUncaughtException(Throwable throwable, boolean doShutDown);
+public interface Controller {
+    void initialize();
+
+    void onViewAdded();
+
+    void onViewRemoved();
+
+    View getView();
 }

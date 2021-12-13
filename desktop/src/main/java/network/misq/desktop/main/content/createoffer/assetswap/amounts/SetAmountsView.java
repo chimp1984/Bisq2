@@ -22,7 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.components.controls.AutoTooltipButton;
 import network.misq.desktop.components.controls.AutoTooltipLabel;
 import network.misq.desktop.components.controls.AutocompleteComboBox;

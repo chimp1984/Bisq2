@@ -21,7 +21,7 @@ package network.misq.protocol.bsqBond.maker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.bsqBond.BsqBond;
@@ -33,8 +33,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class MakerBsqBondProtocol extends BsqBondProtocol {
-    public MakerBsqBondProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService) {
-        super(contract, p2pService, new AssetTransfer.Automatic(), new BsqBond());
+    public MakerBsqBondProtocol(TwoPartyContract contract, NetworkService networkService) {
+        super(contract, networkService, new AssetTransfer.Automatic(), new BsqBond());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MakerBsqBondProtocol extends BsqBondProtocol {
             security.verifyBondCommitmentMessage(bondCommitmentMessage)
                     .whenComplete((success, t) -> setState(State.COMMITMENT_RECEIVED))
                     .thenCompose(isValid -> transport.sendFunds(contract))
-                    .thenCompose(isSent -> p2pService.confidentialSend(new MakerFundsSentMessage(),
+                    .thenCompose(isSent -> networkService.confidentialSend(new MakerFundsSentMessage(),
                             counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((connection1, t) -> setState(State.FUNDS_SENT));
@@ -61,10 +61,10 @@ public class MakerBsqBondProtocol extends BsqBondProtocol {
     }
 
     public CompletableFuture<Boolean> start() {
-        p2pService.addMessageListener(this);
+        networkService.addMessageListener(this);
         setState(State.START);
         security.getCommitment(contract)
-                .thenCompose(commitment -> p2pService.confidentialSend(new MakerCommitmentMessage(commitment),
+                .thenCompose(commitment -> networkService.confidentialSend(new MakerCommitmentMessage(commitment),
                         counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((success, t) -> setState(State.COMMITMENT_SENT));

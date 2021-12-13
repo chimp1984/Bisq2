@@ -22,7 +22,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import network.misq.common.data.Pair;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.components.controls.AutoTooltipButton;
 import network.misq.desktop.components.controls.AutoTooltipLabel;
 import network.misq.desktop.components.controls.MisqTextField;

@@ -18,7 +18,7 @@
 package network.misq.network.p2p.node;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.message.Version;
@@ -31,6 +31,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * At initial connection we exchange capabilities and require a valid AuthorizationToken (e.g. PoW).
@@ -39,15 +40,18 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class ConnectionHandshake {
-
+    private final static AtomicInteger ATOMIC_INTEGER = new AtomicInteger(0);
     private final Socket socket;
     private final Capability capability;
     private final AuthorizationService authorizationService;
 
-    public static record Request(AuthorizationToken token, Capability capability) implements Message {
+    public static record Request(AuthorizationToken token, Capability capability, Load load) implements Message {
     }
 
-    public static record Response(AuthorizationToken token, Capability capability) implements Message {
+    public static record Response(AuthorizationToken token, Capability capability, Load load) implements Message {
+    }
+
+    public static record Result(Capability capability, Load load) {
     }
 
     public ConnectionHandshake(Socket socket, int socketTimeout, Capability capability, AuthorizationService authorizationService) {
@@ -65,12 +69,12 @@ public class ConnectionHandshake {
     }
 
     // Client side protocol
-    public CompletableFuture<Capability> start() {
+    public CompletableFuture<Result> start(Load myLoad) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Request.class).get();
-                Envelope requestEnvelope = new Envelope(new Request(token, capability));
+                Envelope requestEnvelope = new Envelope(new Request(token, capability, myLoad));
                 log.debug("Client sends {}", requestEnvelope);
                 objectOutputStream.writeObject(requestEnvelope);
                 objectOutputStream.flush();
@@ -92,9 +96,8 @@ public class ConnectionHandshake {
                     throw new ConnectionException("Response authorization failed. " + simpleName);
                 }
 
-                Capability serversCapability = response.capability();
-                log.debug("Servers capability {}", serversCapability);
-                return serversCapability;
+                log.debug("Servers capability {}, load={}", response.capability(), response.load());
+                return new Result(response.capability(), response.load());
             } catch (Exception e) {
                 try {
                     socket.close();
@@ -106,11 +109,11 @@ public class ConnectionHandshake {
                     throw new ConnectionException(e);
                 }
             }
-        }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-client"));
+        }, ExecutorFactory.getSingleThreadExecutor("ConnectionHandshake-client-" + ATOMIC_INTEGER.incrementAndGet()));
     }
 
     // Server side protocol
-    public CompletableFuture<Capability> onSocket() {
+    public CompletableFuture<Result> onSocket(Load myLoad) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -129,14 +132,14 @@ public class ConnectionHandshake {
                 if (!authorizationService.isAuthorized(request.token())) {
                     throw new ConnectionException("Request authorization failed. " + simpleName);
                 }
+                log.debug("Clients capability {}, load={}", request.capability(), request.load());
 
-                Capability clientCapability = request.capability();
-                log.debug("Clients capability {}", clientCapability);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 AuthorizationToken token = authorizationService.createToken(Response.class).get();
-                objectOutputStream.writeObject(new Envelope(new Response(token, capability)));
+                objectOutputStream.writeObject(new Envelope(new Response(token, capability, myLoad)));
                 objectOutputStream.flush();
-                return clientCapability;
+
+                return new Result(request.capability(), request.load());
             } catch (Exception e) {
                 try {
                     socket.close();
@@ -148,6 +151,6 @@ public class ConnectionHandshake {
                     throw new ConnectionException(e);
                 }
             }
-        }, ThreadingUtils.getSingleThreadExecutor("ConnectionHandshake-server"));
+        }, ExecutorFactory.getSingleThreadExecutor("ConnectionHandshake-server-" + ATOMIC_INTEGER.incrementAndGet()));
     }
 }

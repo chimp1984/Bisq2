@@ -18,7 +18,7 @@
 package network.misq.desktop.main.top;
 
 import lombok.Getter;
-import network.misq.desktop.common.Controller;
+import network.misq.desktop.common.view.Controller;
 
 public class TopPanelController implements Controller {
     private TopPanelModel model;

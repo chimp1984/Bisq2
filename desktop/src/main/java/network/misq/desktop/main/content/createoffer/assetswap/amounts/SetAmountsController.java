@@ -18,7 +18,7 @@
 package network.misq.desktop.main.content.createoffer.assetswap.amounts;
 
 import lombok.Getter;
-import network.misq.desktop.common.Controller;
+import network.misq.desktop.common.view.Controller;
 
 public class SetAmountsController implements Controller {
     private SetAmountsModel model;

@@ -3,8 +3,6 @@ package network.misq.application;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.application.options.ApplicationOptions;
 import network.misq.application.options.ApplicationOptionsParser;
-import network.misq.common.timer.UserThread;
-import network.misq.common.util.ThreadingUtils;
 
 @Slf4j
 public abstract class Executable<T extends ApplicationFactory> {
@@ -26,12 +24,7 @@ public abstract class Executable<T extends ApplicationFactory> {
     }
 
     protected void applicationLaunched() {
-        setupUserThread();
         initializeDomain();
-    }
-
-    protected void setupUserThread() {
-        UserThread.setExecutor(ThreadingUtils.getSingleThreadExecutor(getClass().getSimpleName()));
     }
 
     protected void initializeDomain() {

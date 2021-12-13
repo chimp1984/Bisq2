@@ -22,21 +22,24 @@ import lombok.Getter;
 import lombok.ToString;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Capability;
+import network.misq.network.p2p.node.Load;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 
 @Getter
 @ToString
-@EqualsAndHashCode(exclude = "created")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Peer implements Serializable {
+    @EqualsAndHashCode.Include
     private final Capability capability;
+    private final Load load;
     private final boolean isOutboundConnection;
     private final long created;
 
-    public Peer(Capability capability, boolean isOutboundConnection) {
+    public Peer(Capability capability, Load load, boolean isOutboundConnection) {
         this.capability = capability;
+        this.load = load;
         this.isOutboundConnection = isOutboundConnection;
         this.created = System.currentTimeMillis();
     }

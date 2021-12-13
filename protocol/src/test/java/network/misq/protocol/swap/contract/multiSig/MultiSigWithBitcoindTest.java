@@ -23,7 +23,6 @@ import network.misq.wallets.Bitcoind;
 import network.misq.wallets.Chain;
 import network.misq.wallets.Wallet;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class MultiSigWithBitcoindTest extends MultiSigTest {

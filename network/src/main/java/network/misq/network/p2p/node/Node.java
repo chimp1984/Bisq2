@@ -115,12 +115,12 @@ public class Node {
     private void onClientSocket(Socket socket, Transport.ServerSocketResult serverSocketResult, Capability myCapability) {
         ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, config.socketTimeout(), myCapability, authorizationService);
         log.info("Inbound handshake request at: {}", myCapability.address());
-        connectionHandshake.onSocket()
-                .whenComplete((peersCapability, throwable) -> {
+        connectionHandshake.onSocket(getMyLoad())
+                .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         try {
-                            log.info("Inbound handshake completed: Initiated by {} to {}", peersCapability.address(), myCapability.address());
-                            InboundConnection connection = new InboundConnection(socket, serverSocketResult, peersCapability, this::onMessage);
+                            log.info("Inbound handshake completed: Initiated by {} to {}", result.capability().address(), myCapability.address());
+                            InboundConnection connection = new InboundConnection(socket, serverSocketResult, result.capability(), result.load(), this::onMessage);
                             connection.startListen(exception -> handleException(connection, exception));
                             inboundConnections.add(connection);
                             runAsync(() -> connectionListeners.forEach(listener -> listener.onConnection(connection)));
@@ -184,13 +184,13 @@ public class Node {
         CompletableFuture<Connection> future = new CompletableFuture<>();
         ConnectionHandshake connectionHandshake = new ConnectionHandshake(socket, config.socketTimeout(), myCapability, authorizationService);
         log.info("Outbound handshake started: Initiated by {} to {}", myCapability.address(), address);
-        connectionHandshake.start()
-                .whenComplete((peersCapability, throwable) -> {
+        connectionHandshake.start(getMyLoad())
+                .whenComplete((result, throwable) -> {
                     log.info("Outbound handshake completed: Initiated by {} to {}", myCapability.address(), address);
                     log.debug("Create new outbound connection to {}", address);
-                    checkArgument(address.equals(peersCapability.address()),
+                    checkArgument(address.equals(result.capability().address()),
                             "Peers reported address must match address we used to connect");
-                    OutboundConnection connection = new OutboundConnection(socket, address, peersCapability, this::onMessage);
+                    OutboundConnection connection = new OutboundConnection(socket, address, result.capability(), result.load(), this::onMessage);
                     try {
                         connection.startListen(exception -> {
                             handleException(connection, exception);
@@ -279,9 +279,17 @@ public class Node {
         connectionListeners.add(connectionListener);
     }
 
-
     public void removeConnectionListener(ConnectionListener connectionListener) {
         connectionListeners.remove(connectionListener);
+    }
+
+    public Optional<Address> findMyAddress() {
+        return server.map(Server::getAddress);
+    }
+
+    @Override
+    public String toString() {
+        return findMyAddress().map(Address::toString).orElse("null");
     }
 
 
@@ -321,23 +329,21 @@ public class Node {
         } else {
             log.error(exception.toString(), exception);
         }
-
     }
 
     private Transport getTransport(Transport.Type transportType, Transport.Config config) {
         return switch (transportType) {
-            case TOR -> TorTransport.getInstance(config);
+            case TOR -> new TorTransport(config);
             case I2P -> I2PTransport.getInstance(config);
-            case CLEAR_NET -> ClearNetTransport.getInstance(config);
+            case CLEAR_NET -> new ClearNetTransport(config);
         };
     }
 
-    public Optional<Address> findMyAddress() {
-        return server.map(Server::getAddress);
+    private Load getMyLoad() {
+        return new Load(getNumConnections());
     }
 
-    @Override
-    public String toString() {
-        return findMyAddress().map(Address::toString).orElse("null");
+    private int getNumConnections() {
+        return inboundConnections.size() + outboundConnectionMap.size();
     }
 }

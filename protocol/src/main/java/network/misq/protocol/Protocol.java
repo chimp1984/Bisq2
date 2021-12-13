@@ -19,7 +19,7 @@ package network.misq.protocol;
 
 import lombok.Getter;
 import network.misq.contract.Contract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.node.Node;
 
 import java.util.Set;
@@ -39,12 +39,12 @@ public abstract class Protocol implements Node.MessageListener {
 
     @Getter
     protected final Contract contract;
-    protected final ServiceNodesByTransport p2pService;
+    protected final NetworkService networkService;
     protected final Set<Listener> listeners = ConcurrentHashMap.newKeySet();
 
-    public Protocol(Contract contract, ServiceNodesByTransport p2pService) {
+    public Protocol(Contract contract, NetworkService networkService) {
         this.contract = contract;
-        this.p2pService = p2pService;
+        this.networkService = networkService;
     }
 
     public abstract CompletableFuture<Boolean> start();

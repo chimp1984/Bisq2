@@ -21,7 +21,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 
 public class StageModel implements Model {
     final DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);

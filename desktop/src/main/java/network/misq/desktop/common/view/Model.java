@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.common;
+package network.misq.desktop.common.view;
 
 public interface Model {
 }

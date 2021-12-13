@@ -21,7 +21,7 @@ package network.misq.protocol.multiSig.taker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.SecurityProvider;
@@ -35,8 +35,8 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
 
-    public TakerMultiSigProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService, SecurityProvider securityProvider) {
-        super(contract, p2pService, new AssetTransfer.Automatic(), securityProvider);
+    public TakerMultiSigProtocol(TwoPartyContract contract, NetworkService networkService, SecurityProvider securityProvider) {
+        super(contract, networkService, new AssetTransfer.Automatic(), securityProvider);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
                     .whenComplete((txInput, t) -> setState(State.TX_INPUTS_RECEIVED))
                     .thenCompose(multiSig::broadcastDepositTx)
                     .whenComplete((depositTx, t) -> setState(State.DEPOSIT_TX_BROADCAST))
-                    .thenCompose(depositTx -> p2pService.confidentialSend(new DepositTxBroadcastMessage(depositTx),
+                    .thenCompose(depositTx -> networkService.confidentialSend(new DepositTxBroadcastMessage(depositTx),
                             counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((connection1, t) -> setState(State.DEPOSIT_TX_BROADCAST_MSG_SENT));
@@ -67,7 +67,7 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
     }
 
     public CompletableFuture<Boolean> start() {
-        p2pService.addMessageListener(this);
+        networkService.addMessageListener(this);
         multiSig.addListener(this);
         setState(State.START);
         return CompletableFuture.completedFuture(true);
@@ -78,7 +78,7 @@ public class TakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         setState(State.FUNDS_RECEIVED);
         multiSig.broadcastPayoutTx()
                 .whenComplete((payoutTx, t) -> setState(State.PAYOUT_TX_BROADCAST))
-                .thenCompose(payoutTx -> p2pService.confidentialSend(new PayoutTxBroadcastMessage(payoutTx),
+                .thenCompose(payoutTx -> networkService.confidentialSend(new PayoutTxBroadcastMessage(payoutTx),
                         counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((isValid, t) -> setState(State.PAYOUT_TX_BROADCAST_MSG_SENT));

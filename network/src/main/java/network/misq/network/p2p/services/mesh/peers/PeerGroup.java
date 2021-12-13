@@ -22,7 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 import network.misq.network.p2p.node.*;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,37 +58,42 @@ public class PeerGroup implements ConnectionListener {
     private final Node node;
     private final Config config;
     @Getter
+    private final List<Address> seedNodeAddresses;
+    @Getter
     private final Set<Peer> reportedPeers = new CopyOnWriteArraySet<>();
 
     //todo persist
     @Getter
     private final Set<Peer> persistedPeers = new CopyOnWriteArraySet<>();
     @Getter
-    private final Set<InboundConnection> inboundConnections = new CopyOnWriteArraySet<>();
+    private final Map<Address, InboundConnection> inboundConnectionsByAddress = new ConcurrentHashMap<>();
     @Getter
-    private final Set<OutboundConnection> outboundConnections = new CopyOnWriteArraySet<>();
+    private final Map<Address, OutboundConnection> outboundConnectionsByAddress = new ConcurrentHashMap<>();
 
-    public PeerGroup(Node node, Config config) {
+    public PeerGroup(Node node, Config config, List<Address> seedNodeAddresses) {
         this.node = node;
         this.config = config;
+        this.seedNodeAddresses = seedNodeAddresses;
         this.node.addConnectionListener(this);
     }
 
     @Override
     public void onConnection(Connection connection) {
         if (connection instanceof OutboundConnection outboundConnection) {
-            outboundConnections.add(outboundConnection);
+            outboundConnectionsByAddress.put(outboundConnection.getAddress(), outboundConnection);
         } else {
-            inboundConnections.add((InboundConnection) connection);
+            InboundConnection inboundConnection = (InboundConnection) connection;
+            inboundConnectionsByAddress.put(inboundConnection.getPeerAddress(), inboundConnection);
         }
     }
 
     @Override
     public void onDisconnect(Connection connection) {
         if (connection instanceof OutboundConnection outboundConnection) {
-            outboundConnections.remove(outboundConnection);
+            outboundConnectionsByAddress.remove(outboundConnection.getAddress());
         } else {
-            inboundConnections.remove((InboundConnection) connection);
+            InboundConnection inboundConnection = (InboundConnection) connection;
+            inboundConnectionsByAddress.remove(inboundConnection.getPeerAddress());
         }
     }
 
@@ -101,17 +109,17 @@ public class PeerGroup implements ConnectionListener {
         persistedPeers.removeAll(peers);
     }
 
-    public Set<Address> getConnectedPeerAddresses() {
+    public Set<Address> getAllConnectedPeerAddresses() {
         return getAllConnectedPeers().stream().map(Peer::getAddress).collect(Collectors.toSet());
     }
 
     public Set<Peer> getAllConnectedPeers() {
-        return getAllConnectionsAsStream().map(connection -> new Peer(connection.getPeersCapability(), connection.isOutboundConnection()))
+        return getAllConnectionsAsStream().map(connection -> new Peer(connection.getPeersCapability(), connection.getPeersLoad(), connection.isOutboundConnection()))
                 .collect(Collectors.toSet());
     }
 
     public Stream<Connection> getAllConnectionsAsStream() {
-        return Stream.concat(outboundConnections.stream(), inboundConnections.stream());
+        return Stream.concat(outboundConnectionsByAddress.values().stream(), inboundConnectionsByAddress.values().stream());
     }
 
     public int getNumAllConnections() {
@@ -139,16 +147,22 @@ public class PeerGroup implements ConnectionListener {
         return notMyself(peer.getAddress());
     }
 
+    public boolean isASeed(Address address) {
+        return seedNodeAddresses.stream().anyMatch(seedAddress -> seedAddress.equals(address));
+    }
+
     public String getConnectionMatrix() {
-        int numConnections = outboundConnections.size() + inboundConnections.size();
+        int numSeedConnections = (int) getAllConnectionsAsStream()
+                .filter(connection -> isASeed(connection.getPeerAddress())).count();
         StringBuilder sb = new StringBuilder();
-        sb.append("Num connections: ").append(numConnections)
+        sb.append("Num connections: ").append(getNumAllConnections())
                 .append("\n").append("Num all connections: ").append(getNumAllConnections())
-                .append("\n").append("Num outbound connections: ").append(outboundConnections.size())
-                .append("\n").append("Num inbound connections: ").append(inboundConnections.size())
+                .append("\n").append("Num outbound connections: ").append(outboundConnectionsByAddress.size())
+                .append("\n").append("Num inbound connections: ").append(inboundConnectionsByAddress.size())
+                .append("\n").append("Num seed connections: ").append(numSeedConnections)
                 .append("\n");
-        outboundConnections.forEach(connection -> sb.append(node).append(" --> ").append(connection.getPeerAddress().toString()).append("\n"));
-        inboundConnections.forEach(connection -> sb.append(node).append(" <-- ").append(connection.getPeerAddress().toString()).append("\n"));
+        outboundConnectionsByAddress.values().forEach(connection -> sb.append(node).append(" --> ").append(connection.getPeerAddress().toString()).append("\n"));
+        inboundConnectionsByAddress.values().forEach(connection -> sb.append(node).append(" <-- ").append(connection.getPeerAddress().toString()).append("\n"));
         return sb.toString();
     }
 }

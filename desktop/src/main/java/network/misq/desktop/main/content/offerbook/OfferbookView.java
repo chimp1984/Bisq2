@@ -33,7 +33,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.components.controls.*;
 
 import java.util.Comparator;

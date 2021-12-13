@@ -18,10 +18,9 @@
 package network.misq.desktop.components.overlay;
 
 
-import network.misq.common.timer.UserThread;
 import network.misq.desktop.components.controls.controlsfx.control.PopOver;
+import network.misq.desktop.common.threading.UIScheduler;
 
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class PopOverWrapper {
@@ -43,15 +42,16 @@ public class PopOverWrapper {
             state = PopOverState.SHOWING;
             popover = popoverSupplier.get();
 
-            UserThread.runAfter(() -> {
-                state = PopOverState.SHOWN;
-                if (hidePopover) {
-                    // For some reason, this can result in a brief flicker when invoked
-                    // from a 'runAfter' callback, rather than directly. So make the delay
-                    // very short (25ms) so that we don't reach here often:
-                    hidePopOver();
-                }
-            }, 25, TimeUnit.MILLISECONDS);
+            UIScheduler.run(() -> {
+                        state = PopOverState.SHOWN;
+                        if (hidePopover) {
+                            // For some reason, this can result in a brief flicker when invoked
+                            // from a 'runAfter' callback, rather than directly. So make the delay
+                            // very short (25ms) so that we don't reach here often:
+                            hidePopOver();
+                        }
+                    })
+                    .after(25);
         }
     }
 
@@ -62,12 +62,13 @@ public class PopOverWrapper {
             state = PopOverState.HIDING;
             popover.hide();
 
-            UserThread.runAfter(() -> {
-                state = PopOverState.HIDDEN;
-                if (!hidePopover) {
-                    showPopOver(popoverSupplier);
-                }
-            }, 250, TimeUnit.MILLISECONDS);
+            UIScheduler.run(() -> {
+                        state = PopOverState.HIDDEN;
+                        if (!hidePopover) {
+                            showPopOver(popoverSupplier);
+                        }
+                    })
+                    .after(250);
         }
     }
 }

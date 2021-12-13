@@ -17,13 +17,12 @@
 
 package network.misq.tor;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.runjva.sourceforge.jsocks.protocol.Authentication;
 import com.runjva.sourceforge.jsocks.protocol.Socks5Proxy;
 import com.runjva.sourceforge.jsocks.protocol.SocksSocket;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 
 import javax.annotation.Nullable;
 import javax.net.SocketFactory;
@@ -118,7 +117,7 @@ public class Tor {
         torController.shutdown();
 
         if (startupExecutor != null) {
-            MoreExecutors.shutdownAndAwaitTermination(startupExecutor, 100, TimeUnit.MILLISECONDS);
+            ExecutorFactory.shutdownAndAwaitTermination(startupExecutor);
             startupExecutor = null;
         }
         log.info("Shutdown Tor completed");
@@ -164,7 +163,7 @@ public class Tor {
             return;
         }
         checkArgument(state.get() == State.NOT_STARTED,
-                "Invalid state at startAsync. state=" + state.get());
+                "Invalid state at start. state=" + state.get());
         state.set(State.STARTING);
         long ts = System.currentTimeMillis();
         int controlPort = bootstrap.start();
@@ -176,13 +175,13 @@ public class Tor {
 
     public TorServerSocket getTorServerSocket() throws IOException {
         checkArgument(state.get() == State.STARTED,
-                "Invalid state at Tor.startAsync. state=" + state.get());
+                "Invalid state at Tor.getTorServerSocket. state=" + state.get());
         return new TorServerSocket(torDirPath, torController);
     }
 
     public Proxy getProxy(@Nullable String streamId) throws IOException {
         checkArgument(state.get() == State.STARTED,
-                "Invalid state at startAsync. state=" + state.get());
+                "Invalid state at Tor.getProxy. state=" + state.get());
         Socks5Proxy socks5Proxy = getSocks5Proxy(streamId);
         InetSocketAddress socketAddress = new InetSocketAddress(socks5Proxy.getInetAddress(), socks5Proxy.getPort());
         return new Proxy(Proxy.Type.SOCKS, socketAddress);
@@ -211,7 +210,7 @@ public class Tor {
 
     public Socks5Proxy getSocks5Proxy(@Nullable String streamId) throws IOException {
         checkArgument(state.get() == State.STARTED,
-                "Invalid state at startAsync. state=" + state.get());
+                "Invalid state at Tor.getSocks5Proxy. state=" + state.get());
         checkArgument(proxyPort > -1, "proxyPort must be defined");
         Socks5Proxy socks5Proxy = new Socks5Proxy(LOCALHOST, proxyPort);
         socks5Proxy.resolveAddrLocally(false);
@@ -255,7 +254,7 @@ public class Tor {
     }
 
     private ExecutorService getStartupExecutor() {
-        startupExecutor = ThreadingUtils.getSingleThreadExecutor("Tor.startAsync");
+        startupExecutor = ExecutorFactory.getSingleThreadExecutor("Tor.startAsync");
         return startupExecutor;
     }
 }

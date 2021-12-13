@@ -22,8 +22,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import network.misq.desktop.common.View;
-import network.misq.desktop.utils.ImageUtil;
+import network.misq.desktop.common.view.View;
+import network.misq.desktop.common.utils.ImageUtil;
 
 public class TopPanelView extends View<HBox, TopPanelModel, TopPanelController> {
     public TopPanelView(TopPanelModel model, TopPanelController controller) {

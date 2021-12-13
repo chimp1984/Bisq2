@@ -20,12 +20,12 @@ package network.misq.desktop;
 import javafx.application.Application;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.api.DefaultApi;
-import network.misq.common.timer.UserThread;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.main.MainViewController;
 import network.misq.desktop.overlay.OverlayController;
-import network.misq.desktop.utils.UncaughtExceptionHandler;
+import network.misq.desktop.common.threading.UIThread;
+import network.misq.desktop.common.UncaughtExceptionHandler;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -116,7 +116,7 @@ public class StageController implements Controller {
                 log.error("throwableClass= " + throwable.getClass());
                 // log.error("Stack trace:\n" + ExceptionUtils.getStackTrace(throwable));
                 throwable.printStackTrace();
-                UserThread.execute(() -> uncaughtExceptionHandler.handleUncaughtException(throwable, false));
+                UIThread.run(() -> uncaughtExceptionHandler.handleUncaughtException(throwable, false));
             }
         };
         Thread.setDefaultUncaughtExceptionHandler(handler);

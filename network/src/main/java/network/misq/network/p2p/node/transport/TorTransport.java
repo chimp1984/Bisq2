@@ -33,9 +33,9 @@ public class TorTransport implements Transport {
         return INSTANCE;
     }
 
-    private TorTransport(Config config) {
+    public TorTransport(Config config) {
         torDirPath = config.baseDirPath() + separator + "tor";
-
+        log.info("TorTransport using torDirPath: {}", torDirPath);
         // We get a singleton instance per application (torDirPath)
         tor = Tor.getTor(torDirPath);
     }
@@ -49,7 +49,7 @@ public class TorTransport implements Transport {
                 Thread.sleep(1000);
             } catch (InterruptedException ignore) {
             }
-            initialize();
+            return initialize();
         }
 
         log.info("Initialize Tor");
@@ -63,7 +63,7 @@ public class TorTransport implements Transport {
 
     @Override
     public CompletableFuture<ServerSocketResult> getServerSocket(int port, String nodeId) {
-        log.info("Start hidden service");
+        log.info("Start hidden service with port {} and nodeId {}", port, nodeId);
         long ts = System.currentTimeMillis();
         try {
             TorServerSocket torServerSocket = tor.getTorServerSocket();

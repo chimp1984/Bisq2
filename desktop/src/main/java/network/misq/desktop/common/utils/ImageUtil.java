@@ -15,14 +15,22 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.common;
+package network.misq.desktop.common.utils;
 
-public interface Controller {
-    void initialize();
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import lombok.extern.slf4j.Slf4j;
 
-    void onViewAdded();
+import java.io.InputStream;
 
-    void onViewRemoved();
+@Slf4j
+public class ImageUtil {
+    public static ImageView getImageView(String imagePath) {
+        return new ImageView(getImage(imagePath));
+    }
 
-    View getView();
+    public static Image getImage(String imagePath) {
+        InputStream resourceAsStream = ImageView.class.getResourceAsStream(imagePath);
+        return new Image(resourceAsStream);
+    }
 }

@@ -20,7 +20,7 @@ package network.misq.desktop.main.content.markets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.View;
 import network.misq.desktop.components.controls.AutoTooltipLabel;
 
 public class MarketsView extends View<HBox, MarketsModel, MarketsController> {

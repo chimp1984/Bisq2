@@ -22,7 +22,7 @@ import com.jfoenix.skins.JFXButtonSkin;
 import javafx.scene.Node;
 import javafx.scene.control.Skin;
 
-import static network.misq.desktop.utils.TooltipUtil.showTooltipIfTruncated;
+import static network.misq.desktop.common.utils.TooltipUtil.showTooltipIfTruncated;
 
 
 public class AutoTooltipButton extends JFXButton {

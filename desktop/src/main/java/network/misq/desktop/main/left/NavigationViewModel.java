@@ -17,7 +17,7 @@
 
 package network.misq.desktop.main.left;
 
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 
 public class NavigationViewModel implements Model {
 }

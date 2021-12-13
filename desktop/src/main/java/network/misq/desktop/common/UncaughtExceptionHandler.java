@@ -17,15 +17,6 @@
 
 package network.misq.desktop.common;
 
-import javafx.scene.Node;
-
-public interface LifeCycle {
-
-    void onConstructView(View<? extends Node, Model, Controller> view);
-
-    default void onViewAdded() {
-    }
-
-    default void onViewRemoved() {
-    }
+public interface UncaughtExceptionHandler {
+    void handleUncaughtException(Throwable throwable, boolean doShutDown);
 }

@@ -18,13 +18,16 @@
 package network.misq.network.p2p.services.mesh.peers;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.timer.TimerUtil;
+import network.misq.common.timer.Scheduler;
 import network.misq.common.util.MathUtils;
 import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeService;
 import network.misq.network.p2p.services.mesh.peers.keepalive.KeepAliveService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -36,15 +39,17 @@ public class PeerGroupHealth {
 
     private static final int MAX_REPORTED = 2000;
     private static final int MAX_PERSISTED = 1000;
+    private static final int MAX_SEEDS = 2;
     private static final long BOOTSTRAP_TIME = TimeUnit.SECONDS.toMillis(2);
 
     private final Node node;
     private final PeerGroup peerGroup;
     private final PeerExchangeService peerExchangeService;
     private final KeepAliveService keepAliveService;
-    private Timer timer;
+    private Scheduler scheduler;
 
-    public PeerGroupHealth(Node node, PeerGroup peerGroup,
+    public PeerGroupHealth(Node node,
+                           PeerGroup peerGroup,
                            PeerExchangeService peerExchangeService,
                            KeepAliveService.Config keepAliveServiceConfig) {
         this.node = node;
@@ -54,21 +59,24 @@ public class PeerGroupHealth {
     }
 
     public CompletableFuture<Boolean> initialize() {
-        timer = TimerUtil.runPeriodically(() -> {
-            maybeCloseDuplicateConnections();
-            maybeCloseConnections();
-            maybeCreateConnections();
-            maybeRemoveReportedPeers();
-            maybeRemovePersistedPeers();
-        }, INTERVAL, TimeUnit.MILLISECONDS);
+        scheduler = Scheduler.run(() -> {
+                    maybeCloseDuplicateConnections();
+                    maybeCloseConnectionsToSeeds();
+                    maybeCloseConnections();
+                    maybeCreateConnections();
+                    maybeRemoveReportedPeers();
+                    maybeRemovePersistedPeers();
+                })
+                .periodically(INTERVAL);
+
         keepAliveService.initialize();
         return CompletableFuture.completedFuture(true);
     }
 
     public void shutdown() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (scheduler != null) {
+            scheduler.stop();
+            scheduler = null;
         }
     }
 
@@ -76,15 +84,27 @@ public class PeerGroupHealth {
      * Remove duplicate connections (inbound connections which have an outbound connection with the same address)
      */
     private void maybeCloseDuplicateConnections() {
-        Map<Address, Connection> outboundConnectionsByAddress = peerGroup.getOutboundConnections().stream()
+        Map<Address, Connection> outboundConnectionsByAddress = peerGroup.getOutboundConnectionsByAddress().values().stream()
                 .collect(Collectors.toMap(Connection::getPeerAddress, c -> c));
-        peerGroup.getInboundConnections().stream()
+        peerGroup.getInboundConnectionsByAddress().values().stream()
                 .filter(inboundConnection -> outboundConnectionsByAddress.containsKey(inboundConnection.getPeerAddress()))
                 .filter(this::isNotBootstrapping)
                 .peek(connection -> log.info("Node {} send CloseConnectionMessage to peer {} as we have an " +
                                 "outbound connection with the same address.",
                         node, connection.getPeersCapability().address().toString()))
                 .forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.DUPLICATE_CONNECTION), connection));
+    }
+
+    private void maybeCloseConnectionsToSeeds() {
+        int numSeeds = (int) peerGroup.getAllConnectionsAsStream()
+                .filter(connection -> peerGroup.isASeed(connection.getPeerAddress())).count();
+        if (numSeeds > MAX_SEEDS) {
+            log.info("Node {} has {} connections with seed nodes", node, numSeeds);
+        }
+        peerGroup.getAllConnectionsAsStream()
+                .filter(connection -> peerGroup.isASeed(connection.getPeerAddress()))
+                .skip(MAX_SEEDS)
+                .forEach(connection -> node.send(new CloseConnectionMessage(CloseReason.TOO_MANY_CONNECTIONS_TO_SEEDS), connection));
     }
 
     /**
@@ -100,7 +120,7 @@ public class PeerGroupHealth {
         }
 
         // Remove the oldest inbound connections
-        List<InboundConnection> inbound = new ArrayList<>(peerGroup.getInboundConnections());
+        List<InboundConnection> inbound = new ArrayList<>(peerGroup.getInboundConnectionsByAddress().values());
         inbound.sort(Comparator.comparing(c -> c.getMetrics().getCreationDate()));
         List<Connection> candidates = new ArrayList<>();
         if (!inbound.isEmpty()) {
@@ -112,7 +132,7 @@ public class PeerGroupHealth {
 
         int stillExceeding = exceeding - candidates.size();
         if (stillExceeding > 0) {
-            List<Connection> outbound = new ArrayList<>(peerGroup.getOutboundConnections());
+            List<Connection> outbound = new ArrayList<>(peerGroup.getOutboundConnectionsByAddress().values());
             outbound.sort(Comparator.comparing(c -> c.getMetrics().getCreationDate()));
             if (!outbound.isEmpty()) {
                 List<Connection> list = outbound.subList(0, Math.min(stillExceeding, outbound.size())).stream()
@@ -134,7 +154,7 @@ public class PeerGroupHealth {
 
     private void maybeCreateConnections() {
         int minNumConnectedPeers = peerGroup.getMinNumConnectedPeers();
-        int numOutboundConnections = peerGroup.getOutboundConnections().size();
+        int numOutboundConnections = peerGroup.getOutboundConnectionsByAddress().size();
         // We want to have at least 40% of our minNumConnectedPeers as outbound connections 
         int missingOutboundConnections = MathUtils.roundDoubleToInt(minNumConnectedPeers * 0.4) - numOutboundConnections;
         if (missingOutboundConnections <= 0) {

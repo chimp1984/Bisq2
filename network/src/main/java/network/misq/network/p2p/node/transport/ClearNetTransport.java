@@ -22,7 +22,7 @@ public class ClearNetTransport implements Transport {
         return INSTANCE;
     }
 
-    private ClearNetTransport(Config config) {
+    public ClearNetTransport(Config config) {
     }
 
     public CompletableFuture<Boolean> initialize() {

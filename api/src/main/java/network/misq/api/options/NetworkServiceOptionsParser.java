@@ -56,8 +56,9 @@ public class NetworkServiceOptionsParser {
                 Transport.Type.CLEAR_NET, Arrays.asList(Address.localHost(1000), Address.localHost(1001)));
        
         SeedNodeRepository seedNodeRepository = new SeedNodeRepository(seedsByTransportType);
-      
+        Transport.Config transportConfig = new Transport.Config(baseDirPath);
         config = new NetworkService.Config(baseDirPath,
+                transportConfig,
                 supportedTransportTypes,
                 serviceNodeConfig,
                 peerGroupConfig,

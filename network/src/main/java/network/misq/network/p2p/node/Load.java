@@ -17,27 +17,7 @@
 
 package network.misq.network.p2p.node;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.message.Message;
+import java.io.Serializable;
 
-import java.net.Socket;
-import java.util.function.BiConsumer;
-
-@Slf4j
-public class OutboundConnection extends Connection {
-
-    @Getter
-    private final Address address;
-
-    OutboundConnection(Socket socket,
-                       Address address,
-                       Capability peersCapability,
-                       Load peersLoad, 
-                       BiConsumer<Message, Connection> messageHandler) {
-        super(socket, peersCapability, peersLoad, messageHandler);
-
-        this.address = address;
-        log.debug("Create outboundConnection to {}", address);
-    }
+public record Load(int numConnections) implements Serializable {
 }

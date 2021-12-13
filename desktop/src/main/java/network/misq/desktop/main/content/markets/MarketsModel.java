@@ -19,7 +19,7 @@ package network.misq.desktop.main.content.markets;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 import network.misq.offer.MarketPrice;
 import network.misq.presentation.formatters.QuoteFormatter;
 

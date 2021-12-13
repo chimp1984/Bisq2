@@ -2,7 +2,7 @@ package network.misq.network.p2p.node.transport;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.NetworkUtils;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 import network.misq.i2p.SamClient;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Node;
@@ -25,7 +25,7 @@ public class I2PTransport implements Transport {
 
     private final String i2pDirPath;
     private SamClient samClient;
-    private final ExecutorService serverSocketExecutor = ThreadingUtils.getSingleThreadExecutor("I2pNetworkProxy.ServerSocket");
+    private final ExecutorService serverSocketExecutor = ExecutorFactory.getSingleThreadExecutor("I2pNetworkProxy.ServerSocket");
     private boolean initializeCalled;
 
     public static I2PTransport getInstance(Config config) {

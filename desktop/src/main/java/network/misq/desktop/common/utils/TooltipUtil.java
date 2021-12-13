@@ -15,7 +15,7 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.utils;
+package network.misq.desktop.common.utils;
 
 import javafx.scene.control.Labeled;
 import javafx.scene.control.SkinBase;

@@ -20,7 +20,7 @@ package network.misq.protocol.multiSig.maker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.SecurityProvider;
@@ -33,8 +33,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.Listener {
-    public MakerMultiSigProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService, SecurityProvider securityProvider) {
-        super(contract, p2pService, new AssetTransfer.Manual(), securityProvider);
+    public MakerMultiSigProtocol(TwoPartyContract contract, NetworkService networkService, SecurityProvider securityProvider) {
+        super(contract, networkService, new AssetTransfer.Manual(), securityProvider);
     }
 
     @Override
@@ -63,11 +63,11 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
     }
 
     public CompletableFuture<Boolean> start() {
-        p2pService.addMessageListener(this);
+        networkService.addMessageListener(this);
         multiSig.addListener(this);
         setState(State.START);
         multiSig.getTxInputs()
-                .thenCompose(txInputs -> p2pService.confidentialSend(new TxInputsMessage(txInputs),
+                .thenCompose(txInputs -> networkService.confidentialSend(new TxInputsMessage(txInputs),
                         counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((success, t) -> setState(State.TX_INPUTS_SENT));
@@ -78,7 +78,7 @@ public class MakerMultiSigProtocol extends MultiSigProtocol implements MultiSig.
         setState(State.FUNDS_SENT);
         return multiSig.createPartialPayoutTx()
                 .thenCompose(multiSig::getPayoutTxSignature)
-                .thenCompose(sig -> p2pService.confidentialSend(new FundsSentMessage(sig),
+                .thenCompose(sig -> networkService.confidentialSend(new FundsSentMessage(sig),
                         counterParty.getMakerNetworkId(),
                         null, null))
                 .whenComplete((isValid, t) -> setState(State.FUNDS_SENT_MSG_SENT));

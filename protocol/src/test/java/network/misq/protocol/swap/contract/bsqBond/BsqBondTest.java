@@ -25,8 +25,8 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.Asset;
@@ -39,7 +39,6 @@ import network.misq.protocol.bsqBond.maker.MakerBsqBondProtocol;
 import network.misq.protocol.bsqBond.taker.TakerBsqBondProtocol;
 import network.misq.security.PubKey;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 @Slf4j
 public class BsqBondTest {
 
-    private ServiceNodesByTransport networkService;
+    private NetworkService networkService;
 
     @BeforeEach
     public void setup() {
@@ -61,7 +60,7 @@ public class BsqBondTest {
         networkService = new MockServiceTransport();
     }
 
-   // @Test
+    // @Test
     public void testBsqBond() {
 
         // create offer

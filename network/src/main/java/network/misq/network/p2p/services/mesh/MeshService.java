@@ -44,8 +44,8 @@ public class MeshService {
 
     public MeshService(Node node, Config config) {
         List<Address> seedNodeAddresses = config.seedNodeAddresses();
-        peerGroup = new PeerGroup(node, config.peerGroupConfig);
-        PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(peerGroup, seedNodeAddresses, config.peerExchangeConfig());
+        peerGroup = new PeerGroup(node, config.peerGroupConfig,seedNodeAddresses);
+        PeerExchangeStrategy peerExchangeStrategy = new PeerExchangeStrategy(peerGroup,  config.peerExchangeConfig());
         PeerExchangeService peerExchangeService = new PeerExchangeService(node, peerExchangeStrategy);
         PeerGroupHealth peerGroupHealth = new PeerGroupHealth(node, peerGroup, peerExchangeService, config.keepAliveServiceConfig());
         peerGroupService = new PeerGroupService(peerGroupHealth, peerExchangeService);

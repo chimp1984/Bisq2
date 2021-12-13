@@ -60,8 +60,16 @@ public class ServiceNodesByTransport {
     private static final Logger log = LoggerFactory.getLogger(ServiceNodesByTransport.class);
 
     private final Map<Transport.Type, ServiceNode> map = new ConcurrentHashMap<>();
+    private final Transport.Config transportConfig;
+    private final Set<Transport.Type> supportedTransportTypes;
+    private final ServiceNode.Config serviceNodeConfig;
+    private final PeerGroup.Config peerGroupConfig;
+    private final PeerExchangeStrategy.Config peerExchangeConfig;
+    private final SeedNodeRepository seedNodeRepository;
+    private final DataService.Config dataServiceConfig;
+    private final KeyPairRepository keyPairRepository;
 
-    public ServiceNodesByTransport(String baseDirPath,
+    public ServiceNodesByTransport(Transport.Config transportConfig,
                                    Set<Transport.Type> supportedTransportTypes,
                                    ServiceNode.Config serviceNodeConfig,
                                    PeerGroup.Config peerGroupConfig,
@@ -69,8 +77,23 @@ public class ServiceNodesByTransport {
                                    SeedNodeRepository seedNodeRepository,
                                    DataService.Config dataServiceConfig,
                                    KeyPairRepository keyPairRepository) {
-        long socketTimeout = TimeUnit.SECONDS.toMillis(10);
-        Transport.Config transportConfig = new Transport.Config(baseDirPath);
+        this.transportConfig = transportConfig;
+        this.supportedTransportTypes = supportedTransportTypes;
+        this.serviceNodeConfig = serviceNodeConfig;
+        this.peerGroupConfig = peerGroupConfig;
+        this.peerExchangeConfig = peerExchangeConfig;
+        this.seedNodeRepository = seedNodeRepository;
+        this.dataServiceConfig = dataServiceConfig;
+        this.keyPairRepository = keyPairRepository;
+    }
+
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // API
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void init() {
+        long socketTimeout = TimeUnit.MINUTES.toMillis(5);
         ConfidentialMessageService.Config confMsgServiceConfig = new ConfidentialMessageService.Config(keyPairRepository);
         KeepAliveService.Config keepAliveServiceConfig = new KeepAliveService.Config(socketTimeout / 2,
                 socketTimeout / 4);
@@ -96,14 +119,6 @@ public class ServiceNodesByTransport {
             map.put(transportType, serviceNode);
         });
     }
-
-    public ServiceNodesByTransport() {
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // API
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public CompletableFuture<Boolean> bootstrap() {
         return bootstrap(null);

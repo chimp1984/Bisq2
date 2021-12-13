@@ -19,9 +19,9 @@ package network.misq.desktop.main.content.createoffer;
 
 import javafx.beans.property.*;
 import javafx.scene.Parent;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.Model;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.Model;
+import network.misq.desktop.common.view.View;
 
 public class CreateOfferModel implements Model {
     final DoubleProperty minWidthProperty = new SimpleDoubleProperty(800);

@@ -18,7 +18,7 @@
 package network.misq.desktop.main.top;
 
 
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 
 public class TopPanelModel implements Model {
 }

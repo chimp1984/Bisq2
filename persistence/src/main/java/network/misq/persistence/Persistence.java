@@ -19,7 +19,7 @@ package network.misq.persistence;
 
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.FileUtils;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 
 import java.io.*;
 import java.util.concurrent.CompletableFuture;
@@ -85,6 +85,6 @@ public class Persistence {
                 }
                 return success;
             }
-        }, ThreadingUtils.getSingleThreadExecutor("Write-to-disk: " + fileName));
+        }, ExecutorFactory.getSingleThreadExecutor("Write-to-disk: " + fileName));
     }
 }

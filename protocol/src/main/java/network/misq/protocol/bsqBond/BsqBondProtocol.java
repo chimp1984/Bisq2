@@ -19,7 +19,7 @@ package network.misq.protocol.bsqBond;
 
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.node.Node;
 import network.misq.protocol.Protocol;
 import network.misq.protocol.SecurityProvider;
@@ -53,8 +53,8 @@ public abstract class BsqBondProtocol extends TwoPartyProtocol implements Node.M
     protected final AssetTransfer transport;
     protected final BsqBond security;
 
-    public BsqBondProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService, AssetTransfer transfer, SecurityProvider securityProvider) {
-        super(contract, p2pService);
+    public BsqBondProtocol(TwoPartyContract contract, NetworkService networkService, AssetTransfer transfer, SecurityProvider securityProvider) {
+        super(contract, networkService);
         this.transport = transfer;
         this.security = (BsqBond) securityProvider;
     }

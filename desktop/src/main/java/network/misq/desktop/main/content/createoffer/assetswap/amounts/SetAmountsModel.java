@@ -23,7 +23,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 
 public class SetAmountsModel implements Model {
     @Getter

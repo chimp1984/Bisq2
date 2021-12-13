@@ -20,7 +20,7 @@ package network.misq.network.p2p.node;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.StringUtils;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 import network.misq.network.p2p.node.transport.Transport;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 @Slf4j
 public final class Server {
     private final ServerSocket serverSocket;
-    private final ExecutorService executorService = ThreadingUtils.getSingleThreadExecutor("Server");
+    private final ExecutorService executorService = ExecutorFactory.getSingleThreadExecutor("Server");
     @Getter
     private final Address address;
     private volatile boolean isStopped;
@@ -72,7 +72,7 @@ public final class Server {
         }
         isStopped = true;
         return CompletableFuture.runAsync(() -> {
-            ThreadingUtils.shutdownAndAwaitTermination(executorService, 100, TimeUnit.MILLISECONDS);
+            ExecutorFactory.shutdownAndAwaitTermination(executorService, 100, TimeUnit.MILLISECONDS);
             try {
                 serverSocket.close();
             } catch (IOException ignore) {

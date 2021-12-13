@@ -57,7 +57,7 @@ public class GossipRouter implements Node.MessageListener {
         future.orTimeout(BROADCAST_TIMEOUT, TimeUnit.SECONDS);
         AtomicInteger numSuccess = new AtomicInteger(0);
         AtomicInteger numFaults = new AtomicInteger(0);
-        Set<Address> connectedPeerAddresses = peerGroup.getConnectedPeerAddresses();
+        Set<Address> connectedPeerAddresses = peerGroup.getAllConnectedPeerAddresses();
         int target = connectedPeerAddresses.size();
         connectedPeerAddresses.forEach(address -> {
             node.send(new GossipMessage(message), address)
@@ -78,7 +78,7 @@ public class GossipRouter implements Node.MessageListener {
     }
 
     public Address getPeerAddressesForInventoryRequest() {
-        return CollectionUtil.getRandomElement(peerGroup.getConnectedPeerAddresses());
+        return CollectionUtil.getRandomElement(peerGroup.getAllConnectedPeerAddresses());
     }
 
     public void addMessageListener(Node.MessageListener messageListener) {

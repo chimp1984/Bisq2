@@ -18,7 +18,7 @@
 package network.misq.network.p2p.services.mesh.peers.keepalive;
 
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.timer.TimerUtil;
+import network.misq.common.timer.Scheduler;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.ConnectionListener;
@@ -26,7 +26,6 @@ import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
 
 import java.util.Map;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +40,7 @@ public class KeepAliveService implements Node.MessageListener, ConnectionListene
     private final PeerGroup peerGroup;
     private final Config config;
     private final Map<String, KeepAliveHandler> requestHandlerMap = new ConcurrentHashMap<>();
-    private Timer timer;
+    private Scheduler scheduler;
 
     public KeepAliveService(Node node, PeerGroup peerGroup, Config config) {
         this.node = node;
@@ -52,7 +51,7 @@ public class KeepAliveService implements Node.MessageListener, ConnectionListene
     }
 
     public void initialize() {
-        timer = TimerUtil.runPeriodically(this::sendPingIfRequired, config.interval(), TimeUnit.MILLISECONDS);
+        scheduler = Scheduler.run(this::sendPingIfRequired).periodically(config.interval());
     }
 
     private void sendPingIfRequired() {
@@ -76,9 +75,9 @@ public class KeepAliveService implements Node.MessageListener, ConnectionListene
     }
 
     public void shutdown() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (scheduler != null) {
+            scheduler.stop();
+            scheduler = null;
         }
         requestHandlerMap.values().forEach(KeepAliveHandler::dispose);
         requestHandlerMap.clear();

@@ -26,8 +26,8 @@ import network.misq.contract.AssetTransfer;
 import network.misq.contract.ProtocolType;
 import network.misq.contract.SwapProtocolType;
 import network.misq.contract.TwoPartyContract;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.NetworkId;
-import network.misq.network.p2p.ServiceNodesByTransport;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.offer.Asset;
@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 public abstract class MultiSigTest {
-    private ServiceNodesByTransport networkService;
+    private NetworkService networkService;
 
     @BeforeEach
     public void setup() {
@@ -73,7 +73,7 @@ public abstract class MultiSigTest {
     protected abstract Wallet getMakerWallet();
 
     protected void run() {
-        ServiceNodesByTransport networkService = new MockServiceTransport();
+        NetworkService networkService = new MockServiceTransport();
         // create offer
         NetworkId makerNetworkId = new NetworkId(Map.of(Transport.Type.CLEAR_NET, Address.localHost(3333)), new PubKey(null, "default"));
         Asset askAsset = new Asset(Fiat.of(5000, "USD"), List.of(FiatTransfer.ZELLE), AssetTransfer.Type.MANUAL);

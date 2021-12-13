@@ -19,14 +19,14 @@ package network.misq.protocol;
 
 import network.misq.contract.Party;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.node.Node;
 
 public abstract class TwoPartyProtocol extends Protocol implements Node.MessageListener {
     protected final Party counterParty;
 
-    public TwoPartyProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService) {
-        super(contract, p2pService);
+    public TwoPartyProtocol(TwoPartyContract contract, NetworkService networkService) {
+        super(contract, networkService);
         counterParty = contract.getCounterParty();
     }
 }

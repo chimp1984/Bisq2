@@ -25,7 +25,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import lombok.Getter;
 import network.misq.api.DefaultApi;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 import network.misq.offer.MarketPrice;
 
 import java.util.Map;

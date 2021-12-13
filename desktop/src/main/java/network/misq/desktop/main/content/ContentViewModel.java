@@ -20,9 +20,9 @@ package network.misq.desktop.main.content;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import network.misq.desktop.common.Controller;
-import network.misq.desktop.common.Model;
-import network.misq.desktop.common.View;
+import network.misq.desktop.common.view.Controller;
+import network.misq.desktop.common.view.Model;
+import network.misq.desktop.common.view.View;
 
 public class ContentViewModel implements Model {
     final ObjectProperty<View<? extends Node, Model, Controller>> view = new SimpleObjectProperty<>();

@@ -19,7 +19,8 @@ package network.misq.network.p2p.node;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.util.StringUtils;
+import network.misq.common.threading.ExecutorFactory;
 import network.misq.network.p2p.message.Envelope;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.message.Version;
@@ -49,14 +50,17 @@ public abstract class Connection {
         void onMessage(Message message);
     }
 
+    @Getter
     protected final String id = UUID.randomUUID().toString();
-    private final Socket socket;
     @Getter
     private final Capability peersCapability;
-
-    private final BiConsumer<Message, Connection> messageHandler;
+    @Getter
+    private final Load peersLoad;
     @Getter
     private final Metrics metrics;
+
+    private final Socket socket;
+    private final BiConsumer<Message, Connection> messageHandler;
     private final Set<MessageListener> messageListeners = new CopyOnWriteArraySet<>();
     private ExecutorService writeExecutor;
     private ExecutorService readExecutor;
@@ -65,16 +69,20 @@ public abstract class Connection {
 
     private volatile boolean isStopped;
 
-    protected Connection(Socket socket, Capability peersCapability, BiConsumer<Message, Connection> messageHandler) {
+    protected Connection(Socket socket,
+                         Capability peersCapability,
+                         Load peersLoad,
+                         BiConsumer<Message, Connection> messageHandler) {
         this.socket = socket;
         this.peersCapability = peersCapability;
+        this.peersLoad = peersLoad;
         this.messageHandler = messageHandler;
         metrics = new Metrics();
     }
 
     void startListen(Consumer<Exception> errorHandler) throws IOException {
-        writeExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.outputExecutor-" + getShortId());
-        readExecutor = ThreadingUtils.getSingleThreadExecutor("Connection.inputHandler-" + getShortId());
+        writeExecutor = ExecutorFactory.getSingleThreadExecutor("Connection.outputExecutor-" + getThreadNameId());
+        readExecutor = ExecutorFactory.getSingleThreadExecutor("Connection.inputHandler-" + getThreadNameId());
 
         // TODO java serialisation is just for dev, will be replaced by custom serialisation
         // Type-Length-Value Format is considered to be used:
@@ -113,7 +121,8 @@ public abstract class Connection {
 
     CompletableFuture<Connection> send(AuthorizedMessage message) {
         if (isStopped) {
-            log.warn("Message not sent as connection has been shut down already. Message={}", message);
+            log.warn("Message not sent as connection has been shut down already. Connection={}, Message={}",
+                    this, StringUtils.truncate(message.toString()));
             return CompletableFuture.completedFuture(this);
         }
 
@@ -145,8 +154,8 @@ public abstract class Connection {
         log.info("Shut down {}", this);
         isStopped = true;
         return CompletableFuture.runAsync(() -> {
-            ThreadingUtils.shutdownAndAwaitTermination(readExecutor, 1, TimeUnit.SECONDS);
-            ThreadingUtils.shutdownAndAwaitTermination(writeExecutor, 1, TimeUnit.SECONDS);
+            ExecutorFactory.shutdownAndAwaitTermination(readExecutor, 1, TimeUnit.SECONDS);
+            ExecutorFactory.shutdownAndAwaitTermination(writeExecutor, 1, TimeUnit.SECONDS);
             try {
                 socket.close();
             } catch (IOException ignore) {
@@ -164,14 +173,6 @@ public abstract class Connection {
 
     public void removeMessageListener(MessageListener messageListener) {
         messageListeners.remove(messageListener);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    private String getShortId() {
-        return id.substring(0, 24);
     }
 
     public Address getPeerAddress() {
@@ -197,6 +198,10 @@ public abstract class Connection {
         return "'Connection to peer " + getPeersCapability().address().toString() +
                 " with socket " + socket +
                 " and id " + getId() + "'";
+    }
+
+    private String getThreadNameId() {
+        return getPeersCapability().address().toString() + "-" + id.substring(0, 8);
     }
 
     private boolean isNotStopped() {

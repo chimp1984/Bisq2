@@ -18,13 +18,10 @@
 package network.misq.monitor;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -34,15 +31,14 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.timer.UserThread;
 import network.misq.common.util.CompletableFutureUtils;
-import network.misq.desktop.utils.UITimer;
+import network.misq.desktop.common.threading.UIThread;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.ServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.ConnectionListener;
-import network.misq.network.p2p.node.transport.Transport;
+import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.services.mesh.MeshService;
 import network.misq.network.p2p.services.mesh.monitor.NetworkMonitor;
 import network.misq.network.p2p.services.mesh.peers.PeerGroup;
@@ -64,12 +60,8 @@ public class NetworkMonitorUI extends Application {
     private final List<NetworkService> nodeNetworkServices = new ArrayList<>();
     private final Map<Address, String> connectionInfoByAddress = new HashMap<>();
 
-
     @Override
     public void start(Stage primaryStage) {
-        UserThread.setExecutor(Platform::runLater);
-        UserThread.setTimerClass(UITimer.class);
-
         networkMonitor = new NetworkMonitor();
 
         String bgStyle = "-fx-background-color: #dadada";
@@ -117,12 +109,29 @@ public class NetworkMonitorUI extends Application {
         infoBox.getChildren().add(actionLabel);
 
         nodeInfoTextArea = new TextArea();
+        nodeInfoTextArea.setEditable(false);
         nodeInfoTextArea.setMinHeight(900);
+        nodeInfoTextArea.setMinWidth(900);
         nodeInfoTextArea.setFont(Font.font("Courier", FontWeight.NORMAL, FontPosture.REGULAR, 13));
+        nodeInfoTextArea.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DELETE) {
+                nodeInfoTextArea.clear();
+            }
+        });
 
         eventTextArea = new TextArea();
+        eventTextArea.setEditable(false);
         eventTextArea.setMinHeight(nodeInfoTextArea.getMinHeight());
+        eventTextArea.setMinWidth(nodeInfoTextArea.getMinWidth());
         eventTextArea.setFont(Font.font("Courier", FontWeight.NORMAL, FontPosture.REGULAR, 13));
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem clear = new MenuItem("Clear");
+        clear.setOnAction((event) -> {
+            eventTextArea.clear();
+        });
+        contextMenu.getItems().add(clear);
+        eventTextArea.setContextMenu(contextMenu);
 
         infoBox.getChildren().addAll(nodeInfoTextArea, eventTextArea);
 
@@ -141,8 +150,9 @@ public class NetworkMonitorUI extends Application {
         start();
     }
 
+
     private void start() {
-        bootstrap(networkMonitor.getSeedAddresses(), "Seed ", seedNetworkServices, seedsPane)
+        bootstrap(networkMonitor.getSeedAddresses(networkMonitor.getTransportType()), "Seed ", seedNetworkServices, seedsPane)
                 .thenCompose(res1 -> {
                     return bootstrap(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
                 }).whenComplete((r, t) -> {
@@ -151,11 +161,11 @@ public class NetworkMonitorUI extends Application {
     }
 
     private void setupConnectionListener(NetworkService networkService) {
-        networkService.findDefaultNode(Transport.Type.CLEAR_NET).ifPresent(node -> {
+        networkService.findDefaultNode(networkMonitor.getTransportType()).ifPresent(node -> {
             node.addConnectionListener(new ConnectionListener() {
                 @Override
                 public void onConnection(Connection connection) {
-                    UserThread.execute(() -> {
+                    UIThread.run(() -> {
                         String dir = connection.isOutboundConnection() ? " -> " : " <- ";
                         String info = "\n+ onConnection " + node + dir + connection.getPeerAddress();
                         eventTextArea.appendText(info);
@@ -171,7 +181,7 @@ public class NetworkMonitorUI extends Application {
 
                 @Override
                 public void onDisconnect(Connection connection) {
-                    UserThread.execute(() -> {
+                    UIThread.run(() -> {
                         String dir = connection.isOutboundConnection() ? " -> " : " <- ";
                         String info = "\n- onDisconnect " + node + dir + connection.getPeerAddress();
                         eventTextArea.appendText(info);
@@ -188,23 +198,25 @@ public class NetworkMonitorUI extends Application {
         });
     }
 
-    private CompletableFuture<Boolean> bootstrap(List<Address> addresses, String name, List<NetworkService> sink, Pane pane) {
-        UserThread.execute(() -> stopNodes(sink, pane));
+    private CompletableFuture<Boolean> bootstrap(List<Address> addresses,
+                                                 String name,
+                                                 List<NetworkService> sink,
+                                                 Pane pane) {
+        UIThread.run(() -> stopNodes(sink, pane));
 
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        addresses.forEach(seedAddress -> {
-            int port = seedAddress.getPort();
-            NetworkService networkService = networkMonitor.createNetworkService();
+        addresses.forEach(address -> {
+            int port = address.getPort();
+            NetworkService networkService = networkMonitor.createNetworkService(port);
             setupConnectionListener(networkService);
             allFutures.add(networkService.bootstrap(port));
 
-            UserThread.execute(() -> {
+            UIThread.run(() -> {
                 Button button = new Button(name + port);
                 button.setMinWidth(100);
                 button.setMaxWidth(button.getMinWidth());
                 pane.getChildren().add(button);
-                button.setUserData(networkService);
-                button.setOnAction(e -> onNodeInfo(networkService));
+                button.setOnAction(e -> onNodeInfo(networkService, port));
                 sink.add(networkService);
             });
         });
@@ -228,16 +240,31 @@ public class NetworkMonitorUI extends Application {
     }
 
 
-    private void onNodeInfo(NetworkService networkService) {
-        String connectionMatrix = networkService.findServiceNode(Transport.Type.CLEAR_NET)
+    private void onNodeInfo(NetworkService networkService, int port) {
+        String connectionMatrix = networkService.findServiceNode(networkMonitor.getTransportType())
                 .flatMap(ServiceNode::getMeshService)
                 .map(MeshService::getPeerGroup).stream()
                 .map(PeerGroup::getConnectionMatrix)
                 .findAny()
                 .orElse("null");
         nodeInfoTextArea.setText(connectionMatrix);
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem stop = new MenuItem("Stop");
+        stop.setOnAction((event) -> {
+            networkService.shutdown();
+            //networkService.findServiceNode(networkMonitor.getTransportType()).ifPresent(e->e.shutdown());
+        });
+        MenuItem start = new MenuItem("Start");
+        start.setOnAction((event) -> {
+            // networkService.findServiceNode(networkMonitor.getTransportType()).ifPresent(e->e.bootstrap(port));
+            networkService.init();
+            networkService.bootstrap(port);
+        });
+        contextMenu.getItems().addAll(stop, start);
+        nodeInfoTextArea.setContextMenu(contextMenu);
 
-        Address address = networkService.findDefaultNode(Transport.Type.CLEAR_NET).map(node -> node.findMyAddress().get()).get();
-        nodeInfoTextArea.appendText("Connections:\n" + connectionInfoByAddress.get(address));
+        networkService.findDefaultNode(networkMonitor.getTransportType())
+                .flatMap(Node::findMyAddress)
+                .ifPresent(address -> nodeInfoTextArea.appendText("\nConnections:" + connectionInfoByAddress.get(address)));
     }
 }

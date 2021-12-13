@@ -31,10 +31,11 @@ public class InboundConnection extends Connection {
     private final Transport.ServerSocketResult serverSocketResult;
 
     InboundConnection(Socket socket,
-                             Transport.ServerSocketResult serverSocketResult,
-                             Capability capability,
-                             BiConsumer<Message, Connection> messageHandler) {
-        super(socket, capability, messageHandler);
+                      Transport.ServerSocketResult serverSocketResult,
+                      Capability peersCapability,
+                      Load peersLoad, 
+                      BiConsumer<Message, Connection> messageHandler) {
+        super(socket, peersCapability, peersLoad, messageHandler);
         this.serverSocketResult = serverSocketResult;
         log.debug("Create inboundConnection from server: {}", serverSocketResult);
     }

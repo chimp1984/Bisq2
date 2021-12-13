@@ -19,7 +19,7 @@ package network.misq.network.p2p.services.mesh.peers.exchange;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.common.timer.TimerUtil;
+import network.misq.common.timer.Scheduler;
 import network.misq.common.util.CompletableFutureUtils;
 import network.misq.common.util.StringUtils;
 import network.misq.network.p2p.message.Message;
@@ -64,6 +64,9 @@ public class PeerExchangeService implements Node.MessageListener {
     }
 
     private CompletableFuture<Void> doPeerExchange(List<Address> addresses) {
+        if (addresses.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
         log.info("Node {} starts peer exchange with: {}", node,
                 StringUtils.truncate(addresses.stream()
                         .map(Address::toString)
@@ -74,12 +77,12 @@ public class PeerExchangeService implements Node.MessageListener {
         return CompletableFutureUtils.allOf(allFutures)
                 .thenCompose(resultList -> {
                     int numSuccess = (int) resultList.stream().filter(e -> e).count();
-                    log.debug("Peer exchange with {} peers completed. {} requests successfully completed. My address: {}",
-                            addresses.size(), numSuccess, node);
+                    log.info("Node {} completed peer exchange with {} peers. {} requests successfully completed.",
+                            node, addresses.size(), numSuccess);
                     if (peerExchangeStrategy.redoInitialPeerExchange(numSuccess, addresses.size())) {
                         log.info("We redo the initial peer exchange as we have not reached sufficient connections " +
-                                "or received sufficient peers");
-                        TimerUtil.runAfter(this::doInitialPeerExchange, 1);
+                                "or received sufficient peers. addresses={}", addresses);
+                        Scheduler.run(this::doInitialPeerExchange).after(1, TimeUnit.SECONDS);
                     }
                     return CompletableFuture.completedFuture(null);
                 });

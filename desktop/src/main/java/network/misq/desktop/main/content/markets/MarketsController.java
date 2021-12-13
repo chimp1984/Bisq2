@@ -20,7 +20,7 @@ package network.misq.desktop.main.content.markets;
 import javafx.application.Platform;
 import lombok.Getter;
 import network.misq.api.DefaultApi;
-import network.misq.desktop.common.Controller;
+import network.misq.desktop.common.view.Controller;
 
 public class MarketsController implements Controller {
     private final DefaultApi api;

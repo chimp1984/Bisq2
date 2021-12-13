@@ -21,7 +21,6 @@ package network.misq.protocol.swap.contract.multiSig;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.wallets.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 /**
  * Example for a different config. Alice uses a ledger wallet, bob bitcoind and both use electrum as chain data provider.

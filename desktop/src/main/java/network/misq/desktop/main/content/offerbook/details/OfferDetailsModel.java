@@ -22,7 +22,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Getter;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 import network.misq.desktop.main.content.offerbook.OfferListItem;
 
 @Getter

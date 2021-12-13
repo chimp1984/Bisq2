@@ -19,5 +19,6 @@ package network.misq.network.p2p.node;
 
 public enum CloseReason {
     DUPLICATE_CONNECTION,
+    TOO_MANY_CONNECTIONS_TO_SEEDS,
     TOO_MANY_CONNECTIONS
 }

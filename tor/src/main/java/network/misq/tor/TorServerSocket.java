@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.freehaven.tor.control.TorControlConnection;
 import network.misq.common.util.FileUtils;
 import network.misq.common.util.NetworkUtils;
-import network.misq.common.util.ThreadingUtils;
+import network.misq.common.threading.ExecutorFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class TorServerSocket extends ServerSocket {
     }
 
     public CompletableFuture<OnionAddress> bindAsync(int hiddenServicePort, String id) {
-        ExecutorService executor = ThreadingUtils.getSingleThreadExecutor("TorServerSocket.bindAsync");
+        ExecutorService executor = ExecutorFactory.getSingleThreadExecutor("TorServerSocket.bindAsync");
         executors.add(executor);
         return bindAsync(hiddenServicePort, NetworkUtils.findFreeSystemPort(), id, executor);
     }
@@ -130,7 +130,7 @@ public class TorServerSocket extends ServerSocket {
             }
         });
 
-        executors.forEach(ThreadingUtils::shutdownAndAwaitTermination);
+        executors.forEach(ExecutorFactory::shutdownAndAwaitTermination);
     }
 
     public Optional<OnionAddress> getOnionAddress() {

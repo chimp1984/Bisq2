@@ -19,7 +19,7 @@ package network.misq.desktop.main.content.offerbook.details;
 
 import javafx.geometry.Bounds;
 import lombok.Getter;
-import network.misq.desktop.common.Controller;
+import network.misq.desktop.common.view.Controller;
 import network.misq.desktop.main.content.offerbook.OfferListItem;
 
 public class OfferDetailsController implements Controller {

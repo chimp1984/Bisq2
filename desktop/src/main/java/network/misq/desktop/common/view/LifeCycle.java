@@ -15,15 +15,17 @@
  * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package network.misq.desktop.common;
+package network.misq.desktop.common.view;
 
 import javafx.scene.Node;
 
-public interface LifeCycleChangeListener {
+public interface LifeCycle {
+
     void onConstructView(View<? extends Node, Model, Controller> view);
 
-    void onViewAdded();
+    default void onViewAdded() {
+    }
 
-    void onViewRemoved();
-
+    default void onViewRemoved() {
+    }
 }

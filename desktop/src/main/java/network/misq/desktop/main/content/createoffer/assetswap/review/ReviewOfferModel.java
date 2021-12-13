@@ -22,7 +22,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import network.misq.desktop.common.Model;
+import network.misq.desktop.common.view.Model;
 
 public class ReviewOfferModel implements Model {
     final StringProperty formattedAskAmount = new SimpleStringProperty();

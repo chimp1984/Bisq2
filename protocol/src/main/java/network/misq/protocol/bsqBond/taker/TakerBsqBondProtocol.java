@@ -21,7 +21,7 @@ package network.misq.protocol.bsqBond.taker;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.contract.AssetTransfer;
 import network.misq.contract.TwoPartyContract;
-import network.misq.network.p2p.ServiceNodesByTransport;
+import network.misq.network.NetworkService;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Connection;
 import network.misq.protocol.bsqBond.BsqBond;
@@ -33,8 +33,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class TakerBsqBondProtocol extends BsqBondProtocol {
-    public TakerBsqBondProtocol(TwoPartyContract contract, ServiceNodesByTransport p2pService) {
-        super(contract, p2pService, new AssetTransfer.Automatic(), new BsqBond());
+    public TakerBsqBondProtocol(TwoPartyContract contract, NetworkService networkService) {
+        super(contract, networkService, new AssetTransfer.Automatic(), new BsqBond());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
             security.verifyBondCommitmentMessage(bondCommitmentMessage)
                     .whenComplete((success, t) -> setState(State.COMMITMENT_RECEIVED))
                     .thenCompose(isValid -> security.getCommitment(contract))
-                    .thenCompose(commitment -> p2pService.confidentialSend(new TakerCommitmentMessage(commitment),
+                    .thenCompose(commitment -> networkService.confidentialSend(new TakerCommitmentMessage(commitment),
                             counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((success, t) -> setState(State.COMMITMENT_SENT));
@@ -54,7 +54,7 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
             security.verifyFundsSentMessage(fundsSentMessage)
                     .whenComplete((success, t) -> setState(State.FUNDS_RECEIVED))
                     .thenCompose(isValid -> transport.sendFunds(contract))
-                    .thenCompose(isSent -> p2pService.confidentialSend(new TakerFundsSentMessage(),
+                    .thenCompose(isSent -> networkService.confidentialSend(new TakerFundsSentMessage(),
                             counterParty.getMakerNetworkId(),
                             null, null))
                     .whenComplete((success, t) -> setState(State.FUNDS_SENT));
@@ -62,7 +62,7 @@ public class TakerBsqBondProtocol extends BsqBondProtocol {
     }
 
     public CompletableFuture<Boolean> start() {
-        p2pService.addMessageListener(this);
+        networkService.addMessageListener(this);
         setState(State.START);
         return CompletableFuture.completedFuture(true);
     }
