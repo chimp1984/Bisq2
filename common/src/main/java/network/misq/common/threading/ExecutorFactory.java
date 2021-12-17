@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExecutorFactory {
     public static final ExecutorService GLOBAL_WORK_STEALING_POOL = Executors.newWorkStealingPool();
-    public static AtomicInteger counter = new AtomicInteger(0);
+    public static final AtomicInteger counter = new AtomicInteger(0);
 
     public static void shutdownAndAwaitTermination(ExecutorService executor) {
         //noinspection UnstableApiUsage

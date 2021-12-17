@@ -59,7 +59,7 @@ public class CompletableFutureUtils {
                 Stream.of(list)
                         .filter(CompletableFuture::isDone)
                         .findAny()
-                        .get());
+                        .orElseThrow());
     }
 
     // CompletableFuture.applyToEither has some undesired error handling behavior (if first fail result fails).
