@@ -17,21 +17,21 @@
 
 package network.misq.common.timer;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public interface TaskScheduler {
-    TaskScheduler withExecutor(Executor executor);
+    TaskScheduler withExecutor(ExecutorService executor);
 
-    TaskScheduler after(long delay);
+    TaskScheduler after(long delayMs);
 
     TaskScheduler after(long delay, TimeUnit timeUnit);
 
-    TaskScheduler periodically(long delay);
+    TaskScheduler periodically(long delayMs);
 
     TaskScheduler periodically(long delay, TimeUnit timeUnit);
 
-    TaskScheduler repeated(long delay, long cycles);
+    TaskScheduler repeated(long delayMs, long cycles);
 
     TaskScheduler repeated(long delay, TimeUnit timeUnit, long cycles);
 

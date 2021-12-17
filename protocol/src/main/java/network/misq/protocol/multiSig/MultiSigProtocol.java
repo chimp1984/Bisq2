@@ -45,7 +45,7 @@ import network.misq.protocol.TwoPartyProtocol;
  *   payout tx and broadcasts it and sends Maker a message that the payout tx is broadcast.
  * </ol>
  */
-public abstract class MultiSigProtocol extends TwoPartyProtocol implements Node.MessageListener {
+public abstract class MultiSigProtocol extends TwoPartyProtocol implements Node.Listener {
 
     public enum State implements Protocol.State {
         START,

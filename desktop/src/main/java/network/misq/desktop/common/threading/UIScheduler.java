@@ -22,14 +22,15 @@ import network.misq.common.timer.TaskScheduler;
 import network.misq.desktop.common.threading.reactfx.FxTimer;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.Executor;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of TaskScheduler using the JavaFX Application thread based AnimationTimer (used in FxTimer).
  * Tasks are by default executed on the JavaFX Application thread, in contrast to network.misq.common.timer.Scheduler
  * which uses the ForkJoinPool for execution. If an executor is provided it is used to execute the task. Caution need
- * to be taken to not call Java FX framework methods in such cases, and it is probably better to use the 
+ * to be taken to not call Java FX framework methods in such cases, and it is probably better to use the
  * network.misq.common.timer.Scheduler class instead.
  */
 @Slf4j
@@ -37,7 +38,8 @@ public class UIScheduler implements TaskScheduler {
     private Runnable task;
     private FxTimer timer;
     @Nullable
-    private Executor executor;
+    private ExecutorService executor;
+    private CompletableFuture<Void> future = new CompletableFuture<>();
 
     private UIScheduler() {
     }
@@ -49,14 +51,14 @@ public class UIScheduler implements TaskScheduler {
     }
 
     @Override
-    public UIScheduler withExecutor(Executor executor) {
+    public UIScheduler withExecutor(ExecutorService executor) {
         this.executor = executor;
         return this;
     }
 
     @Override
-    public UIScheduler after(long delay) {
-        return after(delay, TimeUnit.MILLISECONDS);
+    public UIScheduler after(long delayMs) {
+        return after(delayMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -65,8 +67,8 @@ public class UIScheduler implements TaskScheduler {
     }
 
     @Override
-    public UIScheduler periodically(long delay) {
-        return periodically(delay, TimeUnit.MILLISECONDS);
+    public UIScheduler periodically(long delayMs) {
+        return periodically(delayMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -75,8 +77,8 @@ public class UIScheduler implements TaskScheduler {
     }
 
     @Override
-    public UIScheduler repeated(long delay, long cycles) {
-        return repeated(delay, TimeUnit.MILLISECONDS, cycles);
+    public UIScheduler repeated(long delayMs, long cycles) {
+        return repeated(delayMs, TimeUnit.MILLISECONDS, cycles);
     }
 
     @Override

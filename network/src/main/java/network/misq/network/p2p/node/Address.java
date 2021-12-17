@@ -36,17 +36,16 @@ public class Address implements Serializable {
 
     public Address(String fullAddress) {
         StringTokenizer st = new StringTokenizer(fullAddress, ":");
-        if (st.countTokens() == 2) {
-            this.host = st.nextToken();
+        this.host = maybeConvertLocalHost(st.nextToken());
+        if (st.hasMoreTokens()) {
             this.port = Integer.parseInt(st.nextToken());
         } else {
-            this.host = st.nextToken();
             this.port = -1;
         }
     }
 
     public Address(String host, int port) {
-        this.host = host;
+        this.host = maybeConvertLocalHost(host);
         this.port = port;
     }
 
@@ -57,5 +56,9 @@ public class Address implements Serializable {
         } else {
             return StringUtils.truncate(host, 4) + ":" + port;
         }
+    }
+
+    private String maybeConvertLocalHost(String host) {
+        return host.equals("localhost") ? "127.0.0.1" : host;
     }
 }

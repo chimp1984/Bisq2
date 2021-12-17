@@ -23,13 +23,13 @@ import lombok.Getter;
 import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.*;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.confidential.ConfidentialMessageService;
+import network.misq.network.p2p.services.confidential.ConfidentialService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
-import network.misq.network.p2p.services.mesh.MeshService;
-import network.misq.network.p2p.services.mesh.monitor.MonitorService;
-import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
+import network.misq.network.p2p.services.peergroup.PeerGroupService;
+import network.misq.network.p2p.services.monitor.MonitorService;
+import network.misq.network.p2p.services.router.gossip.GossipResult;
 import network.misq.network.p2p.services.relay.RelayService;
 import network.misq.security.PubKey;
 import org.slf4j.Logger;
@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.KeyPair;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class ServiceNode {
     }
 
     public enum Service {
-        MESH,
+        PEER_GROUP,
         DATA,
         CONFIDENTIAL,
         RELAY,
@@ -66,31 +67,32 @@ public class ServiceNode {
 
     private final NodesById nodesById;
     private final Node defaultNode;
-    private Optional<ConfidentialMessageService> confidentialMessageService;
+    private Optional<ConfidentialService> confidentialMessageService;
     @Getter
-    private Optional<MeshService> meshService;
+    private Optional<PeerGroupService> peerGroupService;
     private Optional<DataService> dataService;
     private Optional<RelayService> relayService;
     private Optional<MonitorService> monitorService;
 
     public ServiceNode(Config config,
                        Node.Config nodeConfig,
-                       MeshService.Config meshServiceConfig,
+                       PeerGroupService.Config peerGroupServiceConfig,
                        DataService.Config dataServiceConfig,
-                       ConfidentialMessageService.Config confMsgServiceConfig) {
+                       ConfidentialService.Config confMsgServiceConfig,
+                       List<Address> seedNodeAddresses) {
         nodesById = new NodesById(nodeConfig);
         defaultNode = nodesById.getDefaultNode();
 
         Set<Service> services = config.services();
         if (services.contains(Service.CONFIDENTIAL)) {
-            confidentialMessageService = Optional.of(new ConfidentialMessageService(nodesById, confMsgServiceConfig));
+            confidentialMessageService = Optional.of(new ConfidentialService(nodesById, confMsgServiceConfig));
         }
 
-        if (services.contains(Service.MESH)) {
-            meshService = Optional.of(new MeshService(defaultNode, meshServiceConfig));
+        if (services.contains(Service.PEER_GROUP)) {
+            peerGroupService = Optional.of(new PeerGroupService(defaultNode, peerGroupServiceConfig,seedNodeAddresses));
 
             if (services.contains(Service.DATA)) {
-                dataService = Optional.of(new DataService(defaultNode, meshService.get(), dataServiceConfig));
+                dataService = Optional.of(new DataService(defaultNode, peerGroupService.get(), dataServiceConfig));
             }
 
             if (services.contains(Service.RELAY)) {
@@ -110,15 +112,15 @@ public class ServiceNode {
 
     public CompletableFuture<Boolean> bootstrap(String nodeId, int serverPort) {
         return initializeServer(nodeId, serverPort)
-                .thenCompose(res -> initializeMesh());
+                .thenCompose(res -> initializePeerGroup());
     }
 
     public CompletableFuture<Transport.ServerSocketResult> initializeServer(String nodeId, int serverPort) {
         return nodesById.initializeServer(nodeId, serverPort);
     }
 
-    public CompletableFuture<Boolean> initializeMesh() {
-        return meshService.map(MeshService::initialize)
+    public CompletableFuture<Boolean> initializePeerGroup() {
+        return peerGroupService.map(PeerGroupService::initialize)
                 .orElse(CompletableFuture.completedFuture(true));
     }
 
@@ -154,14 +156,14 @@ public class ServiceNode {
     public CompletableFuture<Void> shutdown() {
         CountDownLatch latch = new CountDownLatch(1 + // For nodesById
                 ((int) confidentialMessageService.stream().count()) +
-                ((int) meshService.stream().count()) +
+                ((int) peerGroupService.stream().count()) +
                 ((int) relayService.stream().count()) +
                 ((int) dataService.stream().count()) +
                 ((int) monitorService.stream().count()));
         return CompletableFuture.runAsync(() -> {
             nodesById.shutdown().whenComplete((v, t) -> latch.countDown());
             confidentialMessageService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
-            meshService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
+            peerGroupService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             dataService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             relayService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
             monitorService.ifPresent(service -> service.shutdown().whenComplete((v, t) -> latch.countDown()));
@@ -174,12 +176,12 @@ public class ServiceNode {
         });
     }
 
-    public void addMessageListener(Node.MessageListener messageListener) {
-        confidentialMessageService.ifPresent(service -> service.addMessageListener(messageListener));
+    public void addMessageListener(Node.Listener listener) {
+        confidentialMessageService.ifPresent(service -> service.addMessageListener(listener));
     }
 
-    public void removeMessageListener(Node.MessageListener messageListener) {
-        confidentialMessageService.ifPresent(service -> service.removeMessageListener(messageListener));
+    public void removeMessageListener(Node.Listener listener) {
+        confidentialMessageService.ifPresent(service -> service.removeMessageListener(listener));
     }
 
     public Optional<Address> findMyAddress(String nodeId) {

@@ -17,9 +17,12 @@
 
 package network.misq.network.p2p.node;
 
+import lombok.Getter;
+
 import java.util.concurrent.CompletionException;
 
 public class ConnectionException extends CompletionException {
+
     public ConnectionException(String message) {
         super(message);
     }

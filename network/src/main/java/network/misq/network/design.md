@@ -45,14 +45,14 @@
 
 - `ServiceNode`
     - Creates `NodesById`
-    - Creates `DefaultNode` used for the `MeshService` and related services
+    - Creates `DefaultNode` used for the `PeerGroupService` and related services
     - Creates `ConfidentialMessageService` if that service is supported
-    - Creates `MeshService` if that service is supported
+    - Creates `PeerGroupService` if that service is supported
     - Creates `DataService` if that service is supported
     - Creates `RelayService` if that service is supported
     - Creates `MonitorService` if that service is supported
     - Delegate to relevant services. 
-    - Provide a bootstrap method which initializes the nodes and bootstraps the mesh network
+    - Provide a bootstrap method which initializes the nodes and bootstraps the network
 - `ServiceNodeByTransport`
     - Creates `ServiceNode`
     - Maintains a map of `ServiceNode`s by `NetworkType`
@@ -72,7 +72,7 @@
     - Listens on messages via `NodesById`
     - Use a keyId for quick lookup to keyPair
 
-- `MeshService`
+- `PeerGroupService`
   TODO Manages gossip network
 - 
 - `RelayService`
@@ -138,12 +138,12 @@ AuthorizationToken for verification. PoW is not implemented yet.
 #### Node supporting all core services and all privacy overlay networks
 
 A typical config contains one Tor and one I2P `ServiceNode` with all core services activated. First we start the servers
-of all our nodes. Then we bootstrap all nodes to the mesh network. After that our node is bootstrapped. When sending a
+of all our nodes. Then we bootstrap all nodes to the network. After that our node is bootstrapped. When sending a
 message we create a node with the defined nodeId and an outbound connection if no connection to that peer already exists. 
 After connection is established it performs the _Connection Handshake Protocol_ and once completed it is used to send 
 the message. We send the message from all our network nodes matching the supported `Transport.Type`s of the receiver. 
 E.g. if peer also supports both Tor and I2P we send the message over both those networkNodes. 
-We use a default `Node` with nodeId `DEFAULT` used for the `MeshService`.
+We use a default `Node` with nodeId `DEFAULT` used for the `PeerGroupService`.
 
 #### Node just supporting the overlay network and data distribution
 

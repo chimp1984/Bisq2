@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
  * Maintains nodes per nodeId.
  * Provides delegate methods to node with given nodeId
  */
-public class NodesById implements Node.MessageListener {
+public class NodesById implements Node.Listener {
     private static final Logger log = LoggerFactory.getLogger(NodesById.class);
 
     private final Map<String, Node> map = new ConcurrentHashMap<>();
     private final Node.Config nodeConfig;
-    private final Set<Node.MessageListener> messageListeners = new CopyOnWriteArraySet<>();
+    private final Set<Node.Listener> listeners = new CopyOnWriteArraySet<>();
 
     public NodesById(Node.Config nodeConfig) {
         this.nodeConfig = nodeConfig;
@@ -69,20 +69,20 @@ public class NodesById implements Node.MessageListener {
         return getOrCreateNode(nodeId).initializeServer(serverPort);
     }
 
-    public void addMessageListener(Node.MessageListener listener) {
-        messageListeners.add(listener);
+    public void addNodeListener(Node.Listener listener) {
+        listeners.add(listener);
     }
 
-    public void removeMessageListener(Node.MessageListener listener) {
-        messageListeners.remove(listener);
+    public void removeNodeListener(Node.Listener listener) {
+        listeners.remove(listener);
     }
 
-    public void addMessageListener(String nodeId, Node.MessageListener listener) {
-        getOrCreateNode(nodeId).addMessageListener(listener);
+    public void addNodeListener(String nodeId, Node.Listener listener) {
+        Optional.ofNullable(map.get(nodeId)).ifPresent(node -> node.addListener(listener));
     }
 
-    public void removeMessageListener(String nodeId, Node.MessageListener listener) {
-        Optional.ofNullable(map.get(nodeId)).ifPresent(node -> node.removeMessageListener(listener));
+    public void removeNodeListener(String nodeId, Node.Listener listener) {
+        Optional.ofNullable(map.get(nodeId)).ifPresent(node -> node.removeListener(listener));
     }
 
     public Optional<Address> getMyAddress(String nodeId) {
@@ -120,12 +120,12 @@ public class NodesById implements Node.MessageListener {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // MessageListener
+    // Node.Listener
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        messageListeners.forEach(messageListener -> messageListener.onMessage(message, connection, nodeId));
+        listeners.forEach(messageListener -> messageListener.onMessage(message, connection, nodeId));
     }
 
 
@@ -139,7 +139,7 @@ public class NodesById implements Node.MessageListener {
         } else {
             Node node = new Node(nodeConfig, nodeId);
             map.put(nodeId, node);
-            node.addMessageListener(this);
+            node.addListener(this);
             return node;
         }
     }

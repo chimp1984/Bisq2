@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class InventoryRequestHandler implements Node.MessageListener, Disposable {
+public class InventoryRequestHandler implements Node.Listener, Disposable {
     private static final long TIMEOUT_SEC = 90;
 
     private final Node node;
@@ -42,21 +42,21 @@ public class InventoryRequestHandler implements Node.MessageListener, Disposable
 
     public CompletableFuture<Inventory> request(DataFilter dataFilter) {
         future.orTimeout(TIMEOUT_SEC, TimeUnit.SECONDS);
-        node.addMessageListener(this);
+        node.addListener(this);
         node.send(new InventoryRequest(dataFilter), connection);
         return future;
     }
 
     public void dispose() {
-        node.removeMessageListener(this);
+        node.removeListener(this);
         future.cancel(true);
     }
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        if (this.connection.getId().equals(connection.getId()) && message instanceof InventoryResponse) {
-            InventoryResponse inventoryResponse = (InventoryResponse) message;
-            node.removeMessageListener(this);
+        if (this.connection.getId().equals(connection.getId()) && 
+                message instanceof InventoryResponse inventoryResponse) {
+            node.removeListener(this);
             future.complete(inventoryResponse.getInventory());
         }
     }

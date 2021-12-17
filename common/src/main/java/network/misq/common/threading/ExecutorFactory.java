@@ -20,12 +20,12 @@ package network.misq.common.threading;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExecutorFactory {
     public static final ExecutorService GLOBAL_WORK_STEALING_POOL = Executors.newWorkStealingPool();
+    public static AtomicInteger counter = new AtomicInteger(0);
 
     public static void shutdownAndAwaitTermination(ExecutorService executor) {
         //noinspection UnstableApiUsage
@@ -47,7 +47,7 @@ public class ExecutorFactory {
 
     public static ExecutorService getSingleThreadExecutor(String name) {
         final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat(name)
+                .setNameFormat(name + getId())
                 .setDaemon(true)
                 .build();
         return Executors.newSingleThreadExecutor(threadFactory);
@@ -59,12 +59,16 @@ public class ExecutorFactory {
                                                             long keepAliveTimeInSec,
                                                             BlockingQueue<Runnable> workQueue) {
         final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat(name)
+                .setNameFormat(name + getId())
                 .setDaemon(true)
                 .build();
         ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeInSec,
                 TimeUnit.SECONDS, workQueue, threadFactory);
         executor.allowCoreThreadTimeOut(true);
         return executor;
+    }
+
+    private static String getId() {
+        return "-" + counter.incrementAndGet();
     }
 }

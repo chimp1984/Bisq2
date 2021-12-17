@@ -21,8 +21,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.threading.ExecutorFactory;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 /**
  * Global scheduler which is triggered by the TickEmitter.onTick calls every 10 ms.
@@ -34,12 +34,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class Scheduler implements TaskScheduler, TickEmitter.Listener {
     private Runnable task;
-    private Executor executor = ExecutorFactory.GLOBAL_WORK_STEALING_POOL;
+    private ExecutorService executor = ExecutorFactory.GLOBAL_WORK_STEALING_POOL;
     private long cycles;
 
     private volatile boolean stopped;
     private long startTs;
     private long interval;
+    private Optional<CompletableFuture<Void>> future = Optional.empty();
 
     @Getter
     private long counter;
@@ -54,14 +55,14 @@ public class Scheduler implements TaskScheduler, TickEmitter.Listener {
     }
 
     @Override
-    public Scheduler withExecutor(Executor executor) {
+    public Scheduler withExecutor(ExecutorService executor) {
         this.executor = executor;
         return this;
     }
 
     @Override
-    public Scheduler after(long delay) {
-        return after(delay, TimeUnit.MILLISECONDS);
+    public Scheduler after(long delayMs) {
+        return after(delayMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -70,8 +71,8 @@ public class Scheduler implements TaskScheduler, TickEmitter.Listener {
     }
 
     @Override
-    public Scheduler periodically(long delay) {
-        return periodically(delay, TimeUnit.MILLISECONDS);
+    public Scheduler periodically(long delayMs) {
+        return periodically(delayMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -80,8 +81,8 @@ public class Scheduler implements TaskScheduler, TickEmitter.Listener {
     }
 
     @Override
-    public Scheduler repeated(long delay, long cycles) {
-        return repeated(delay, TimeUnit.MILLISECONDS, cycles);
+    public Scheduler repeated(long delayMs, long cycles) {
+        return repeated(delayMs, TimeUnit.MILLISECONDS, cycles);
     }
 
     @Override
@@ -98,22 +99,32 @@ public class Scheduler implements TaskScheduler, TickEmitter.Listener {
     @Override
     public void stop() {
         stopped = true;
+        future.ifPresent(f -> f.cancel(true));
         TickEmitter.removeListener(this);
     }
 
-    // TickEmitter.Listener
     @Override
     public void onTick(long now) {
         if (stopped) {
             return;
         }
-        if (now - startTs >= interval) {
-            executor.execute(() -> {
+
+        if (System.currentTimeMillis() - startTs >= interval) {
+            if (future.isPresent()) {
+                if (!future.get().isDone()) {
+                    return;
+                }
+            }
+
+            future = Optional.of(CompletableFuture.runAsync(() -> {
                 if (stopped) {
                     return;
                 }
                 try {
                     task.run();
+                } catch (CancellationException ignore) {
+                } catch (CompletionException e) {
+                    stop();
                 } catch (Throwable t) {
                     log.error("Running scheduled task failed", t);
                     stop();
@@ -127,7 +138,7 @@ public class Scheduler implements TaskScheduler, TickEmitter.Listener {
                         startTs = System.currentTimeMillis();
                     }
                 }
-            });
+            }, executor));
         }
     }
 }

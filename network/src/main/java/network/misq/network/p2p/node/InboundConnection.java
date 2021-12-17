@@ -18,25 +18,32 @@
 package network.misq.network.p2p.node;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.transport.Transport;
 
 import java.net.Socket;
-import java.util.function.BiConsumer;
 
 @Slf4j
 public class InboundConnection extends Connection {
     @Getter
     private final Transport.ServerSocketResult serverSocketResult;
 
+    @Setter
+    private boolean isPeerAddressVerified;
+
     InboundConnection(Socket socket,
                       Transport.ServerSocketResult serverSocketResult,
                       Capability peersCapability,
-                      Load peersLoad, 
-                      BiConsumer<Message, Connection> messageHandler) {
-        super(socket, peersCapability, peersLoad, messageHandler);
+                      Load peersLoad,
+                      Handler handler) {
+        super(socket, peersCapability, peersLoad, handler);
         this.serverSocketResult = serverSocketResult;
         log.debug("Create inboundConnection from server: {}", serverSocketResult);
+    }
+
+    @Override
+    public boolean isPeerAddressVerified() {
+        return isPeerAddressVerified;
     }
 }

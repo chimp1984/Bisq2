@@ -27,7 +27,7 @@ import network.misq.network.p2p.services.data.filter.DataFilter;
 import java.util.function.Function;
 
 @Slf4j
-public class InventoryResponseHandler implements Node.MessageListener, Disposable {
+public class InventoryResponseHandler implements Node.Listener, Disposable {
     private final Node node;
     private final Connection connection;
     private final Function<DataFilter, Inventory> inventoryProvider;
@@ -42,20 +42,20 @@ public class InventoryResponseHandler implements Node.MessageListener, Disposabl
         this.inventoryProvider = inventoryProvider;
         this.completeHandler = completeHandler;
 
-        node.addMessageListener(this);
+        node.addListener(this);
     }
 
     public void dispose() {
-        node.removeMessageListener(this);
+        node.removeListener(this);
     }
 
     @Override
     public void onMessage(Message message, Connection connection, String nodeId) {
-        if (this.connection.getId().equals(connection.getId()) && message instanceof InventoryRequest) {
-            InventoryRequest request = (InventoryRequest) message;
+        if (this.connection.getId().equals(connection.getId()) && 
+                message instanceof InventoryRequest request) {
             Inventory inventory = inventoryProvider.apply(request.getDataFilter());
             node.send(new InventoryResponse(inventory), connection);
-            node.removeMessageListener(this);
+            node.removeListener(this);
             completeHandler.run();
         }
     }

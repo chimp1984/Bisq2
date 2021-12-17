@@ -22,6 +22,6 @@ import org.slf4j.LoggerFactory;
 
 public class NetworkMonitorUIMain {
     public static void main(String[] args) {
-        NetworkMonitorUI.launch(NetworkMonitorUI.class);
+        NetworkMonitorUI.launch(NetworkMonitorUI.class,args);
     }
 }

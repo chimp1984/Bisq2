@@ -26,16 +26,13 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.authorization.UnrestrictedAuthorizationService;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.confidential.ConfidentialMessageService;
+import network.misq.network.p2p.services.confidential.ConfidentialService;
 import network.misq.network.p2p.services.data.DataService;
 import network.misq.network.p2p.services.data.filter.DataFilter;
 import network.misq.network.p2p.services.data.inventory.RequestInventoryResult;
-import network.misq.network.p2p.services.mesh.MeshService;
-import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
-import network.misq.network.p2p.services.mesh.peers.keepalive.KeepAliveService;
-import network.misq.network.p2p.services.mesh.router.gossip.GossipResult;
+import network.misq.network.p2p.services.peergroup.PeerGroupService;
+import network.misq.network.p2p.services.peergroup.SeedNodeRepository;
+import network.misq.network.p2p.services.router.gossip.GossipResult;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +60,7 @@ public class ServiceNodesByTransport {
     private final Transport.Config transportConfig;
     private final Set<Transport.Type> supportedTransportTypes;
     private final ServiceNode.Config serviceNodeConfig;
-    private final PeerGroup.Config peerGroupConfig;
-    private final PeerExchangeStrategy.Config peerExchangeConfig;
+    private final Map<Transport.Type, PeerGroupService.Config> peerGroupServiceConfigByTransport;
     private final SeedNodeRepository seedNodeRepository;
     private final DataService.Config dataServiceConfig;
     private final KeyPairRepository keyPairRepository;
@@ -72,32 +68,27 @@ public class ServiceNodesByTransport {
     public ServiceNodesByTransport(Transport.Config transportConfig,
                                    Set<Transport.Type> supportedTransportTypes,
                                    ServiceNode.Config serviceNodeConfig,
-                                   PeerGroup.Config peerGroupConfig,
-                                   PeerExchangeStrategy.Config peerExchangeConfig,
+                                   Map<Transport.Type, PeerGroupService.Config> peerGroupServiceConfigByTransport,
                                    SeedNodeRepository seedNodeRepository,
                                    DataService.Config dataServiceConfig,
                                    KeyPairRepository keyPairRepository) {
         this.transportConfig = transportConfig;
         this.supportedTransportTypes = supportedTransportTypes;
         this.serviceNodeConfig = serviceNodeConfig;
-        this.peerGroupConfig = peerGroupConfig;
-        this.peerExchangeConfig = peerExchangeConfig;
+        this.peerGroupServiceConfigByTransport = peerGroupServiceConfigByTransport;
         this.seedNodeRepository = seedNodeRepository;
         this.dataServiceConfig = dataServiceConfig;
         this.keyPairRepository = keyPairRepository;
     }
 
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // API
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void init() {
         long socketTimeout = TimeUnit.MINUTES.toMillis(5);
-        ConfidentialMessageService.Config confMsgServiceConfig = new ConfidentialMessageService.Config(keyPairRepository);
-        KeepAliveService.Config keepAliveServiceConfig = new KeepAliveService.Config(socketTimeout / 2,
-                socketTimeout / 4);
-
+        ConfidentialService.Config confMsgServiceConfig = new ConfidentialService.Config(keyPairRepository);
         supportedTransportTypes.forEach(transportType -> {
             Node.Config nodeConfig = new Node.Config(transportType,
                     supportedTransportTypes,
@@ -106,16 +97,13 @@ public class ServiceNodesByTransport {
                     (int) socketTimeout);
 
             List<Address> seedNodeAddresses = seedNodeRepository.addressesByTransportType().get(transportType);
-            MeshService.Config meshServiceConfig = new MeshService.Config(peerGroupConfig,
-                    peerExchangeConfig,
-                    keepAliveServiceConfig,
-                    seedNodeAddresses);
-
+            PeerGroupService.Config peerGroupServiceConfig = peerGroupServiceConfigByTransport.get(transportType);
             ServiceNode serviceNode = new ServiceNode(serviceNodeConfig,
                     nodeConfig,
-                    meshServiceConfig,
+                    peerGroupServiceConfig,
                     dataServiceConfig,
-                    confMsgServiceConfig);
+                    confMsgServiceConfig,
+                    seedNodeAddresses);
             map.put(transportType, serviceNode);
         });
     }
@@ -241,15 +229,15 @@ public class ServiceNodesByTransport {
         }
     }
 
-    public void addMessageListener(Node.MessageListener messageListener) {
+    public void addMessageListener(Node.Listener listener) {
         map.values().forEach(networkNode -> {
-            networkNode.addMessageListener(messageListener);
+            networkNode.addMessageListener(listener);
         });
     }
 
-    public void removeMessageListener(Node.MessageListener messageListener) {
+    public void removeMessageListener(Node.Listener listener) {
         map.values().forEach(networkNode -> {
-            networkNode.removeMessageListener(messageListener);
+            networkNode.removeMessageListener(listener);
         });
     }
 

@@ -8,7 +8,7 @@ import network.misq.network.p2p.node.Node;
 
 import java.util.Map;
 
-public abstract class ManyPartyProtocol extends Protocol implements Node.MessageListener {
+public abstract class ManyPartyProtocol extends Protocol implements Node.Listener {
     protected final Map<Role, Party> partyMap;
 
     public ManyPartyProtocol(ManyPartyContract contract, NetworkService networkService) {

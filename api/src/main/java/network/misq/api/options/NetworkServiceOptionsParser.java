@@ -23,11 +23,14 @@ import network.misq.network.NetworkService;
 import network.misq.network.p2p.ServiceNode;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.transport.Transport;
-import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.peergroup.PeerGroup;
+import network.misq.network.p2p.services.peergroup.PeerGroupService;
+import network.misq.network.p2p.services.peergroup.SeedNodeRepository;
+import network.misq.network.p2p.services.peergroup.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.peergroup.keepalive.KeepAliveService;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parses the program arguments which are relevant for that domain and stores it in the options field.
@@ -43,7 +46,7 @@ public class NetworkServiceOptionsParser {
 
         ServiceNode.Config serviceNodeConfig = new ServiceNode.Config(Set.of(
                 ServiceNode.Service.CONFIDENTIAL,
-                ServiceNode.Service.MESH,
+                ServiceNode.Service.PEER_GROUP,
                 ServiceNode.Service.DATA,
                 ServiceNode.Service.RELAY,
                 ServiceNode.Service.MONITOR));
@@ -57,12 +60,36 @@ public class NetworkServiceOptionsParser {
        
         SeedNodeRepository seedNodeRepository = new SeedNodeRepository(seedsByTransportType);
         Transport.Config transportConfig = new Transport.Config(baseDirPath);
+
+        KeepAliveService.Config keepAliveServiceConfig = new KeepAliveService.Config(TimeUnit.SECONDS.toMillis(180), TimeUnit.SECONDS.toMillis(90));
+        PeerGroupService.Config defaultConf = new PeerGroupService.Config(peerGroupConfig,
+                peerExchangeStrategyConfig,
+                keepAliveServiceConfig,
+                TimeUnit.SECONDS.toMillis(60),   //bootstrapTime
+                TimeUnit.SECONDS.toMillis(30),  //interval
+                TimeUnit.SECONDS.toMillis(10),  //timeout
+                100,                        //maxReported
+                100,                        //maxPersisted
+                2);                           //maxSeeds
+
+        Map<Transport.Type, PeerGroupService.Config> peerGroupServiceConfigByTransport = Map.of(
+                Transport.Type.TOR, defaultConf,                           //maxSeeds
+                Transport.Type.I2P, defaultConf,
+                Transport.Type.CLEAR_NET, new PeerGroupService.Config(peerGroupConfig,
+                        peerExchangeStrategyConfig,
+                        keepAliveServiceConfig,
+                        TimeUnit.SECONDS.toMillis(1),
+                        TimeUnit.SECONDS.toMillis(1),
+                        TimeUnit.SECONDS.toMillis(1),
+                        100,
+                        100,
+                        2)
+        );
         config = new NetworkService.Config(baseDirPath,
                 transportConfig,
                 supportedTransportTypes,
                 serviceNodeConfig,
-                peerGroupConfig,
-                peerExchangeStrategyConfig,
+                peerGroupServiceConfigByTransport,
                 seedNodeRepository,
                 Optional.empty());
     }

@@ -30,9 +30,8 @@ import network.misq.network.p2p.node.Connection;
 import network.misq.network.p2p.node.Node;
 import network.misq.network.p2p.node.transport.Transport;
 import network.misq.network.p2p.services.data.DataService;
-import network.misq.network.p2p.services.mesh.peers.PeerGroup;
-import network.misq.network.p2p.services.mesh.peers.SeedNodeRepository;
-import network.misq.network.p2p.services.mesh.peers.exchange.PeerExchangeStrategy;
+import network.misq.network.p2p.services.peergroup.PeerGroupService;
+import network.misq.network.p2p.services.peergroup.SeedNodeRepository;
 import network.misq.security.KeyPairRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,15 +51,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkService {
     private static final Logger log = LoggerFactory.getLogger(NetworkService.class);
-    private final Config config;
-    private final KeyPairRepository keyPairRepository;
 
     public static record Config(String baseDirPath,
                                 Transport.Config transportConfig,
                                 Set<Transport.Type> supportedTransportTypes,
                                 ServiceNode.Config p2pServiceNodeConfig,
-                                PeerGroup.Config peerGroupConfig,
-                                PeerExchangeStrategy.Config peerExchangeConfig,
+                                Map<Transport.Type, PeerGroupService.Config> peerGroupServiceConfigByTransport,
                                 SeedNodeRepository seedNodeRepository,
                                 Optional<String> socks5ProxyAddress) {
     }
@@ -74,17 +70,13 @@ public class NetworkService {
     private final ServiceNodesByTransport serviceNodesByTransport;
 
     public NetworkService(Config config, KeyPairRepository keyPairRepository) {
-        this.config = config;
-        this.keyPairRepository = keyPairRepository;
-
         httpService = new HttpService();
         socks5ProxyAddress = config.socks5ProxyAddress;
         supportedTransportTypes = config.supportedTransportTypes();
         serviceNodesByTransport = new ServiceNodesByTransport(config.transportConfig(),
                 supportedTransportTypes,
                 config.p2pServiceNodeConfig(),
-                config.peerGroupConfig,
-                config.peerExchangeConfig(),
+                config.peerGroupServiceConfigByTransport,
                 config.seedNodeRepository(),
                 new DataService.Config(config.baseDirPath()),
                 keyPairRepository);
@@ -112,12 +104,12 @@ public class NetworkService {
         return serviceNodesByTransport.confidentialSend(message, peerNetworkId, myKeyPair, connectionId);
     }
 
-    public void addMessageListener(Node.MessageListener messageListener) {
-        serviceNodesByTransport.addMessageListener(messageListener);
+    public void addMessageListener(Node.Listener listener) {
+        serviceNodesByTransport.addMessageListener(listener);
     }
 
-    public void removeMessageListener(Node.MessageListener messageListener) {
-        serviceNodesByTransport.removeMessageListener(messageListener);
+    public void removeMessageListener(Node.Listener listener) {
+        serviceNodesByTransport.removeMessageListener(listener);
     }
 
 

@@ -22,7 +22,7 @@ import network.misq.contract.TwoPartyContract;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.node.Node;
 
-public abstract class TwoPartyProtocol extends Protocol implements Node.MessageListener {
+public abstract class TwoPartyProtocol extends Protocol implements Node.Listener {
     protected final Party counterParty;
 
     public TwoPartyProtocol(TwoPartyContract contract, NetworkService networkService) {

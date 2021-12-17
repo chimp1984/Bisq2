@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Defines the protocol for executing a contract.
  */
-public abstract class Protocol implements Node.MessageListener {
+public abstract class Protocol implements Node.Listener {
     public interface Listener {
         void onStateChange(State state);
     }

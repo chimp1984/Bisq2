@@ -32,36 +32,48 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import network.misq.common.util.CompletableFutureUtils;
+import network.misq.common.util.StringUtils;
 import network.misq.desktop.common.threading.UIThread;
 import network.misq.network.NetworkService;
 import network.misq.network.p2p.ServiceNode;
+import network.misq.network.p2p.message.Message;
 import network.misq.network.p2p.node.Address;
 import network.misq.network.p2p.node.Connection;
-import network.misq.network.p2p.node.ConnectionListener;
 import network.misq.network.p2p.node.Node;
-import network.misq.network.p2p.services.mesh.MeshService;
-import network.misq.network.p2p.services.mesh.monitor.NetworkMonitor;
-import network.misq.network.p2p.services.mesh.peers.PeerGroup;
+import network.misq.network.p2p.services.monitor.NetworkMonitor;
+import network.misq.network.p2p.services.peergroup.PeerGroup;
+import network.misq.network.p2p.services.peergroup.PeerGroupService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class NetworkMonitorUI extends Application {
+    private Address myAddress;
     private NetworkMonitor networkMonitor;
     private FlowPane seedsPane, nodesPane;
     private TextArea nodeInfoTextArea, eventTextArea;
     private final List<NetworkService> seedNetworkServices = new ArrayList<>();
     private final List<NetworkService> nodeNetworkServices = new ArrayList<>();
     private final Map<Address, String> connectionInfoByAddress = new HashMap<>();
+    private Optional<String> fullAddress = Optional.empty();
+    private Optional<List<Address>> autoBootstrap = Optional.empty();
+    private boolean doBootstrap;
+    private NetworkService selectedNetworkService;
 
     @Override
     public void start(Stage primaryStage) {
+        fullAddress = Optional.ofNullable(getParameters().getNamed().get("myAddress"));
+        autoBootstrap = Optional.ofNullable(getParameters().getNamed().get("autoBootstrap"))
+                .map(StringUtils::trimWhitespace)
+                .map(str -> List.of(str.split(",")))
+                .map(list -> list.stream().map(Address::new).collect(Collectors.toList()));
+        doBootstrap = Optional.ofNullable(getParameters().getNamed().get("doBootstrap"))
+                .map(e -> e.equalsIgnoreCase("true"))
+                .orElse(autoBootstrap.isEmpty() && fullAddress.isEmpty());
         networkMonitor = new NetworkMonitor();
 
         String bgStyle = "-fx-background-color: #dadada";
@@ -121,8 +133,8 @@ public class NetworkMonitorUI extends Application {
 
         eventTextArea = new TextArea();
         eventTextArea.setEditable(false);
-        eventTextArea.setMinHeight(nodeInfoTextArea.getMinHeight());
-        eventTextArea.setMinWidth(nodeInfoTextArea.getMinWidth());
+        eventTextArea.minHeightProperty().bind(nodeInfoTextArea.minHeightProperty());
+        eventTextArea.minWidthProperty().bind(nodeInfoTextArea.minWidthProperty());
         eventTextArea.setFont(Font.font("Courier", FontWeight.NORMAL, FontPosture.REGULAR, 13));
 
         ContextMenu contextMenu = new ContextMenu();
@@ -146,23 +158,36 @@ public class NetworkMonitorUI extends Application {
         primaryStage.setTitle("Network simulator");
         primaryStage.setScene(scene);
         primaryStage.show();
-
         start();
     }
 
-
     private void start() {
-        bootstrap(networkMonitor.getSeedAddresses(networkMonitor.getTransportType()), "Seed ", seedNetworkServices, seedsPane)
-                .thenCompose(res1 -> {
-                    return bootstrap(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
-                }).whenComplete((r, t) -> {
-                    log.info("All nodes bootstrapped");
-                });
+        List<Address> seedAddresses = networkMonitor.getSeedAddresses(networkMonitor.getTransportType());
+        if (fullAddress.isPresent()) {
+            Address myAddress = new Address(fullAddress.get());
+            boolean isSeed = seedAddresses.contains(myAddress);
+            String name = isSeed ? "Seed" : "Node";
+            List<NetworkService> sink = isSeed ? seedNetworkServices : nodeNetworkServices;
+            Pane pane = isSeed ? seedsPane : nodesPane;
+            doStart(List.of(myAddress), name, sink, pane);
+        } else {
+            doStart(seedAddresses, "Seed ", seedNetworkServices, seedsPane)
+                    .thenCompose(res1 -> {
+                        return doStart(networkMonitor.getNodeAddresses(), "Node ", nodeNetworkServices, nodesPane);
+                    }).whenComplete((r, t) -> {
+                        log.info("All nodes bootstrapped");
+                    });
+        }
     }
 
     private void setupConnectionListener(NetworkService networkService) {
         networkService.findDefaultNode(networkMonitor.getTransportType()).ifPresent(node -> {
-            node.addConnectionListener(new ConnectionListener() {
+            node.addListener(new Node.Listener() {
+
+                @Override
+                public void onMessage(Message message, Connection connection, String nodeId) {
+                }
+
                 @Override
                 public void onConnection(Connection connection) {
                     UIThread.run(() -> {
@@ -176,6 +201,7 @@ public class NetworkMonitorUI extends Application {
                             prev = "";
                         }
                         connectionInfoByAddress.put(key, prev + info);
+                        refreshNodeInfo(node, networkService);
                     });
                 }
 
@@ -192,39 +218,59 @@ public class NetworkMonitorUI extends Application {
                             prev = "";
                         }
                         connectionInfoByAddress.put(key, prev + info);
+                        refreshNodeInfo(node, networkService);
                     });
                 }
             });
         });
     }
 
-    private CompletableFuture<Boolean> bootstrap(List<Address> addresses,
-                                                 String name,
-                                                 List<NetworkService> sink,
-                                                 Pane pane) {
+    private CompletableFuture<Boolean> doStart(List<Address> addresses,
+                                               String name,
+                                               List<NetworkService> sink,
+                                               Pane pane) {
         UIThread.run(() -> stopNodes(sink, pane));
-
         List<CompletableFuture<Boolean>> allFutures = new ArrayList<>();
-        addresses.forEach(address -> {
+        for (int i = 0; i < addresses.size(); i++) {
+            Address address = addresses.get(i);
             int port = address.getPort();
             NetworkService networkService = networkMonitor.createNetworkService(port);
             setupConnectionListener(networkService);
-            allFutures.add(networkService.bootstrap(port));
+            CompletableFuture<Boolean> future;
+            int minDelayMs = (i + 1) * 10;
+            int maxDelayMs = (i + 1) * 1000;
+            if (doBootstrap) {
+                future = CompletableFutureUtils.wait(minDelayMs, maxDelayMs)
+                        .thenCompose(__ -> networkService.bootstrap(port));
+            } else if (autoBootstrap.stream().anyMatch(list -> list.contains(address))) {
+                future = CompletableFutureUtils.wait(minDelayMs, maxDelayMs)
+                        .thenCompose(__ -> networkService.bootstrap(address.getPort()));
+            } else {
+                future = CompletableFuture.completedFuture(true);
+            }
+            allFutures.add(future);
 
             UIThread.run(() -> {
                 Button button = new Button(name + port);
                 button.setMinWidth(100);
                 button.setMaxWidth(button.getMinWidth());
                 pane.getChildren().add(button);
-                button.setOnAction(e -> onNodeInfo(networkService, port));
+                button.setOnAction(e -> {
+                    selectedNetworkService = networkService;
+                    onNodeInfo(networkService, port);
+                });
                 sink.add(networkService);
             });
-        });
+        }
 
         return CompletableFutureUtils.allOf(allFutures)
                 .thenApply(success -> success.stream().allMatch(e -> e))
                 .orTimeout(120, TimeUnit.SECONDS)
                 .thenCompose(CompletableFuture::completedFuture);
+    }
+
+    private static CompletableFuture<Boolean> delay(CompletableFuture<Boolean> future, int minDelay, int maxDelay) {
+        return future.thenApplyAsync(e -> e, CompletableFuture.delayedExecutor(minDelay + new Random().nextInt(maxDelay - minDelay), TimeUnit.MILLISECONDS));
     }
 
     private void stopNodes(List<NetworkService> sink, Pane seedsPane) {
@@ -241,30 +287,37 @@ public class NetworkMonitorUI extends Application {
 
 
     private void onNodeInfo(NetworkService networkService, int port) {
-        String connectionMatrix = networkService.findServiceNode(networkMonitor.getTransportType())
-                .flatMap(ServiceNode::getMeshService)
-                .map(MeshService::getPeerGroup).stream()
-                .map(PeerGroup::getConnectionMatrix)
+        String info = networkService.findServiceNode(networkMonitor.getTransportType())
+                .flatMap(ServiceNode::getPeerGroupService)
+                .map(PeerGroupService::getPeerGroup).stream()
+                .map(PeerGroup::getInfo)
                 .findAny()
                 .orElse("null");
-        nodeInfoTextArea.setText(connectionMatrix);
+
+        nodeInfoTextArea.setText(info);
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem stop = new MenuItem("Stop");
-        stop.setOnAction((event) -> {
-            networkService.shutdown();
-            //networkService.findServiceNode(networkMonitor.getTransportType()).ifPresent(e->e.shutdown());
-        });
         MenuItem start = new MenuItem("Start");
         start.setOnAction((event) -> {
-            // networkService.findServiceNode(networkMonitor.getTransportType()).ifPresent(e->e.bootstrap(port));
             networkService.init();
             networkService.bootstrap(port);
         });
-        contextMenu.getItems().addAll(stop, start);
+        MenuItem stop = new MenuItem("Stop");
+        stop.setOnAction((event) -> {
+            networkService.shutdown();
+        });
+        contextMenu.getItems().addAll(start, stop);
         nodeInfoTextArea.setContextMenu(contextMenu);
 
         networkService.findDefaultNode(networkMonitor.getTransportType())
                 .flatMap(Node::findMyAddress)
-                .ifPresent(address -> nodeInfoTextArea.appendText("\nConnections:" + connectionInfoByAddress.get(address)));
+                .ifPresent(address -> nodeInfoTextArea.appendText("\nConnection History:" + connectionInfoByAddress.get(address)));
+
+        nodeInfoTextArea.positionCaret(0);
+    }
+
+    private void refreshNodeInfo(Node node, NetworkService networkService) {
+        if (selectedNetworkService == null) {
+            node.findMyAddress().map(Address::getPort).ifPresent(port -> onNodeInfo(networkService, port));
+        }
     }
 }

@@ -60,7 +60,7 @@ public abstract class BaseNodesByIdTest extends BaseNetworkTest {
                     fail(t);
                 }
                 initializeServerLatch.countDown();
-                nodesById.addMessageListener(nodeId, (message, connection, id) -> {
+                nodesById.addNodeListener(nodeId, (message, connection, id) -> {
                     log.info("Received " + message.toString());
                     if (message instanceof ClearNetNodesByIdIntegrationTest.Ping) {
                         ClearNetNodesByIdIntegrationTest.Pong pong = new ClearNetNodesByIdIntegrationTest.Pong("Pong from " + finalI + " to " + connection.getPeerAddress().getPort());

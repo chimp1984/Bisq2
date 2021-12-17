@@ -40,7 +40,7 @@ import network.misq.protocol.TwoPartyProtocol;
  *   <li value="5">After Taker has received Maker's funds he sends his funds. He has completed now.
  * </ol>
  */
-public abstract class BsqBondProtocol extends TwoPartyProtocol implements Node.MessageListener {
+public abstract class BsqBondProtocol extends TwoPartyProtocol implements Node.Listener {
 
     public enum State implements Protocol.State {
         START,

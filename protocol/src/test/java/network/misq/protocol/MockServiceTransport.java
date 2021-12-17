@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MockServiceTransport extends NetworkService {
     private static final Logger log = LoggerFactory.getLogger(MockServiceTransport.class);
-    private final Set<Node.MessageListener> messageListeners = ConcurrentHashMap.newKeySet();
+    private final Set<Node.Listener> listeners = ConcurrentHashMap.newKeySet();
 
     public MockServiceTransport() {
         super(null, null);
@@ -58,7 +58,7 @@ public class MockServiceTransport extends NetworkService {
                 Thread.sleep(100);
             } catch (InterruptedException ignore) {
             }
-            messageListeners.forEach(e -> e.onMessage(message, null, "default"));
+            listeners.forEach(e -> e.onMessage(message, null, "default"));
         }).start();
 
         return future;
@@ -66,12 +66,12 @@ public class MockServiceTransport extends NetworkService {
 
 
     @Override
-    public void addMessageListener(Node.MessageListener messageListener) {
-        messageListeners.add(messageListener);
+    public void addMessageListener(Node.Listener listener) {
+        listeners.add(listener);
     }
 
     @Override
-    public void removeMessageListener(Node.MessageListener messageListener) {
+    public void removeMessageListener(Node.Listener listener) {
     }
 
     @Override
